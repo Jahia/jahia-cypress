@@ -1,9 +1,6 @@
+# @jahia/cypress
 
-## Configure
-
-Add `@jahia/cypress` to your project
-
-### Commands
+## Commands
 
 [`.apolloClient()`](./src/support/apollo/apolloClient.md)
 
@@ -19,10 +16,18 @@ Add `@jahia/cypress` to your project
 
 [`.logout()`](./src/support/logout.md)
 
-Add cypress commands : in support/index.js, adds : 
+## Page / component objects
+
+
+
+## Configure
+
+Add `@jahia/cypress` to your project.
+
+Add cypress commands and support : in support/index.js, adds : 
 
 ```js
-require('@jahia/cypress/dist/support/registerCommands').registerCommands()
+require('@jahia/cypress/dist/support/registerSupport').registerSupport()
 ```
 
 Add typings in your tsconfig.json : 
@@ -34,8 +39,6 @@ Add typings in your tsconfig.json :
   ]
 }
 ```
-
-### Plugins 
 
 This project provides a plugin for settings environment variable based on system env ( `JAHIA_URL` and `SUPER_USER_PASSWORD` )
 It also embeds `cypress-terminal-report` for better output.
