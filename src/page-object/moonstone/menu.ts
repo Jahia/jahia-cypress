@@ -1,8 +1,8 @@
-import {BaseComponent} from "./baseComponent"
+import {BaseComponent} from "../baseComponent"
 
 export class Menu extends BaseComponent {
-    constructor(selector: string, parent?: BaseComponent) {
-        super(selector, parent)
+    constructor(selector: string) {
+        super(selector)
     }
 
     select(item: string): void {

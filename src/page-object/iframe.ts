@@ -4,8 +4,8 @@ import Chainable = Cypress.Chainable;
 export class IFrame extends BaseComponent {
     private body: JQuery<HTMLElement>
 
-    constructor(selector = 'iframe', parent?: BaseComponent) {
-        super(selector, parent)
+    constructor(selector = 'iframe') {
+        super(selector)
         this.get()
             .should(f => {
                 const fr: HTMLFrameElement = f[0] as HTMLFrameElement

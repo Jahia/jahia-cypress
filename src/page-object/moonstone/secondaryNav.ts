@@ -1,4 +1,4 @@
-import {BaseComponent} from "./baseComponent"
+import {BaseComponent} from "../baseComponent"
 
 export class SecondaryNav extends BaseComponent{
     constructor() {

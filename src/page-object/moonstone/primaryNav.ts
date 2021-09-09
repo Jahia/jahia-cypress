@@ -1,4 +1,4 @@
-import {BaseComponent} from "./baseComponent"
+import {BaseComponent} from "../baseComponent"
 import Chainable = Cypress.Chainable;
 
 export class PrimaryNav extends BaseComponent {

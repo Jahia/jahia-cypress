@@ -20,10 +20,6 @@ function isQuery(options: QueryOptions | MutationOptions): options is QueryOptio
     return (<QueryOptions>options).query !== undefined;
 }
 
-function isMutation(options: QueryOptions | MutationOptions): options is MutationOptions {
-    return (<MutationOptions>options).mutation !== undefined;
-}
-
 export const apollo = function (apollo: ApolloClient<any>, options: ApolloOptions): void {
     if (!apollo) {
         apollo = this.currentApolloClient

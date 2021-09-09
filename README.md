@@ -2,9 +2,9 @@
 
 ## Commands
 
-[`.apolloClient()`](./src/support/apollo/apolloClient.md)
-
 [`.apollo()`](./src/support/apollo/apollo.md)
+
+[`.apolloClient()`](./src/support/apollo/apolloClient.md)
 
 [`.runProvisioningScript()`](./src/support/provisioning/runProvisioningScript.md)
 
@@ -16,7 +16,71 @@
 
 ## Page / component objects
 
+In Page Object Model, a set of object is provided to handle known and reused web elements. 
+These page objects provide method to handle interactions with these web elements. 
+Web elements can be simple HTML elements, more complex UI components or full pages. 
 
+This framework does not come with predefined page objects, as they should be provided by the modules which define them.
+TODO: Moonstone page object are defined here, but could be moved to moonstone
+
+### Implementation
+
+#### Components
+
+Page object representing a component extends `baseComponent`. 
+Creating a page object will enqueue a command looking for the corresponding DOM element. 
+An alias to this element will be stored in the object.
+
+Page object can provide accessors to other page object, and methods that will enqueue other cypress commands and assertions.
+
+[`moonstone`](./src/page-object/moonstone)
+
+#### Pages
+
+Page object representing an HTML page extends `basePage`.
+They can provide a static visit() method to open the page, and returns an instance of the page object.
+Constructor can initialize components that are present in the page. This will assert that these components are present, and make them available for the tests.
+
+[`jcontent.md`](./src/page-object/jcontent/jcontent.ts)
+
+### Sample usage
+
+``` typescript
+const primaryNav = new PrimaryNav()  // Look for primary nav elements 
+primaryNav.listItems().expect('...') // Check primary nav content
+primaryNav.select('jcontent')        // Select the corresponding item and click on it
+```
+
+Create a page object for a full page
+
+``` typescript
+class JContent {
+    secondaryNav: SecondaryNav
+    accordion: Accordion
+    table: Table
+
+    static visit(site, language, path):JContent {
+        cy.visit(`/jahia/jcontent/${site}/${language}/${path}`)
+        return new JContent()
+    }
+
+    constructor() {
+        this.secondaryNav = new SecondaryNav()
+        this.accordion = new Accordion(this.secondaryNav.getSelector())
+    }
+
+    getTable() {
+        return new Table()
+    }
+
+    select(accordion) {
+        this.accordion.click(accordion)
+    }
+
+}
+
+
+```
 
 ## Configure
 

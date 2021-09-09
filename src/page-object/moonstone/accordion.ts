@@ -1,9 +1,9 @@
-import {BaseComponent} from "./baseComponent"
+import {BaseComponent} from "../baseComponent"
 import Chainable = Cypress.Chainable;
 
 export class Accordion extends BaseComponent {
-    constructor(selector = '.moonstone-accordion', parent?: BaseComponent) {
-        super(selector, parent)
+    constructor(selector = '') {
+        super(selector + '.moonstone-accordion')
     }
 
     click(itemName: string): void {

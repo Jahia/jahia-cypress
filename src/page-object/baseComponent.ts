@@ -7,15 +7,14 @@ export class BaseComponent {
     id: number
     selector: string
 
-    constructor(selector: string, parent?: BaseComponent) {
+    constructor(selector: string) {
         this.id = BaseComponent.count++
-        this.selector = (parent ? parent.selector + ' ' : '') + selector
+        this.selector = selector + ' '
+        this.element = cy.get(selector).as('component' + this.id)
+    }
 
-        if (parent) {
-            this.element = parent.get().get(selector).as('component' + this.id)
-        } else {
-            this.element = cy.get(selector).as('component' + this.id)
-        }
+    getSelector(): string {
+        return this.selector
     }
 
     get(): Chainable<JQuery> {
