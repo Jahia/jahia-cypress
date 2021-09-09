@@ -45,41 +45,18 @@ Constructor can initialize components that are present in the page. This will as
 
 ### Sample usage
 
-``` typescript
+```typescript
 const primaryNav = new PrimaryNav()  // Look for primary nav elements 
 primaryNav.listItems().expect('...') // Check primary nav content
 primaryNav.select('jcontent')        // Select the corresponding item and click on it
 ```
 
-Create a page object for a full page
 
-``` typescript
-class JContent {
-    secondaryNav: SecondaryNav
-    accordion: Accordion
-    table: Table
-
-    static visit(site, language, path):JContent {
-        cy.visit(`/jahia/jcontent/${site}/${language}/${path}`)
-        return new JContent()
-    }
-
-    constructor() {
-        this.secondaryNav = new SecondaryNav()
-        this.accordion = new Accordion(this.secondaryNav.getSelector())
-    }
-
-    getTable() {
-        return new Table()
-    }
-
-    select(accordion) {
-        this.accordion.click(accordion)
-    }
-
-}
-
-
+```typescript
+let jcontent = JContent.visit("digitall", "en", "pages");
+jcontent.select('content-folders')
+const m = jcontent.getTable().getRow(1).contextMenu()
+m.select('edit')
 ```
 
 ## Configure
