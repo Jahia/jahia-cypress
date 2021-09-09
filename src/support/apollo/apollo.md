@@ -1,4 +1,4 @@
-# apolloQuery / apolloMutate 
+# apollo
 
 These commands execute a GraphQL query/mutation through Apollo client.
 
@@ -12,10 +12,10 @@ These commands execute a GraphQL query/mutation through Apollo client.
 ### Usage
 
 ```
-cy.apolloQuery(queryOptions)
-cy.apolloMutate(mutationOptions)
-cy.apolloClient().apolloMutate(mutationOption)
-cy.apolloClient().apolloQuery(queryOptions)
+cy.apollo(queryOptions)
+cy.apollo(mutationOptions)
+cy.apolloClient().apollo(mutationOption)
+cy.apolloClient().apollo(queryOptions)
 ```
 
 ### Arguments
@@ -33,7 +33,7 @@ The Apollo Query or Mutation result object (`ApolloQueryResult` / `FetchResult`)
 ### Query
 
 ```
-    cy.apolloQuery({
+    cy.apollo({
         query: gql`admin {
             jahia {
                 version { 
@@ -47,7 +47,7 @@ The Apollo Query or Mutation result object (`ApolloQueryResult` / `FetchResult`)
 ### Mutation
 
 ```
-    cy.apolloMutate({
+    cy.apollo({
         variables: {
             timeout: 2,
         },
@@ -65,7 +65,7 @@ The Apollo Query or Mutation result object (`ApolloQueryResult` / `FetchResult`)
 
 ### Requirements
 
-- `cy.apolloQuery()` can be chained off of `cy` or `cy.apolloClient()`.
+- `cy.apollo()` can be chained off of `cy` or `cy.apolloClient()`.
 
 ### Assertions
 
@@ -73,7 +73,7 @@ The Apollo Query or Mutation result object (`ApolloQueryResult` / `FetchResult`)
 
 ## Command Log
 
-When clicking on `apQuery` within the command log, the console outputs the following:
+When clicking on `apollo` within the command log, the console outputs the following:
 
 - `Options`: the passed options
 - `Yielded`: the full result

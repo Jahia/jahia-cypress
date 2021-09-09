@@ -4,9 +4,7 @@
 
 [`.apolloClient()`](./src/support/apollo/apolloClient.md)
 
-[`.apolloMutate()`](./src/support/apollo/apollo.md)
-
-[`.apolloQuery()`](./src/support/apollo/apollo.md)
+[`.apollo()`](./src/support/apollo/apollo.md)
 
 [`.runProvisioningScript()`](./src/support/provisioning/runProvisioningScript.md)
 
