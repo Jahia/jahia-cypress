@@ -17,7 +17,9 @@ declare global {
 type FormFile = {
     fileName?: string,
     fileContent?: string,
-    type?: string
+    type?: string,
+    encoding?: Cypress.Encodings
+    replacements?: { [key: string]: string }
 }
 
 function getBlob(formFile: FormFile): Promise<Blob> {
@@ -25,7 +27,10 @@ function getBlob(formFile: FormFile): Promise<Blob> {
         if (formFile.fileContent) {
             resolve(new Blob([formFile.fileContent], {type: formFile.type}))
         } else {
-            cy.fixture(formFile.fileName, 'binary').then(content => {
+            cy.fixture(formFile.fileName, (formFile.encoding ? formFile.encoding : 'binary')).then(content => {
+                if (formFile.replacements) {
+                    Object.keys(formFile.replacements).forEach(k => content = content.replaceAll(k, formFile.replacements[k]))
+                }
                 formFile.fileContent = content
                 resolve(Cypress.Blob.binaryStringToBlob(content, formFile.type))
             })
@@ -77,8 +82,13 @@ export const runProvisioningScript = (script: FormFile, files?: FormFile[], opti
     }).then(res => {
         response = res
         expect(res.status, 'Script result').to.eq(200)
-        const decoder = new TextDecoder()
-        result = JSON.parse(decoder.decode(response.body))
+        try {
+            const decoder = new TextDecoder()
+            result = JSON.parse(decoder.decode(response.body))
+        } catch (e) {
+            result = e
+        }
+
         logger?.end()
         return result
     })
