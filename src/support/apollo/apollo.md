@@ -20,9 +20,11 @@ cy.apolloClient().apollo(queryOptions)
 
 ### Arguments
 
-#### &gt; options (`QueryOptions` | `MutationOptions`)
+#### &gt; options (`QueryOptions | MutationOptions | FileQueryOptions | FileMutationOptions`)
 
 The query or mutation options, containing query/mutation itself, variables, and other fields as defined in Apollo API.
+
+You can replace `query` by `queryFile` and `mutation` by `mutationFile` to use a fixture containing the query/mutation.
 
 ### Yields
 
