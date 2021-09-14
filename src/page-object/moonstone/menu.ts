@@ -1,11 +1,20 @@
-import {BaseComponent} from "../baseComponent"
+import {BaseComponent, get} from "../baseComponent"
+
 
 export class Menu extends BaseComponent {
-    constructor(selector: string) {
-        super(selector)
+    static defaultSelector = '.moonstone-menu'
+
+    static get(parent?: BaseComponent, assertion?: (s: JQuery) => void): Menu {
+        return get(Menu, parent, assertion)
     }
 
-    select(item: string): void {
-        cy.get(this.selector).find(`.moonstone-menuItem[data-sel-role="${item}"]`).trigger('click')
+    select(item: string): Menu {
+        this.get().find(`.moonstone-menuItem`).should("contain", item).contains(item).trigger('click')
+        return this
+    }
+
+    selectByRole(item: string): Menu {
+        this.get().find(`.moonstone-menuItem[data-sel-role="${item}"]`).trigger('click')
+        return this
     }
 }

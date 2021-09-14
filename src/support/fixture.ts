@@ -1,5 +1,8 @@
-export const fixture = function(originalCommand, fixture, ...args) {
-    cy.wrap({}, {log:false}).then(() => {
+import Chainable = Cypress.Chainable;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const fixture = function(originalCommand: ((...args: any[]) => any), fixture: string, ...args: any[]): Chainable<any> {
+    return cy.wrap({}, {log:false}).then(() => {
         return originalCommand(fixture, ...args).then(f => {
             return f
         }).catch((err) => {

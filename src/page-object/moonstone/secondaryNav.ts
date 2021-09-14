@@ -1,8 +1,9 @@
-import {BaseComponent} from "../baseComponent"
+import {BaseComponent, get} from "../baseComponent"
 
 export class SecondaryNav extends BaseComponent{
-    constructor() {
-        super('.moonstone-secondaryNav_wrapper')
-    }
+    static defaultSelector = '.moonstone-secondaryNav_wrapper'
 
+    static get(parent?: BaseComponent, assertion?: (s: JQuery) => void): SecondaryNav {
+        return get(SecondaryNav, parent, assertion)
+    }
 }

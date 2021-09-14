@@ -1,11 +1,17 @@
-import {BaseComponent} from "./baseComponent"
+import {BaseComponent, get} from "./baseComponent"
 import Chainable = Cypress.Chainable;
 
 export class IFrame extends BaseComponent {
+    static defaultSelector = 'iframe'
+
+    static get(parent?: BaseComponent): IFrame {
+        return get(IFrame, parent)
+    }
+
     private body: JQuery<HTMLElement>
 
-    constructor(selector = 'iframe') {
-        super(selector)
+    constructor(element: Chainable<JQuery>, assertion?: (s: JQuery) => void) {
+        super(element, assertion)
         this.get()
             .should(f => {
                 const fr: HTMLFrameElement = f[0] as HTMLFrameElement

@@ -1,9 +1,11 @@
-import {BaseComponent} from "../baseComponent"
+import {BaseComponent, get} from "../baseComponent"
 import Chainable = Cypress.Chainable;
 
 export class PrimaryNav extends BaseComponent {
-    constructor() {
-        super('.moonstone-primaryNav')
+    static defaultSelector = '.moonstone-primaryNav'
+
+    static get(parent?: BaseComponent, assertion?: (s: JQuery) => void): PrimaryNav {
+        return get(PrimaryNav, parent, assertion)
     }
 
     click(itemName: string): void {
