@@ -1,6 +1,6 @@
 {
   "name": "@jahia/cypress",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src -c .eslintrc.json --ext .ts"
@@ -9,17 +9,17 @@
   "types": "dist/index.d.ts",
   "license": "MIT",
   "devDependencies": {
-    "@apollo/client": "^3.4.9",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
     "cypress": "^8.3.1",
     "eslint": "^7.32.0",
     "eslint-plugin-cypress": "^2.11.3",
-    "graphql": "^15.5.0",
-    "graphql-tag": "^2.11.0",
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "cypress-terminal-report": "^3.3.2"
+    "@apollo/client": "^3.4.9",
+    "cypress-terminal-report": "^3.3.2",
+    "graphql": "^15.5.0",
+    "graphql-tag": "^2.11.0"
   }
 }
