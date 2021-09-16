@@ -1,22 +1,18 @@
-import {BaseComponent, get} from "../baseComponent"
+import {BaseComponent} from "../baseComponent"
 import {Button} from "./button";
 import Chainable = Cypress.Chainable;
-
+import {getComponentByRole} from "../utils";
 
 export class Pagination extends BaseComponent {
     static defaultSelector = '.moonstone-tablePagination'
 
-    static get(parent?: BaseComponent, assertion?: (s: JQuery) => void): Pagination {
-        return get(Pagination, parent, assertion)
-    }
-
     clickNextPage(): Pagination {
-        Button.getByRole('table-pagination-button-next-page', this).click()
+        getComponentByRole(Button, 'table-pagination-button-next-page', this).click()
         return this
     }
 
     clickPreviousPage(): Pagination {
-        Button.getByRole('table-pagination-button-previous-page', this).click()
+        getComponentByRole(Button, 'table-pagination-button-previous-page', this).click()
         return this
     }
 

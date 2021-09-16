@@ -1,12 +1,8 @@
-import {BaseComponent, get} from "../baseComponent"
+import {BaseComponent} from "../baseComponent"
 import Chainable = Cypress.Chainable;
 
 export class Accordion extends BaseComponent {
     static defaultSelector = '.moonstone-accordion'
-
-    static get(parent?: BaseComponent, assertion?: (s: JQuery) => void): Accordion {
-        return get(Accordion, parent, assertion)
-    }
 
     click(itemName: string): Accordion {
         this.get().find(`section.moonstone-accordionItem header[aria-controls="${itemName}"]`).click()
