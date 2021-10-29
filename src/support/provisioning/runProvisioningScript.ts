@@ -22,17 +22,27 @@ type FormFile = {
     replacements?: { [key: string]: string }
 }
 
+function processContent(formFile: FormFile) {
+    let content = formFile.fileContent;
+    if (formFile.replacements) {
+        Object.keys(formFile.replacements).forEach(k => content = content.replaceAll(k, formFile.replacements[k]))
+    }
+    formFile.fileContent = content
+    return Cypress.Blob.binaryStringToBlob(content, formFile.type);
+}
+
 function getBlob(formFile: FormFile): Promise<Blob> {
     return new Promise(resolve => {
         if (formFile.fileContent) {
-            resolve(new Blob([formFile.fileContent], {type: formFile.type}))
+            resolve(processContent(formFile))
         } else {
             cy.fixture(formFile.fileName, (formFile.encoding ? formFile.encoding : 'binary')).then(content => {
-                if (formFile.replacements) {
-                    Object.keys(formFile.replacements).forEach(k => content = content.replaceAll(k, formFile.replacements[k]))
+                if (typeof content === 'object') {
+                    formFile.fileContent = JSON.stringify(content);
+                } else {
+                    formFile.fileContent = content;
                 }
-                formFile.fileContent = content
-                resolve(Cypress.Blob.binaryStringToBlob(content, formFile.type))
+                resolve(processContent(formFile))
             })
         }
     })
@@ -42,11 +52,13 @@ export const runProvisioningScript = (script: FormFile, files?: FormFile[], opti
     const formData = new FormData()
 
     getBlob(script).then(blob => formData.append("script", blob))
-    files.forEach((f) => {
-        getBlob(f).then(blob => {
-            formData.append("file", blob, f.fileName)
+    if (files) {
+        files.forEach((f) => {
+            getBlob(f).then(blob => {
+                formData.append("file", blob, f.fileName)
+            })
         })
-    })
+    }
 
     let response: Cypress.Response<any>
     let result: any
