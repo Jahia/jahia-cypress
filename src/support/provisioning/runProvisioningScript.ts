@@ -31,32 +31,28 @@ function processContent(formFile: FormFile) {
     return Cypress.Blob.binaryStringToBlob(content, formFile.type);
 }
 
-function getBlob(formFile: FormFile): Promise<Blob> {
-    return new Promise(resolve => {
-        if (formFile.fileContent) {
-            resolve(processContent(formFile))
-        } else {
-            cy.fixture(formFile.fileName, (formFile.encoding ? formFile.encoding : 'binary')).then(content => {
-                if (typeof content === 'object') {
-                    formFile.fileContent = JSON.stringify(content);
-                } else {
-                    formFile.fileContent = content;
-                }
-                resolve(processContent(formFile))
-            })
-        }
-    })
+function append(formFile: FormFile, formData: FormData, key: string) {
+    if (formFile.fileContent) {
+        formData.append(key, processContent(formFile));
+    } else {
+        cy.fixture(formFile.fileName, (formFile.encoding ? formFile.encoding : 'binary')).then(content => {
+            if (typeof content === 'object') {
+                formFile.fileContent = JSON.stringify(content);
+            } else {
+                formFile.fileContent = content;
+            }
+            formData.append(key, processContent(formFile));
+        })
+    }
 }
 
 export const runProvisioningScript = (script: FormFile, files?: FormFile[], options: Cypress.Loggable = {log:true}): void => {
     const formData = new FormData()
 
-    getBlob(script).then(blob => formData.append("script", blob))
+    append(script, formData, "script")
     if (files) {
         files.forEach((f) => {
-            getBlob(f).then(blob => {
-                formData.append("file", blob, f.fileName)
-            })
+            append(f, formData, "file")
         })
     }
 
