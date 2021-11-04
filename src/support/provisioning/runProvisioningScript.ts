@@ -33,7 +33,7 @@ function processContent(formFile: FormFile) {
 
 function append(formFile: FormFile, formData: FormData, key: string) {
     if (formFile.fileContent) {
-        formData.append(key, processContent(formFile));
+        formData.append(key, processContent(formFile), formFile.fileName);
     } else {
         cy.fixture(formFile.fileName, (formFile.encoding ? formFile.encoding : 'binary')).then(content => {
             if (typeof content === 'object') {
@@ -41,7 +41,7 @@ function append(formFile: FormFile, formData: FormData, key: string) {
             } else {
                 formFile.fileContent = content;
             }
-            formData.append(key, processContent(formFile));
+            formData.append(key, processContent(formFile), formFile.fileName);
         })
     }
 }
