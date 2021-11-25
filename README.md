@@ -14,6 +14,8 @@
 
 [`.logout()`](./src/support/logout.md)
 
+[`.repeatUntil()`](./src/support/repeatUntil.md)
+
 ## Page / component objects
 
 In Page Object Model, a set of object is provided to handle known and reused web elements. 
