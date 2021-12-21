@@ -3,6 +3,7 @@ import Chainable = Cypress.Chainable;
 export type ComponentType<Component> = { new(p: Chainable<JQuery>, assertion?: (s: JQuery) => void): Component, defaultSelector: string };
 
 export class BaseComponent {
+    static defaultSelector = ''
     static count = 0
 
     element: Chainable<JQuery>
@@ -21,5 +22,9 @@ export class BaseComponent {
         }
 
         return cy.get('@component' + this.id, {log: false})
+    }
+
+    should(arg, ...others) {
+        return cy.get('@component' + this.id, {log: false}).should(arg, ...others)
     }
 }
