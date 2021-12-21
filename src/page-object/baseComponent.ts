@@ -13,9 +13,7 @@ export class BaseComponent {
     constructor(element: Chainable<JQuery>, assertion?: (s: JQuery) => void) {
         this.id = BaseComponent.count++
         this.element = element.as('component' + this.id)
-        this.assertion = assertion ? assertion : ($el) => {
-            expect($el).to.be.visible
-        }
+        this.assertion = assertion
     }
 
     get(): Chainable<JQuery> {
