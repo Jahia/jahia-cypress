@@ -30,9 +30,9 @@ export const executeGroovy = function (scriptFile: string, replacements?: { [key
     cy.runProvisioningScript({
         fileContent: '- executeScript: "' + scriptFile + '"',
         type: 'application/yaml'
-    }, jahiaServer, [{
+    }, [{
         fileName: scriptFile,
         replacements,
         type: 'text/plain'
-    }]).then(r => r[0])
+    }], jahiaServer).then(r => r[0])
 }
