@@ -10,6 +10,7 @@ This commands execute a groovy script from fixtures folder
 
 ```
 cy.executeGroovy('script.groovy')
+cy.executeGroovy('script.groovy', null, {url: 'http://jahia-processing.jahia.net:8080', username: 'root', password: 'root1234'})
 ```
 
 ### Arguments
@@ -17,6 +18,14 @@ cy.executeGroovy('script.groovy')
 #### &gt; script (`string`)
 
 The name of the script file, in fixtures folder
+
+#### &gt; jahiaServer (`JahiaServer`)
+
+A Jahia server can be specified if there is a need to use something other than default. This is useful when using Jahia in cluster, if there is a need to redirect a provisioning script to a specific Jahia server (for example a processig node).
+
+- url: (`string`) : The url of the server (for example: http://processing.jahia.net:8080)
+- username: (`string`) : Root user
+- password: (`string`) : Password for the root user
 
 ### Yields
 

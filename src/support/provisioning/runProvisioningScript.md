@@ -12,6 +12,7 @@ This commands execute a provisioning script
 cy.runProvisioningScript({fileName:'prov.yaml', type:'application/yaml'})
 cy.runProvisioningScript({fileName:'prov.yaml', type:'application/yaml'}, [{fileName: 'file1.zip'}])
 cy.runProvisioningScript({fileContent:'- startBundle: "module"', type:'application/yaml'})
+cy.runProvisioningScript({fileContent:'- startBundle: "module"', type:'application/yaml'}, null, {url: 'http://jahia-processing.jahia.net:8080', username: 'root', password: 'root1234'})
 ```
 
 ### Arguments
@@ -23,6 +24,14 @@ The script can be specified either from an external file (using fileName) or inl
 - fileName: (`string`) : The name of the script file, in fixtures folder
 - fileContent: (`string`) : The content of the script. If specified, fileName is ignored.
 - type: (`string`) : Content type, either `application/yaml` or `application/json`
+
+#### &gt; jahiaServer (`JahiaServer`)
+
+A Jahia server can be specified if there is a need to use something other than default. This is useful when using Jahia in cluster, if there is a need to redirect a provisioning script to a specific Jahia server (for example a processig node).
+
+- url: (`string`) : The url of the server (for example: http://processing.jahia.net:8080)
+- username: (`string`) : Root user
+- password: (`string`) : Password for the root user
 
 #### &gt; files (`FormFile[]`)
 

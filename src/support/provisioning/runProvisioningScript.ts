@@ -9,7 +9,7 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            runProvisioningScript(script: FormFile, files?: FormFile[]): Chainable<any>
+            runProvisioningScript(script: FormFile, files?: FormFile[], jahiaServer?: JahiaServer): Chainable<any>
         }
     }
 }
@@ -20,6 +20,12 @@ type FormFile = {
     type?: string,
     encoding?: Cypress.Encodings
     replacements?: { [key: string]: string }
+}
+
+type JahiaServer = {
+    url: string;
+    username: string;
+    password: string
 }
 
 function processContent(formFile: FormFile) {
@@ -46,7 +52,13 @@ function append(formFile: FormFile, formData: FormData, key: string) {
     }
 }
 
-export const runProvisioningScript = (script: FormFile, files?: FormFile[], options: Cypress.Loggable = {log:true}): void => {
+const serverDefaults: JahiaServer = {
+    url: Cypress.config().baseUrl,
+    username: 'root',
+    password: Cypress.env('SUPER_USER_PASSWORD')
+}
+
+export const runProvisioningScript = (script: FormFile, files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}): void => {
     const formData = new FormData()
 
     append(script, formData, "script")
@@ -78,11 +90,11 @@ export const runProvisioningScript = (script: FormFile, files?: FormFile[], opti
     }
 
     cy.request({
-        url: `${Cypress.config().baseUrl}/modules/api/provisioning`,
+        url: `${jahiaServer.url}/modules/api/provisioning`,
         method: 'POST',
         auth: {
-            user: 'root',
-            pass: Cypress.env('SUPER_USER_PASSWORD'),
+            user: jahiaServer.username,
+            pass: jahiaServer.password,
             sendImmediately: true,
         },
         body: formData,
