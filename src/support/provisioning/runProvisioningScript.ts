@@ -9,7 +9,7 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            runProvisioningScript(script: FormFile, jahiaServer: JahiaServer, files?: FormFile[]): Chainable<any>
+            runProvisioningScript(script: FormFile, files?: FormFile[], jahiaServer?: JahiaServer): Chainable<any>
         }
     }
 }
@@ -58,7 +58,7 @@ const serverDefaults: JahiaServer = {
     password: Cypress.env('SUPER_USER_PASSWORD')
 }
 
-export const runProvisioningScript = (script: FormFile, jahiaServer: JahiaServer = serverDefaults, files?: FormFile[], options: Cypress.Loggable = {log:true}): void => {
+export const runProvisioningScript = (script: FormFile, files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}): void => {
     const formData = new FormData()
 
     append(script, formData, "script")

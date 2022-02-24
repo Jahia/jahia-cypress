@@ -9,7 +9,7 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            executeGroovy(scriptFile: string, jahiaServer: JahiaServer, replacements?: { [key: string]: string }): Chainable<any>
+            executeGroovy(scriptFile: string, replacements?: { [key: string]: string }, jahiaServer?: JahiaServer): Chainable<any>
         }
     }
 }
@@ -26,7 +26,7 @@ const serverDefaults = {
     password: Cypress.env('SUPER_USER_PASSWORD')
 }
 
-export const executeGroovy = function (scriptFile: string, jahiaServer: JahiaServer = serverDefaults, replacements?: { [key: string]: string }): void {
+export const executeGroovy = function (scriptFile: string, replacements?: { [key: string]: string }, jahiaServer: JahiaServer = serverDefaults): void {
     cy.runProvisioningScript({
         fileContent: '- executeScript: "' + scriptFile + '"',
         type: 'application/yaml'

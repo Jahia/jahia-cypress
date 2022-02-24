@@ -10,7 +10,7 @@ This commands execute a groovy script from fixtures folder
 
 ```
 cy.executeGroovy('script.groovy')
-cy.executeGroovy('script.groovy', {url: 'http://jahia-processing.jahia.net:8080', username: 'root', password: 'root1234'})
+cy.executeGroovy('script.groovy', null, {url: 'http://jahia-processing.jahia.net:8080', username: 'root', password: 'root1234'})
 ```
 
 ### Arguments

@@ -12,7 +12,7 @@ This commands execute a provisioning script
 cy.runProvisioningScript({fileName:'prov.yaml', type:'application/yaml'})
 cy.runProvisioningScript({fileName:'prov.yaml', type:'application/yaml'}, [{fileName: 'file1.zip'}])
 cy.runProvisioningScript({fileContent:'- startBundle: "module"', type:'application/yaml'})
-cy.runProvisioningScript({fileContent:'- startBundle: "module"', type:'application/yaml'}, {url: 'http://jahia-processing.jahia.net:8080', username: 'root', password: 'root1234'})
+cy.runProvisioningScript({fileContent:'- startBundle: "module"', type:'application/yaml'}, null, {url: 'http://jahia-processing.jahia.net:8080', username: 'root', password: 'root1234'})
 ```
 
 ### Arguments
