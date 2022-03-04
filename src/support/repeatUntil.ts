@@ -3,7 +3,7 @@
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
 
-type RepeatUntilOptions = {
+export type RepeatUntilOptions = {
     attempts: number,
     callback: () => void,
     delay: number,
