@@ -9,20 +9,22 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            runProvisioningScript(script: FormFile, files?: FormFile[], jahiaServer?: JahiaServer): Chainable<any>
+            runProvisioningScript(script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer?: JahiaServer): Chainable<any>
         }
     }
 }
 
-type FormFile = {
+export type StringDictionary = { [key: string]: string }
+
+export type FormFile = {
     fileName?: string,
     fileContent?: string,
     type?: string,
     encoding?: Cypress.Encodings
-    replacements?: { [key: string]: string }
+    replacements?: StringDictionary
 }
 
-type JahiaServer = {
+export type JahiaServer = {
     url: string;
     username: string;
     password: string
@@ -40,7 +42,7 @@ function processContent(formFile: FormFile) {
 function append(formFile: FormFile, formData: FormData, key: string) {
     if (formFile.fileContent) {
         formData.append(key, processContent(formFile), formFile.fileName);
-    } else {
+    } else if (formFile.fileName) {
         cy.fixture(formFile.fileName, (formFile.encoding ? formFile.encoding : 'binary')).then(content => {
             if (typeof content === 'object') {
                 formFile.fileContent = JSON.stringify(content);
@@ -58,10 +60,22 @@ const serverDefaults: JahiaServer = {
     password: Cypress.env('SUPER_USER_PASSWORD')
 }
 
-export const runProvisioningScript = (script: FormFile, files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}): void => {
+function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
+    return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
+}
+
+export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}): void => {
     const formData = new FormData()
 
-    append(script, formData, "script")
+    if (isFormFile(script)) {
+        append(script, formData, "script")
+    } else {
+        append({
+            fileContent: JSON.stringify(script),
+            type: 'application/json'
+        }, formData, "script");
+    }
+
     if (files) {
         files.forEach((f) => {
             append(f, formData, "file")

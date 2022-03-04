@@ -15,10 +15,7 @@ declare global {
 }
 
 export const installBundle = function (bundleFile: string): void {
-    cy.runProvisioningScript({
-        fileContent: '- installBundle: "' + bundleFile + '"',
-        type: 'application/yaml'
-    }, [{
+    cy.runProvisioningScript([{ installBundle: bundleFile }], [{
         fileName: bundleFile,
         type: 'text/plain'
     }])

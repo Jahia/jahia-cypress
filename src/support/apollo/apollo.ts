@@ -15,9 +15,9 @@ declare global {
     }
 }
 
-type FileQueryOptions = Partial<QueryOptions> & { queryFile?: string }
-type FileMutationOptions = Partial<MutationOptions> & { mutationFile?: string }
-type ApolloOptions = (QueryOptions | MutationOptions | FileQueryOptions | FileMutationOptions) & Partial<Cypress.Loggable>;
+export type FileQueryOptions = Partial<QueryOptions> & { queryFile?: string }
+export type FileMutationOptions = Partial<MutationOptions> & { mutationFile?: string }
+export type ApolloOptions = (QueryOptions | MutationOptions | FileQueryOptions | FileMutationOptions) & Partial<Cypress.Loggable>;
 
 function isQuery(options: ApolloOptions): options is QueryOptions {
     return (<QueryOptions>options).query !== undefined;
