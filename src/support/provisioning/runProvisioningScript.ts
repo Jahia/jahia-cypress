@@ -91,7 +91,7 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
             autoEnd: false,
             name: 'runProvisioningScript',
             displayName: 'provScript',
-            message: `Run ${script.fileName ? script.fileName : 'inline script'} towards server: ${jahiaServer.url}`,
+            message: `Run ${isFormFile(script) && script.fileName ? script.fileName : 'inline script'} towards server: ${jahiaServer.url}`,
             consoleProps: () => {
                 return {
                     Script: script,
