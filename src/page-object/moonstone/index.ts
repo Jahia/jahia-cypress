@@ -1,5 +1,6 @@
 export * from './accordion'
 export * from './button'
+export * from './collapsible'
 export * from './dropdown'
 export * from './menu'
 export * from './pagination'
