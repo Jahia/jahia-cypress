@@ -70,7 +70,13 @@ export const apollo = function (apollo: ApolloClient<any>, options: ApolloOption
             }
 
             cy.wrap({}, {log: false})
-                .then(() => (isQuery(options) ? apollo.query(options) : apollo.mutate(options))
+                .then(() => (isQuery(options) ? apollo.query(options).catch(error => {
+                        cy.log(`Caught Graphql Query Error: ${JSON.stringify(error)}`);
+                        return error;
+                    }) : apollo.mutate(options).catch(error => {
+                        cy.log(`Caught Graphql Mutation Error: ${JSON.stringify(error)}`);
+                        return error;
+                    }))
                     .then(r => {
                         result = r
                         logger?.end()
