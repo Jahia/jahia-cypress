@@ -38,22 +38,23 @@ export const apollo = function (apollo: ApolloClient<any>, options: ApolloOption
 
     let result : ApolloQueryResult<any> | FetchResult
     let logger : Cypress.Log
+    const optionsWithDefaultCache: ApolloOptions = {fetchPolicy: "no-cache", ...options}
 
     if (!apollo) {
-        cy.apolloClient().apollo(options)
+        cy.apolloClient().apollo(optionsWithDefaultCache)
     } else {
-        if (isQueryFile(options)) {
-            const {queryFile, ...apolloOptions} = options
+        if (isQueryFile(optionsWithDefaultCache)) {
+            const {queryFile, ...apolloOptions} = optionsWithDefaultCache
             cy.fixture(queryFile).then(content => {
                 cy.apollo({query: gql(content), ...apolloOptions})
             })
-        } else if (isMutationFile(options)) {
-            const {mutationFile, ...apolloOptions} = options
+        } else if (isMutationFile(optionsWithDefaultCache)) {
+            const {mutationFile, ...apolloOptions} = optionsWithDefaultCache
             cy.fixture(mutationFile).then(content => {
                 cy.apollo({mutation: gql(content), ...apolloOptions})
             })
         } else {
-            const {log = true, ...apolloOptions} = options
+            const {log = true, ...apolloOptions} = optionsWithDefaultCache
             if (log) {
                 logger = Cypress.log({
                     autoEnd: false,
@@ -70,10 +71,10 @@ export const apollo = function (apollo: ApolloClient<any>, options: ApolloOption
             }
 
             cy.wrap({}, {log: false})
-                .then(() => (isQuery(options) ? apollo.query(options).catch(error => {
+                .then(() => (isQuery(optionsWithDefaultCache) ? apollo.query(optionsWithDefaultCache).catch(error => {
                         cy.log(`Caught Graphql Query Error: ${JSON.stringify(error)}`);
                         return error;
-                    }) : apollo.mutate(options).catch(error => {
+                    }) : apollo.mutate(optionsWithDefaultCache).catch(error => {
                         cy.log(`Caught Graphql Mutation Error: ${JSON.stringify(error)}`);
                         return error;
                     }))
