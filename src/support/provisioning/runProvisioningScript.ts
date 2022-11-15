@@ -64,7 +64,7 @@ function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
     return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
 }
 
-export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}): void => {
+export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}, timeout?: number): void => {
     const formData = new FormData()
 
     if (isFormFile(script)) {
@@ -112,7 +112,10 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
             sendImmediately: true,
         },
         body: formData,
-        log: false
+        log: false,
+        if(timeout){
+            timeout: timeout
+        }
     }).then(res => {
         response = res
         expect(res.status, 'Script result').to.eq(200)
