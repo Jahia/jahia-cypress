@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
+import RequestOptions = Cypress.RequestOptions;
+
 
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
@@ -103,20 +105,7 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         })
     }
 
-    interface requestInterface {
-        url: string;
-        method: string;
-        auth: {
-            user: string;
-            pass: string;
-            sendImmediately: boolean;
-        };
-        body: FormData;
-        log: boolean;
-        timeout?: number;
-    }
-
-    const request: requestInterface = {
+    const request: Partial<RequestOptions> = {
         url: `${jahiaServer.url}/modules/api/provisioning`,
         method: 'POST',
         auth: {
