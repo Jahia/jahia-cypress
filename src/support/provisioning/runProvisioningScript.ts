@@ -103,15 +103,23 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         })
     }
 
-    let request = "url: `${jahiaServer.url}/modules/api/provisioning`,method: 'POST',auth: {user: jahiaServer.username,pass: jahiaServer.password,sendImmediately: true,},body: formData,log: false"
-
-    if(typeof timeout !== undefined){
-        request+="timeout: timeout"
+    let request = {
+        url: `${jahiaServer.url}/modules/api/provisioning`,
+        method: 'POST',
+        auth: {
+            user: jahiaServer.username,
+            pass: jahiaServer.password,
+            sendImmediately: true,
+        },
+        body: formData,
+        log: false
     }
 
-    cy.request({
-        request
-    }).then(res => {
+    if(typeof timeout !== undefined){
+        request.timeout = timeout
+    }
+
+    cy.request(request).then(res => {
         response = res
         expect(res.status, 'Script result').to.eq(200)
         try {
