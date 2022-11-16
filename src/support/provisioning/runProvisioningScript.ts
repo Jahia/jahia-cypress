@@ -103,7 +103,7 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         })
     }
 
-    let request = {
+    const request = {
         url: `${jahiaServer.url}/modules/api/provisioning`,
         method: 'POST',
         auth: {
@@ -115,7 +115,7 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         log: false
     }
 
-    if(typeof timeout !== undefined){
+    if(typeof timeout !== 'undefined'){
         request.timeout = timeout
     }
 
