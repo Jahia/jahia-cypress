@@ -64,7 +64,7 @@ function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
     return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
 }
 
-export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}): void => {
+export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}, timeout?: number): void => {
     const formData = new FormData()
 
     if (isFormFile(script)) {
@@ -103,7 +103,7 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         })
     }
 
-    cy.request({
+    const request = {
         url: `${jahiaServer.url}/modules/api/provisioning`,
         method: 'POST',
         auth: {
@@ -113,7 +113,13 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         },
         body: formData,
         log: false
-    }).then(res => {
+    }
+
+    if(typeof timeout !== 'undefined'){
+        request.timeout = timeout
+    }
+
+    cy.request(request).then(res => {
         response = res
         expect(res.status, 'Script result').to.eq(200)
         try {
