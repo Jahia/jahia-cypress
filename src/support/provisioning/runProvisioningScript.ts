@@ -103,7 +103,20 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         })
     }
 
-    const request = {
+    interface requestInterface {
+        url: string;
+        method: string;
+        auth: {
+            user: string;
+            pass: string;
+            sendImmediately: boolean;
+        };
+        body: FormData;
+        log: boolean;
+        timeout?: number;
+    }
+
+    const request: requestInterface = {
         url: `${jahiaServer.url}/modules/api/provisioning`,
         method: 'POST',
         auth: {
