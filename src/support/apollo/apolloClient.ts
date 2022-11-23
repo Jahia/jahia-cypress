@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
 
-import {ApolloClient, HttpLink, InMemoryCache, NormalizedCacheObject} from '@apollo/client/core'
+import {ApolloClient, from, HttpLink, InMemoryCache, NormalizedCacheObject} from '@apollo/client/core'
+import {FormDataHttpLink, uploadLink} from './links'
 
 interface AuthMethod {
     token?: string
@@ -34,11 +35,15 @@ export const apolloClient = function (authMethod?: AuthMethod, options: ApolloCl
         headers.authorization = `Basic ${btoa(authMethod.username + ':' + authMethod.password)}`
     }
 
+    const httpLink = new HttpLink({
+        uri: `${Cypress.config().baseUrl}/modules/graphql`,
+        headers,
+    })
+
+    const links = [FormDataHttpLink(Cypress.config().baseUrl), uploadLink]
+
     const client = new ApolloClient({
-        link: new HttpLink({
-            uri: `${Cypress.config().baseUrl}/modules/graphql`,
-            headers,
-        }),
+        link: from(links),
         cache: new InMemoryCache(),
         defaultOptions: {
             query: {
