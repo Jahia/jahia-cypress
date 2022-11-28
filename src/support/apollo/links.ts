@@ -12,7 +12,6 @@ export const FormDataHttpLink = (baseUrl: string, headers: Object) => {
         uri: `${baseUrl}/modules/graphql`,
         headers,
         fetch: (uri, fetcherOptions) => {
-            console.log(uri, fetcherOptions)
             const options: ApolloRequestInit = { ...fetcherOptions }
             if (options.formData) {
                 const formData = options.formData
