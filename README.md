@@ -82,9 +82,8 @@ Add typings in your tsconfig.json :
 ```
 
 This project provides a plugin for settings environment variable based on system env ( `JAHIA_URL` and `SUPER_USER_PASSWORD` )
-It also embeds `cypress-terminal-report` for better output.
 
-To set-up : in `plugins/index.js`, calls the module in `@jahia/cypress/dist/plugins/registerPlugins` :
+Set up your plugins: in `plugins/index.js`, calls the module in `@jahia/cypress/dist/plugins/registerPlugins` :
 
 ```js
 module.exports = (on, config) => {
