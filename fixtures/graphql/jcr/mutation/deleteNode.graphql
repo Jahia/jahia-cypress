@@ -1,4 +1,4 @@
-mutation($pathOrId: String!) {
+mutation deleteNode($pathOrId: String!) {
     jcr(workspace: EDIT) {
         deleteNode(pathOrId: $pathOrId)
     }
