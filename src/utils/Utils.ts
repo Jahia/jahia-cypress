@@ -58,22 +58,10 @@ export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): voi
     cy.wait(2000);
 };
 
-export const addNode = (parentPathOrId: string, primaryNodeType: string, name: string, properties = []): Cypress.Chainable => {
-    return cy.apollo({
-        variables: {
-            parentPathOrId: parentPathOrId,
-            primaryNodeType: primaryNodeType,
-            name: name,
-            properties: properties
-        },
-        mutationFile: 'graphql/jcr/mutation/addNode.graphql'
-    });
-};
-
-export const addPage = (variables: {parentPathOrId: string, name: string, template: string, language: string, title?: string}): Cypress.Chainable => {
+export const addNode = (variables: {parentPathOrId: string, primaryNodeType: string, name: string, properties?: any[], children?: any[]}): Cypress.Chainable => {
     return cy.apollo({
         variables: variables,
-        mutationFile: 'graphql/jcr/mutation/addPage.graphql'
+        mutationFile: 'graphql/jcr/mutation/addNode.graphql'
     });
 };
 
