@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
 
-import {ApolloClient, from, HttpLink, InMemoryCache, NormalizedCacheObject} from '@apollo/client/core'
-import {FormDataHttpLink, uploadLink} from './links'
+import {ApolloClient, from, HttpLink, InMemoryCache, NormalizedCacheObject} from '@apollo/client/core';
+import {FormDataHttpLink, uploadLink} from './links';
 
 interface AuthMethod {
     token?: string
@@ -26,44 +26,44 @@ export const apolloClient = function (authMethod?: AuthMethod, options: ApolloCl
     log: true,
     setCurrentApolloClient: true
 }): void {
-    const headers: { authorization?: string } = {}
+    const headers: { authorization?: string } = {};
     if (authMethod === undefined) {
-        headers.authorization = `Basic ${btoa('root:' + Cypress.env('SUPER_USER_PASSWORD'))}`
+        headers.authorization = `Basic ${btoa('root:' + Cypress.env('SUPER_USER_PASSWORD'))}`;
     } else if (authMethod.token !== undefined) {
-        headers.authorization = `APIToken ${authMethod.token}`
+        headers.authorization = `APIToken ${authMethod.token}`;
     } else if (authMethod.username !== undefined && authMethod.password !== undefined) {
-        headers.authorization = `Basic ${btoa(authMethod.username + ':' + authMethod.password)}`
+        headers.authorization = `Basic ${btoa(authMethod.username + ':' + authMethod.password)}`;
     }
 
-    const links = [ uploadLink, FormDataHttpLink(Cypress.config().baseUrl, headers)]
+    const links = [uploadLink, FormDataHttpLink(Cypress.config().baseUrl, headers)];
 
     const client = new ApolloClient({
         link: from(links),
         cache: new InMemoryCache(),
         defaultOptions: {
             query: {
-                fetchPolicy: 'no-cache',
-            },
-        },
-    })
+                fetchPolicy: 'no-cache'
+            }
+        }
+    });
 
     if (options.log) {
         Cypress.log({
             name: 'apolloClient',
             displayName: 'apClient',
-            message: `Create new apollo client`,
+            message: 'Create new apollo client',
             consoleProps: () => {
                 return {
                     Auth: authMethod,
                     Yielded: client
-                }
-            },
-        })
+                };
+            }
+        });
     }
 
     if (options.setCurrentApolloClient) {
-        cy.wrap(client, {log: false}).as('currentApolloClient')
+        cy.wrap(client, {log: false}).as('currentApolloClient');
     } else {
-        cy.wrap(client, {log: false})
+        cy.wrap(client, {log: false});
     }
-}
+};

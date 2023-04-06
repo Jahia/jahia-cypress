@@ -1,2 +1,2 @@
-export * from './muiinput'
-export * from './muiradio'
+export * from './muiinput';
+export * from './muiradio';

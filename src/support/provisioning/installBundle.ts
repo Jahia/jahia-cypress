@@ -3,8 +3,6 @@
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
 
-
-
 declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,8 +13,8 @@ declare global {
 }
 
 export const installBundle = function (bundleFile: string): void {
-    cy.runProvisioningScript([{ installBundle: bundleFile }], [{
+    cy.runProvisioningScript([{installBundle: bundleFile}], [{
         fileName: bundleFile,
         type: 'text/plain'
-    }])
-}
+    }]);
+};

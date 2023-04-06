@@ -1,5 +1,5 @@
-./dist
+dist/
 ./node_modules
-./.idea
 .yalc/
 node_modules
+.idea
