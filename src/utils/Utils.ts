@@ -75,11 +75,12 @@ export const getNodeByPath = (path: string): Cypress.Chainable => {
 };
 
 export const createSite = (siteKey: string, templateSet?: string, serverName?: string, locale?: string, languages?: string) => {
+    const definedLocale = locale ? locale : 'en';
     cy.executeGroovy('groovy/admin/createSite.groovy', {
         SITEKEY: siteKey,
         TEMPLATES_SET: templateSet ? templateSet : 'dx-base-demo-templates',
         SERVERNAME: serverName ? serverName : 'localhost',
-        LOCALE: locale ? locale : 'en',
-        LANGUAGES: languages ? `Arrays.asList(${languages})` : ''
+        LOCALE: definedLocale,
+        LANGUAGES: languages ? `Arrays.asList(${languages})` : `Arrays.asList("${definedLocale}")`
     });
 };
