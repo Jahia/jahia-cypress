@@ -40,7 +40,7 @@ export const publishAndWaitJobEnding = (path: string, languages: string[] = ['en
             publishSubNodes: true,
             includeSubTree: true
         },
-        mutationFile: 'graphql/mutation/publishNode.graphql'
+        mutationFile: 'graphql/jcr/mutation/publishNode.graphql'
     });
     waitAllJobsFinished('Publication timeout for node: ' + path, 60000);
 };
@@ -95,5 +95,22 @@ export const createSite = (siteKey: string, templateSet?: string, serverName?: s
         SERVERNAME: serverName ? serverName : 'localhost',
         LOCALE: definedLocale,
         LANGUAGES: languages ? `Arrays.asList(${languages})` : `Arrays.asList("${definedLocale}")`
+    });
+};
+
+export const createUser = (userName: string, password: string, properties: { name: string, value: string }[] = []): void => {
+    const userProperties = properties.map(property => {
+        return 'properties.setProperty("' + property.name + '", "' + property.value + '")';
+    });
+    cy.executeGroovy('groovy/admin/createUser.groovy', {
+        USER_NAME: userName,
+        PASSWORD: password ? password : 'password',
+        USER_PROPERTIES: userProperties ? userProperties.join('\n') : ''
+    });
+};
+
+export const deleteUser = (userName: string): void => {
+    cy.executeGroovy('groovy/admin/deleteUser.groovy', {
+        USER_NAME: userName
     });
 };
