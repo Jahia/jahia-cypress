@@ -73,3 +73,14 @@ export const getNodeByPath = (path: string): Cypress.Chainable => {
         queryFile: 'graphql/jcr/query/getNodeByPath.graphql'
     });
 };
+
+export const createSite = (siteKey: string, templateSet?: string, serverName?: string, locale?: string, languages?: string) => {
+    const definedLocale = locale ? locale : 'en';
+    cy.executeGroovy('groovy/admin/createSite.groovy', {
+        SITEKEY: siteKey,
+        TEMPLATES_SET: templateSet ? templateSet : 'dx-base-demo-templates',
+        SERVERNAME: serverName ? serverName : 'localhost',
+        LOCALE: definedLocale,
+        LANGUAGES: languages ? `Arrays.asList(${languages})` : `Arrays.asList("${definedLocale}")`
+    });
+};
