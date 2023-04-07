@@ -32,6 +32,19 @@ export const grantRoles = (pathOrId: string, roleNames: Array<string>, principal
     });
 };
 
+export const publishAndWaitJobEnding = (path: string, languages: string[] = ['en']): void => {
+    cy.apollo({
+        variables: {
+            pathOrId: path,
+            languages: languages,
+            publishSubNodes: true,
+            includeSubTree: true
+        },
+        mutationFile: 'graphql/mutation/publishNode.graphql'
+    });
+    waitAllJobsFinished('Publication timeout for node: ' + path, 60000);
+};
+
 export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): void => {
     cy.waitUntil(
         () =>
@@ -58,7 +71,7 @@ export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): voi
     cy.wait(2000);
 };
 
-export const addNode = (variables: {parentPathOrId: string, primaryNodeType: string, name: string, properties?: any[], children?: any[]}): Cypress.Chainable => {
+export const addNode = (variables: { parentPathOrId: string, primaryNodeType: string, name: string, properties?: any[], children?: any[] }): Cypress.Chainable => {
     return cy.apollo({
         variables: variables,
         mutationFile: 'graphql/jcr/mutation/addNode.graphql'
