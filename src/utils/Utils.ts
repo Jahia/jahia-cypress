@@ -32,6 +32,19 @@ export const grantRoles = (pathOrId: string, roleNames: Array<string>, principal
     });
 };
 
+export const publishAndWaitJobEnding = (path: string, languages: string[] = ['en']): void => {
+    cy.apollo({
+        variables: {
+            pathOrId: path,
+            languages: languages,
+            publishSubNodes: true,
+            includeSubTree: true
+        },
+        mutationFile: 'graphql/jcr/mutation/publishNode.graphql'
+    });
+    waitAllJobsFinished('Publication timeout for node: ' + path, 60000);
+};
+
 export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): void => {
     cy.waitUntil(
         () =>
@@ -58,7 +71,7 @@ export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): voi
     cy.wait(2000);
 };
 
-export const addNode = (variables: {parentPathOrId: string, primaryNodeType: string, name: string, properties?: any[], children?: any[]}): Cypress.Chainable => {
+export const addNode = (variables: { parentPathOrId: string, primaryNodeType: string, name: string, properties?: any[], children?: any[] }): Cypress.Chainable => {
     return cy.apollo({
         variables: variables,
         mutationFile: 'graphql/jcr/mutation/addNode.graphql'
@@ -74,7 +87,7 @@ export const getNodeByPath = (path: string): Cypress.Chainable => {
     });
 };
 
-export const createSite = (siteKey: string, templateSet?: string, serverName?: string, locale?: string, languages?: string) => {
+export const createSite = (siteKey: string, templateSet?: string, serverName?: string, locale?: string, languages?: string): void => {
     const definedLocale = locale ? locale : 'en';
     cy.executeGroovy('groovy/admin/createSite.groovy', {
         SITEKEY: siteKey,
@@ -82,5 +95,28 @@ export const createSite = (siteKey: string, templateSet?: string, serverName?: s
         SERVERNAME: serverName ? serverName : 'localhost',
         LOCALE: definedLocale,
         LANGUAGES: languages ? `Arrays.asList(${languages})` : `Arrays.asList("${definedLocale}")`
+    });
+};
+
+export const deleteSite = (siteKey: string): void => {
+    cy.executeGroovy('groovy/admin/deleteSite.groovy', {
+        SITEKEY: siteKey
+    });
+};
+
+export const createUser = (userName: string, password: string, properties: { name: string, value: string }[] = []): void => {
+    const userProperties = properties.map(property => {
+        return 'properties.setProperty("' + property.name + '", "' + property.value + '")';
+    });
+    cy.executeGroovy('groovy/admin/createUser.groovy', {
+        USER_NAME: userName,
+        PASSWORD: password ? password : 'password',
+        USER_PROPERTIES: userProperties ? userProperties.join('\n') : ''
+    });
+};
+
+export const deleteUser = (userName: string): void => {
+    cy.executeGroovy('groovy/admin/deleteUser.groovy', {
+        USER_NAME: userName
     });
 };

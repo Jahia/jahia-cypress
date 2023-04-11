@@ -1,0 +1,7 @@
+mutation publishNode($pathOrId: String!, $languages: [String]!, $publishSubNodes: Boolean!, $includeSubTree: Boolean!) {
+    jcr(workspace: EDIT) {
+        mutateNode(pathOrId: $pathOrId) {
+            publish(publishSubNodes: $publishSubNodes, languages: $languages, includeSubTree: $includeSubTree)
+        }
+    }
+}
