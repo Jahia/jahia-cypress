@@ -1,0 +1,9 @@
+mutation($pathOrId: String!, $url: String!){
+  jcr {
+    mutateNode(pathOrId: $pathOrId) {
+      mutateVanityUrl(url: $url) {
+        delete
+      }
+    }
+  }
+}
