@@ -1,9 +1,9 @@
-query getNodeByPath($path: String!, $properties: [String]=[]) {
+query getNodeByPath($path: String!, $properties: [String]=[], $language: String="") {
     jcr {
         nodeByPath(path: $path) {
             uuid
             name
-        	properties(names: $properties){
+        	properties(names: $properties, language: $language){
               name
               value
             }

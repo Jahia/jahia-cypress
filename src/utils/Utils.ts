@@ -10,6 +10,17 @@ export const setNodeProperty = (pathOrId: string, property: string, value: strin
     });
 };
 
+export const deleteNodeProperty = (pathOrId: string, property: string, language: string): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {
+            pathOrId: pathOrId,
+            property: property,
+            language: language
+        },
+        mutationFile: 'graphql/jcr/mutation/deleteNodeProperty.graphql'
+    });
+};
+
 export const deleteNode = (pathOrId: string): Cypress.Chainable => {
     return cy.apollo({
         variables: {
@@ -78,11 +89,12 @@ export const addNode = (variables: { parentPathOrId: string, primaryNodeType: st
     });
 };
 
-export const getNodeByPath = (path: string, properties?: string[]): Cypress.Chainable => {
+export const getNodeByPath = (path: string, properties?: string[], language?:string): Cypress.Chainable => {
     return cy.apollo({
         variables: {
             path: path,
-            properties: properties
+            properties: properties,
+            language: language
         },
         queryFile: 'graphql/jcr/query/getNodeByPath.graphql'
     });
@@ -119,5 +131,36 @@ export const createUser = (userName: string, password: string, properties: { nam
 export const deleteUser = (userName: string): void => {
     cy.executeGroovy('groovy/admin/deleteUser.groovy', {
         USER_NAME: userName
+    });
+};
+
+export const addVanityUrl = (pathOrId: string, language: string, url: string): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {
+            pathOrId: pathOrId,
+            language: language,
+            url: url
+        },
+        mutationFile: 'graphql/jcr/mutation/addVanityUrl.graphql'
+    });
+};
+
+export const getVanityUrl = (path: string, languages: Array<string>): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {
+            path: path,
+            languages: languages
+        },
+        queryFile: 'graphql/jcr/query/getVanityUrls.graphql'
+    });
+};
+
+export const removeVanityUrl = (pathOrId: string, url: string): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {
+            pathOrId: pathOrId,
+            url: url
+        },
+        mutationFile: 'graphql/jcr/mutation/removeVanityUrl.graphql'
     });
 };
