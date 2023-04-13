@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
-
-import {ApolloClient, from, HttpLink, InMemoryCache, NormalizedCacheObject} from '@apollo/client/core';
-import {FormDataHttpLink, uploadLink} from './links';
+import {ApolloClient, from, InMemoryCache, NormalizedCacheObject} from '@apollo/client/core';
+import {formDataHttpLink, uploadLink} from './links';
 
 interface AuthMethod {
     token?: string
@@ -10,6 +8,7 @@ interface AuthMethod {
 }
 
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
@@ -35,7 +34,7 @@ export const apolloClient = function (authMethod?: AuthMethod, options: ApolloCl
         headers.authorization = `Basic ${btoa(authMethod.username + ':' + authMethod.password)}`;
     }
 
-    const links = [uploadLink, FormDataHttpLink(Cypress.config().baseUrl, headers)];
+    const links = [uploadLink, formDataHttpLink(Cypress.config().baseUrl, headers)];
 
     const client = new ApolloClient({
         link: from(links),

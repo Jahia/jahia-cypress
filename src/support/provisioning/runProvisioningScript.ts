@@ -1,13 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
 import RequestOptions = Cypress.RequestOptions;
 
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
 
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             runProvisioningScript(script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer?: JahiaServer): Chainable<any>
         }
     }
@@ -67,6 +68,7 @@ function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
     return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
 }
 
+// eslint-disable-next-line default-param-last, max-params
 export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log: true}, timeout?: number): void => {
     const formData = new FormData();
 
@@ -85,7 +87,9 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         });
     }
 
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     let response: Cypress.Response<any>;
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     let result: any;
     let logger: Cypress.Log;
 

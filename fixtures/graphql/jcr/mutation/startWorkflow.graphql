@@ -1,0 +1,7 @@
+mutation startWorkflow($pathOrId: String!, $definition: String!, $language: String!) {
+  jcr {
+    mutateNode(pathOrId:$pathOrId) {
+      startWorkflow(definition:$definition, language: $language)
+    }
+  }
+}
