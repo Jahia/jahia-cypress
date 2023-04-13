@@ -24,7 +24,7 @@ export class BaseComponent {
         return cy.get('@component' + this.id, {log: false});
     }
 
-    // XXeslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     should(arg, ...others) {
         return cy.get('@component' + this.id, {log: false}).should(arg, ...others);
     }

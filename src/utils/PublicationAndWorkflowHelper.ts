@@ -28,7 +28,7 @@ export const validateAllWorkflows = (): void => {
     waitAllJobsFinished('All workflows validated but some jobs are still running after a minute', 60000);
 };
 
-export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000, test): void => {
+export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): void => {
     cy.waitUntil(
         () =>
             cy
