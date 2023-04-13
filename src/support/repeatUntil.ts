@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
-
-// Load type definitions that come with Cypress module
-/// <reference types="cypress" />
+// Load type definitions that come with Cypress module <reference types="cypress" />
 
 export type RepeatUntilOptions = {
     attempts: number,
@@ -16,6 +13,7 @@ const defaultOptions: RepeatUntilOptions = {
 };
 
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
@@ -48,7 +46,6 @@ export const repeatUntil = (selector: string, options: Partial<RepeatUntilOption
         log.end();
         options.callback();
 
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
         cy.wait(options.delay);
         cy.repeatUntil(selector, {...options, attempts: options.attempts - 1});
     } else {

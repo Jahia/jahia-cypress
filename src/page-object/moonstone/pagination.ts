@@ -17,6 +17,7 @@ export class Pagination extends BaseComponent {
     }
 
     getTotalRows(): Chainable<number> {
+        // eslint-disable-next-line radix
         return this.get().contains('of').then(el => Number.parseInt(el.text().substr(el.text().indexOf('of') + 3)));
     }
 }

@@ -5,6 +5,7 @@ import org.jahia.services.sites.JahiaSite
 import org.jahia.services.sites.JahiaSitesService
 import org.jahia.services.sites.SiteCreationInfo
 import org.jahia.services.usermanager.JahiaUserManagerService
+import java.util.stream.Collectors
 
 JahiaSitesService sitesService = JahiaSitesService.getInstance();
 if (sitesService.getSiteByKey("SITEKEY") == null) {
@@ -18,7 +19,7 @@ if (sitesService.getSiteByKey("SITEKEY") == null) {
     JCRTemplate.instance.doExecuteWithSystemSessionAsUser(JahiaUserManagerService.instance.lookupUser("root").jahiaUser,
             Constants.EDIT_WORKSPACE, Locale.ENGLISH, jcrsession -> {
         JCRSiteNode siteByKey = sitesService.getSiteByKey("SITEKEY", jcrsession)
-        siteByKey.setLanguages(new HashSet<String>(LANGUAGES))
+        siteByKey.setLanguages(Arrays.stream("LANGUAGES".split(",")).map(String::trim).collect(Collectors.toSet()))
         jcrsession.save()
         return null
     })

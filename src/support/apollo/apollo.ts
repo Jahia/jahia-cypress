@@ -31,11 +31,8 @@ function isMutationFile(options: ApolloOptions): options is FileMutationOptions 
     return (<FileMutationOptions>options).mutationFile !== undefined;
 }
 
-export const apollo = function (apollo: ApolloClient<any>, options: ApolloOptions): void {
-    if (!apollo) {
-        apollo = this.currentApolloClient;
-    }
-
+// eslint-disable-next-line default-param-last, @typescript-eslint/no-shadow
+export const apollo = function (apollo: ApolloClient<any> = this.currentApolloClient, options: ApolloOptions): void {
     let result : ApolloQueryResult<any> | FetchResult;
     let logger : Cypress.Log;
     const optionsWithDefaultCache: ApolloOptions = {fetchPolicy: 'no-cache', ...options};

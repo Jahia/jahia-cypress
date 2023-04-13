@@ -13,6 +13,7 @@ export class IFrame extends BaseComponent {
                 const fr: HTMLFrameElement = f[0] as HTMLFrameElement;
                 expect(fr.contentWindow.location.href).not.equals('about:blank');
                 expect(fr.contentWindow.document.readyState).equals('complete');
+                // eslint-disable-next-line  no-unused-expressions
                 expect(fr.contentDocument.body).not.be.empty;
             })
             .its('0.contentDocument.body').as('framebody' + this.id);

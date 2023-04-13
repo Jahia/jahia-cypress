@@ -27,15 +27,16 @@ export function getComponentByRole<Component >(C: ComponentType<Component>, role
     return getComponentBySelector(C, `${C.defaultSelector}[data-sel-role="${role}"]`, parent, assertion);
 }
 
+// eslint-disable-next-line max-params
 export function getComponentByAttr<Component>(C: ComponentType<Component>, attr: string, value: string, parent?: BaseComponent, assertion?: (s: JQuery) => void): Component {
     return getComponentBySelector(C, `${C.defaultSelector}[${attr}="${value}"]`, parent, assertion);
 }
 
-export function getComponentByContent<Component>(c: ComponentType<Component>, content: string, parent?: BaseComponent, assertion?: (s: JQuery) => void): Component {
-    let chainable = getElement(c.defaultSelector, parent).should('contains', content).contains(content);
+export function getComponentByContent<Component>(C: ComponentType<Component>, content: string, parent?: BaseComponent, assertion?: (s: JQuery) => void): Component {
+    let chainable = getElement(C.defaultSelector, parent).should('contains', content).contains(content);
     if (assertion) {
         chainable = chainable.should(assertion);
     }
 
-    return new c(chainable, assertion);
+    return new C(chainable, assertion);
 }
