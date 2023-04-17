@@ -14,3 +14,10 @@ export const deleteSite = (siteKey: string): void => {
         SITEKEY: siteKey
     });
 };
+
+export const enableModule = (moduleName: string, siteKey: string): void => {
+    cy.runProvisioningScript({
+        fileContent: '- enable: "' + moduleName + '"\n  site: "' + siteKey + '"',
+        type: 'application/yaml'
+    });
+};
