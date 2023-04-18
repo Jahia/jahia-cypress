@@ -16,7 +16,7 @@ export const fixture = function (originalCommand: ((...args: any[]) => any), fix
             }
 
             try {
-                cy.readFile('./node_modules/@jahia/cypress/fixtures/' + fixtureParam, encoding, {log: false, timeout: 200});
+                cy.readFile('./node_modules/@jahia/cypress/fixtures/' + fixtureParam, encoding, {log: false, timeout: 500});
             } catch (e) {
                 console.log(e);
             }
