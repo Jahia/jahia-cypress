@@ -53,3 +53,14 @@ export const getNodeByPath = (path: string, properties?: string[], language?:str
         queryFile: 'graphql/jcr/query/getNodeByPath.graphql'
     });
 };
+
+export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?: string) => {
+    return cy.apollo({
+        variables: {
+            pathOrId: pathOrId,
+            destParentPathOrId: destParentPathOrId,
+            destName: destName
+        },
+        mutationFile: 'graphql/jcr/mutation/moveNode.graphql'
+    })
+}

@@ -1,0 +1,7 @@
+mutation($pathOrId: String!, $destParentPathOrId: String!, $destName: String){
+  jcr{
+    moveNode(pathOrId: $pathOrId, destParentPathOrId: $destParentPathOrId, destName: $destName){
+      uuid
+    }
+  }
+}
