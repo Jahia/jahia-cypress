@@ -54,7 +54,7 @@ export const getNodeByPath = (path: string, properties?: string[], language?:str
     });
 };
 
-export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?: string) => {
+export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?: string): Cypress.Chainable => {
     return cy.apollo({
         variables: {
             pathOrId: pathOrId,
@@ -62,5 +62,5 @@ export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?
             destName: destName
         },
         mutationFile: 'graphql/jcr/mutation/moveNode.graphql'
-    })
-}
+    });
+};
