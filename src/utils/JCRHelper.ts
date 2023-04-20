@@ -55,6 +55,16 @@ export const getNodeByPath = (path: string, properties?: string[], language?: st
     });
 };
 
+export const getNodeAcl = (path: string): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {
+            path: path
+        },
+        queryFile: 'graphql/jcr/query/getNodeAcl.graphql'
+    });
+};
+
+
 export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?: string): Cypress.Chainable => {
     return cy.apollo({
         variables: {
