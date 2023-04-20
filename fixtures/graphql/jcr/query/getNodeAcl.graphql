@@ -1,0 +1,17 @@
+query getAcl($path: String!) {
+    jcr {
+        nodeByPath(path: $path) {
+            acl {
+                aclEntries {
+                    aclEntryType
+                    role {
+                        name
+                    }
+                    principal {
+                        name
+                    }
+                }
+            }
+        }
+    }
+}
