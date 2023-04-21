@@ -1,5 +1,5 @@
-query getNodeByPath($path: String!, $properties: [String]=[], $language: String="", $childrenTypes: [String] = []) {
-    jcr {
+query getNodeByPath($path: String!, $properties: [String]=[], $language: String="", $childrenTypes: [String] = [], $workspace: Workspace = EDIT ) {
+    jcr (workspace: $workspace){
         nodeByPath(path: $path) {
             uuid
             name

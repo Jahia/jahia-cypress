@@ -43,13 +43,14 @@ export const addNode = (variables: { parentPathOrId: string, primaryNodeType: st
     });
 };
 
-export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = []): Cypress.Chainable => {
+export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: 'EDIT' | 'LIVE' = 'EDIT'): Cypress.Chainable => {
     return cy.apollo({
         variables: {
             path: path,
             properties: properties,
             language: language,
-            childrenTypes: childrenTypes
+            childrenTypes: childrenTypes,
+            workspace: workspace
         },
         queryFile: 'graphql/jcr/query/getNodeByPath.graphql'
     });
