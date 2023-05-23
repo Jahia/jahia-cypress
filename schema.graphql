@@ -327,8 +327,6 @@ type AdminMutation {
     jahia: JahiaAdminMutation!
     "Personal API tokens mutations"
     personalApiTokens: PersonalApiTokensMutation
-    "Sitemap API mutations"
-    sitemap: GqlSitemapMutation
 }
 
 "Admin queries root"
@@ -343,8 +341,6 @@ type AdminQuery {
     personalApiTokens: PersonalApiTokensQuery
     "Get available ACL roles; does not include any hidden or privileged roles"
     roles: [AclRole]
-    "Sitemap API queries"
-    sitemap: GqlSitemapQueries
     "Get user administration endpoint"
     userAdmin: UserAdminQuery
     "Get user group endpoint"
@@ -377,6 +373,8 @@ type Category {
 type Cluster {
     "Is the cluster mode activated on this Jahia instance"
     isActivated: Boolean
+    "Query operation on Jahia's journal across all nodes of a cluster"
+    journal: Journal
 }
 
 "Mutation for configuration value object"
@@ -1069,6 +1067,13 @@ type GqlEditorForms {
     ): Int
 }
 
+"Server healthCheck"
+type GqlHealthCheck {
+    probes: [GqlProbe]
+    "Highest reported status across all probes"
+    status: GqlProbeStatus
+}
+
 type GqlJcrImageTransformMutation {
     "Crop an image under the current node"
     cropImage(
@@ -1132,6 +1137,25 @@ type GqlOperationsSupport {
     publication: Boolean!
 }
 
+type GqlProbe {
+    "Description specified by the developer of the probe"
+    description: String
+    "Name of the probe"
+    name: String
+    "Severity of the probe (LOW to CRITICAL)"
+    severity: GqlProbeSeverity
+    "Status reported by the probe (GREEN to RED)"
+    status: GqlProbeStatus
+}
+
+"Probe status"
+type GqlProbeStatus {
+    "Health of the probe"
+    health: GqlProbeHealth
+    "Message explaining probe status"
+    message: String
+}
+
 "Publication status information for a JCR node"
 type GqlPublicationInfo {
     "Whether current user is allowed to publish the node omitting any workflows"
@@ -1158,27 +1182,6 @@ type GqlScope {
     description: String
     "The name of the scope"
     name: String
-}
-
-type GqlSitemapMutation {
-    "Delete existing sitemap cache if exists before expiration time difference"
-    deleteSitemapCache(
-        "Site key"
-        siteKey: String
-    ): Boolean
-    "Sending sitemap(s) based on either sitemap index XML or sitemap XML URL to search engine URL(s) specified in CFG"
-    sendSitemapToSearchEngine(
-        "Sitemap index XML or sitemap XML URL"
-        sitemapURL: String!
-    ): Boolean
-}
-
-type GqlSitemapQueries {
-    "Get site URL with only server domain appended from sitemap URL"
-    siteUrl(
-        "Sitemap index XML or sitemap XML URL"
-        siteKey: String!
-    ): String
 }
 
 type GqlWorkflowEvent {
@@ -1510,6 +1513,8 @@ type JCRNodeMutation {
     ): [VanityUrlMappingMutation]
     "Unlock all nodes under the specified node"
     clearAllLocks: Boolean
+    "Create new version for the node if the node supports versioning"
+    createVersion: Boolean
     "Add wip information"
     createWipInfo(
         "Work in progress information to save"
@@ -2344,6 +2349,29 @@ type JahiaAdminMutation {
         "Configuration pid ot factory pid"
         pid: String!
     ): GqlConfigurationMutation
+    "Create a task"
+    createTask(
+        "Task name"
+        name: String!,
+        "Service name"
+        service: String!
+    ): Boolean
+    "Delete a task"
+    deleteTask(
+        "Task name"
+        name: String!,
+        "Service name"
+        service: String!
+    ): Boolean
+    "Shutdown the server"
+    shutdown(
+        "Do not send the shutdown event"
+        dryRun: Boolean,
+        "Force immediate shutdown even if server is busy"
+        force: Boolean,
+        "In seconds, maximum time to wait for server to be ready to shutdown"
+        timeout: Int
+    ): Boolean
 }
 
 "Jahia admin queries root"
@@ -2357,10 +2385,16 @@ type JahiaAdminQuery {
     ): GqlConfigurationQuery
     "Details about the database Jahia is connected to"
     database: JahiaDatabase
+    "HealthCheck node"
+    healthCheck(severity: GqlProbeSeverity): GqlHealthCheck
+    "Get server load"
+    load: Load
     "Get jobs scheduler"
     scheduler: GqlScheduler
     "Details about the system hosting Jahia"
     system: JahiaSystem
+    "Lists tasks running on the Jahia server. A server should not be stopped/restarted when any of these tasks are present. These tasks are specific to the server being queried and are not shared accorss a cluster"
+    tasks: [task]
     "Version of the running Jahia instance"
     version: JahiaVersion
 }
@@ -2419,6 +2453,42 @@ type JahiaVersion {
     isSnapshot: Boolean
     "Release of the running Jahia instance"
     release: String
+}
+
+"Details about the Jahia cluster journal"
+type Journal {
+    "The latest revision of the journal on the cluster"
+    globalRevision: Long
+    "Is the journal in sync across all nodes of a cluster"
+    isClusterSync: Boolean
+    "The latest revision of the journal on the current node"
+    localRevision: JournalRevision
+    "The latest revisions of the journal for all cluster nodes"
+    revisions: [JournalRevision]
+}
+
+"Details about one journal revision"
+type JournalRevision {
+    "The revision"
+    revision: Long
+    "The cluster node server Id"
+    serverId: String
+}
+
+"Server load"
+type Load {
+    "Get requests load"
+    requests: LoadValue
+    "Get JCR Sessions load"
+    sessions: LoadValue
+}
+
+"Load value"
+type LoadValue {
+    "Exponential moving average"
+    average(interval: LoadInterval): Float
+    "Instantaneous count"
+    count: Int
 }
 
 "Information on node lock"
@@ -3239,6 +3309,16 @@ type ZipFileMutation {
     ): Boolean
 }
 
+"Task that prevents server from shutdown"
+type task {
+    "The name of the task associated with the service"
+    name: String
+    "Service attached to the task being monitored"
+    service: String
+    "Datetime at which the task was started or registered"
+    started: String
+}
+
 "Work in progress information"
 type wipInfo {
     "The languages set for Work in progress"
@@ -3288,6 +3368,26 @@ enum GqlBackgroundJobStatus {
     SUCCESSFUL
 }
 
+enum GqlProbeHealth {
+    "GREEN"
+    GREEN
+    "RED"
+    RED
+    "YELLOW"
+    YELLOW
+}
+
+enum GqlProbeSeverity {
+    "CRITICAL"
+    CRITICAL
+    "HIGH"
+    HIGH
+    "LOW"
+    LOW
+    "MEDIUM"
+    MEDIUM
+}
+
 enum GroupingType {
     "Put grouped items at the end in the order groups appear in the 'groups' list"
     END
@@ -3329,6 +3429,15 @@ enum JCRPropertyType {
     URI
     "WEAKREFERENCE"
     WEAKREFERENCE
+}
+
+enum LoadInterval {
+    "FIFTEEN"
+    FIFTEEN
+    "FIVE"
+    FIVE
+    "ONE"
+    ONE
 }
 
 enum MulticriteriaEvaluation {

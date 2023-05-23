@@ -1,0 +1,19 @@
+query {
+    admin {
+        cluster {
+            journal {
+                globalRevision
+                localRevision {
+                    revision
+                    serverId
+                }
+                revisions {
+                    revision
+                    serverId
+                }
+                isClusterSync
+            }
+            isActivated
+        }
+    }
+}
