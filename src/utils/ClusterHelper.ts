@@ -1,5 +1,5 @@
 export const waitUntilJournalSync = (predicate?: (cluster: any) => boolean, timeout = 60000,
-    interval = 1000) => {
+    interval = 1000) : void => {
     cy.waitUntil(() =>
         cy.apollo({
             fetchPolicy: 'no-cache',
