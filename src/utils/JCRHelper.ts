@@ -75,3 +75,12 @@ export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?
         mutationFile: 'graphql/jcr/mutation/moveNode.graphql'
     });
 };
+
+export const getNodeTypes = (filter = {}): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {
+            filter: filter
+        },
+        queryFile: 'graphql/jcr/query/getNodeTypes.graphql'
+    });
+};
