@@ -46,15 +46,6 @@ echo "$(date +'%d %B %Y - %k:%M') == Jahia became alive in ${ELAPSED_TIME} secon
 mkdir -p ./run-artifacts
 mkdir -p ./results
 
-if [[ -d provisioning/ ]]; then
-  cd provisioning/ || exit 1
-  for f in *.yaml ; do
-    echo "$(date +'%d %B %Y - %k:%M') == Executing provisioning: ${f} =="
-    curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_URL}/modules/api/provisioning --form script="@./${f};type=text/yaml"
-  done
-  cd ..
-fi
-
 # Copy manifest file
 # If the file doesn't exist, we assume it is a URL and we download it locally
 if [[ -e ${MANIFEST} ]]; then
@@ -66,7 +57,7 @@ else
 fi
 
 echo "$(date +'%d %B %Y - %k:%M') == Executing manifest: ${MANIFEST} =="
-curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_URL}/modules/api/provisioning --form script="@./run-artifacts/${MANIFEST};type=text/yaml"
+curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_URL}/modules/api/provisioning --form script="@./run-artifacts/${MANIFEST};type=text/yaml" $(find assets -type f | sed -E 's/^(.+)$/--form file=\"@\1\"/' | xargs)
 echo
 if [[ $? -eq 1 ]]; then
   echo "$(date +'%d %B %Y - %k:%M') == PROVISIONING FAILURE - EXITING SCRIPT, NOT RUNNING THE TESTS"
