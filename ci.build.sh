@@ -27,4 +27,4 @@ if [ -d ./jahia-module ]; then
 fi
 
 
-docker build -t ${TESTS_IMAGE} .
+docker build -f $BASEDIR/env.Dockerfile -t ${TESTS_IMAGE} .
