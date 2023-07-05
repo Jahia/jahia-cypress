@@ -1,16 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
+import RequestOptions = Cypress.RequestOptions;
 
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
 
-
-
-import RequestOptions = Cypress.RequestOptions;
-
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             runProvisioningScript(script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer?: JahiaServer): Chainable<any>
         }
     }
@@ -35,9 +33,12 @@ export type JahiaServer = {
 function processContent(formFile: FormFile) {
     let content = formFile.fileContent;
     if (formFile.replacements) {
-        Object.keys(formFile.replacements).forEach(k => content = content.replaceAll(k, formFile.replacements[k]))
+        Object.keys(formFile.replacements).forEach(k => {
+            content = content.replaceAll(k, formFile.replacements[k]);
+        });
     }
-    formFile.fileContent = content
+
+    formFile.fileContent = content;
     return Cypress.Blob.binaryStringToBlob(content, formFile.type);
 }
 
@@ -51,8 +52,9 @@ function append(formFile: FormFile, formData: FormData, key: string) {
             } else {
                 formFile.fileContent = content;
             }
+
             formData.append(key, processContent(formFile), formFile.fileName);
-        })
+        });
     }
 }
 
@@ -60,33 +62,36 @@ const serverDefaults: JahiaServer = {
     url: Cypress.config().baseUrl,
     username: 'root',
     password: Cypress.env('SUPER_USER_PASSWORD')
-}
+};
 
 function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
     return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
 }
 
-export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log:true}, timeout?: number): void => {
-    const formData = new FormData()
+// eslint-disable-next-line default-param-last, max-params
+export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log: true}, timeout?: number): void => {
+    const formData = new FormData();
 
     if (isFormFile(script)) {
-        append(script, formData, "script")
+        append(script, formData, 'script');
     } else {
         append({
             fileContent: JSON.stringify(script),
             type: 'application/json'
-        }, formData, "script");
+        }, formData, 'script');
     }
 
     if (files) {
-        files.forEach((f) => {
-            append(f, formData, "file")
-        })
+        files.forEach(f => {
+            append(f, formData, 'file');
+        });
     }
 
-    let response: Cypress.Response<any>
-    let result: any
-    let logger: Cypress.Log
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    let response: Cypress.Response<any>;
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    let result: any;
+    let logger: Cypress.Log;
 
     if (options.log) {
         logger = Cypress.log({
@@ -100,9 +105,9 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
                     Files: files,
                     Response: response,
                     Yielded: result
-                }
-            },
-        })
+                };
+            }
+        });
     }
 
     const request: Partial<RequestOptions> = {
@@ -111,28 +116,28 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         auth: {
             user: jahiaServer.username,
             pass: jahiaServer.password,
-            sendImmediately: true,
+            sendImmediately: true
         },
         body: formData,
         log: false
-    }
+    };
 
     if (typeof timeout !== 'undefined') {
-        request.timeout = timeout
+        request.timeout = timeout;
     }
 
     cy.request(request).then(res => {
-        response = res
-        expect(res.status, 'Script result').to.eq(200)
+        response = res;
+        expect(res.status, 'Script result').to.eq(200);
         try {
-            const decoder = new TextDecoder()
-            result = JSON.parse(decoder.decode(response.body))
+            const decoder = new TextDecoder();
+            result = JSON.parse(decoder.decode(response.body));
         } catch (e) {
-            result = e
+            result = e;
         }
 
-        logger?.end()
-        return result
-    })
-}
+        logger?.end();
+        return result;
+    });
+};
 

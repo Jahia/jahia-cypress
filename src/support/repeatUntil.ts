@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
-
-// Load type definitions that come with Cypress module
-/// <reference types="cypress" />
+// Load type definitions that come with Cypress module <reference types="cypress" />
 
 export type RepeatUntilOptions = {
     attempts: number,
@@ -11,11 +8,12 @@ export type RepeatUntilOptions = {
 
 const defaultOptions: RepeatUntilOptions = {
     attempts: 10,
-    callback: () => cy.reload({log:false}),
+    callback: () => cy.reload({log: false}),
     delay: 1000
-}
+};
 
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
@@ -25,35 +23,34 @@ declare global {
 }
 
 export const repeatUntil = (selector: string, options: Partial<RepeatUntilOptions> = {}): void => {
-    options = { ...defaultOptions, ...options }
+    options = {...defaultOptions, ...options};
 
     const log = Cypress.log({
         name: 'repeatUntil',
         message: `Reload until ${selector}, remaining attempts : ${options.attempts}`,
         consoleProps: () => {
             return {
-                attempts: options.attempts,
-            }
-        },
-    })
+                attempts: options.attempts
+            };
+        }
+    });
 
-    const items = Cypress.$(selector)
+    const items = Cypress.$(selector);
     if (items.length) {
-        log.set({ $el: items })
-        cy.wrap(items, {log: false})
-        return
+        log.set({$el: items});
+        cy.wrap(items, {log: false});
+        return;
     }
 
     if (options.attempts > 1) {
-        log.end()
-        options.callback()
+        log.end();
+        options.callback();
 
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(options.delay)
-        cy.repeatUntil(selector, {...options, attempts: options.attempts - 1})
+        cy.wait(options.delay);
+        cy.repeatUntil(selector, {...options, attempts: options.attempts - 1});
     } else {
-        const err = Error('Items not found.')
-        log.error(err)
-        throw err
+        const err = Error('Items not found.');
+        log.error(err);
+        throw err;
     }
-}
+};

@@ -1,0 +1,33 @@
+query getNodeByPath($path: String!, $properties: [String]=[], $language: String="", $childrenTypes: [String] = [], $workspace: Workspace = EDIT ) {
+    jcr (workspace: $workspace){
+        nodeByPath(path: $path) {
+            uuid
+            name
+            properties(names: $properties, language: $language){
+                name
+                value
+                values
+            }
+            primaryNodeType {
+                name
+            }
+            children(typesFilter: { types: $childrenTypes }) {
+                nodes {
+                    name
+                    children {
+                        nodes {
+                            properties {
+                                name
+                                value
+                                values
+                            }
+                            primaryNodeType {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

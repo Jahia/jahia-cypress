@@ -1,0 +1,14 @@
+mutation($pathOrId: String!, $language: String!, $url: String!){
+  jcr{
+    mutateNode(pathOrId: $pathOrId){
+      addVanityUrl(vanityUrlInputList: [{
+        language: $language,
+        active: true,
+        defaultMapping: true,
+        url: $url
+      }]){
+        uuid
+      }
+    }
+  }
+}

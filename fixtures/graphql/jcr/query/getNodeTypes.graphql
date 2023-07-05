@@ -1,0 +1,16 @@
+query getNodeTypes($filter: InputNodeTypesListInput!) {
+    jcr {
+        nodeTypes(filter: $filter) {
+            nodes {
+                name
+                icon
+                properties {
+                    name
+                }
+                supertypes {
+                    name
+                }
+            }
+        }
+    }
+}

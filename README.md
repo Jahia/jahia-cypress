@@ -1,4 +1,10 @@
-# @jahia/cypress
+
+<a href="https://www.jahia.com/">
+    <img src="https://www.jahia.com/modules/jahiacom-templates/images/jahia-3x.png" alt="Jahia logo" title="Jahia" align="right" height="60" />
+</a>
+
+@jahia/cypress
+======================
 
 ## Commands
 
@@ -82,9 +88,8 @@ Add typings in your tsconfig.json :
 ```
 
 This project provides a plugin for settings environment variable based on system env ( `JAHIA_URL` and `SUPER_USER_PASSWORD` )
-It also embeds `cypress-terminal-report` for better output.
 
-To set-up : in `plugins/index.js`, calls the module in `@jahia/cypress/dist/plugins/registerPlugins` :
+Set up your plugins: in `plugins/index.js`, calls the module in `@jahia/cypress/dist/plugins/registerPlugins` :
 
 ```js
 module.exports = (on, config) => {
@@ -95,3 +100,6 @@ module.exports = (on, config) => {
     return config;
 };
 ```
+## Open-Source
+
+This is an Open-Source codebase, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source)

@@ -1,0 +1,9 @@
+query($path: String!, $languages: [String]!) {
+  jcr {
+  	nodeByPath(path: $path){
+	  vanityUrls(languages: $languages){
+      	url
+      }
+    }
+  }
+}

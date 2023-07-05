@@ -1,7 +1,5 @@
-import env from "./env"
-import installLogsPrinter from 'cypress-terminal-report/src/installLogsPrinter'
+import env from './env';
 
 export const registerPlugins = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions): void => {
-    env(on, config)
-    installLogsPrinter(on)
-}
+    env(on, config);
+};

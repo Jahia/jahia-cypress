@@ -3,7 +3,6 @@
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
 
-
 declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -16,11 +15,11 @@ declare global {
 export const logout = (): void => {
     Cypress.log({
         name: 'logout',
-        message: `Logout`,
+        message: 'Logout',
         consoleProps: () => {
-            return {}
-        },
-    })
+            return {};
+        }
+    });
 
     cy.request({
         method: 'POST',
@@ -28,7 +27,7 @@ export const logout = (): void => {
         followRedirect: false,
         log: false
     }).then(res => {
-        expect(res.status, 'Logout result').to.eq(302)
-    })
-}
+        expect(res.status, 'Logout result').to.eq(302);
+    });
+};
 

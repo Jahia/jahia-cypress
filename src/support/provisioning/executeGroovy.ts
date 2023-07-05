@@ -3,8 +3,6 @@
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
 
-
-
 declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -24,7 +22,7 @@ const serverDefaults = {
     url: Cypress.config().baseUrl,
     username: 'root',
     password: Cypress.env('SUPER_USER_PASSWORD')
-}
+};
 
 export const executeGroovy = function (scriptFile: string, replacements?: { [key: string]: string }, jahiaServer: JahiaServer = serverDefaults): void {
     cy.runProvisioningScript({
@@ -34,5 +32,5 @@ export const executeGroovy = function (scriptFile: string, replacements?: { [key
         fileName: scriptFile,
         replacements,
         type: 'text/plain'
-    }], jahiaServer).then(r => r[0])
-}
+    }], jahiaServer).then(r => r[0]);
+};
