@@ -3,7 +3,7 @@
 # This script controls the startup of the container environment
 # It can be used as an alternative to having docker-compose up started by the CI environment
 
-BASEDIR=$(dirname "$0")
+BASEDIR=$(dirname $(readlink -f $0))
 
 source $BASEDIR/set-env.sh
 
@@ -25,25 +25,15 @@ if [[ -z ${JAHIA_LICENSE} ]]; then
     fi
 fi
 
-echo "$(date +'%d %B %Y - %k:%M') [JAHIA_CLUSTER_ENABLED] == Value: ${JAHIA_CLUSTER_ENABLED} =="
+echo "$(date +'%d %B %Y - %k:%M') == Cluster enabled: ${JAHIA_CLUSTER_ENABLED} =="
 if [[ "${JAHIA_CLUSTER_ENABLED}" == "true" ]]; then
-    echo "$(date +'%d %B %Y - %k:%M') [JAHIA_CLUSTER_ENABLED] == Starting a cluster of one processing and two browsing =="
-    if [[ $1 == "notests" ]]; then
-        docker-compose up -d --renew-anon-volumes mariadb jahia jahia-browsing-a jahia-browsing-b alfresco dockerldap
-    else
-        docker-compose up --renew-anon-volumes -d mariadb jahia jahia-browsing-a jahia-browsing-b alfresco dockerldap
-        docker ps -a
-        docker stats --no-stream
-        docker-compose up --abort-on-container-exit cypress
-    fi
-else
-    echo "$(date +'%d %B %Y - %k:%M') [JAHIA_CLUSTER_ENABLED] == Starting a single processing node (no cluster) =="
-    if [[ $1 == "notests" ]]; then
-        docker-compose up -d --renew-anon-volumes mariadb jahia alfresco dockerldap
-    else
-        docker-compose up --renew-anon-volumes -d mariadb jahia alfresco dockerldap
-        docker ps -a
-        docker stats --no-stream
-        docker-compose up --abort-on-container-exit cypress
-    fi
+    export CLUSTER_PROFILE="--profile cluster"
+fi
+
+echo "$(date +'%d %B %Y - %k:%M') == Starting environment =="
+docker-compose up -d --renew-anon-volumes ${CLUSTER_PROFILE}
+if [[ "$1" != "notests" ]]; then
+    docker ps -a
+    docker stats --no-stream
+    docker-compose up --abort-on-container-exit cypress
 fi

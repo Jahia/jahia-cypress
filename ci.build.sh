@@ -4,7 +4,7 @@
 
 echo " ci.build.sh == Build test image"
 
-BASEDIR=$(dirname "$0")
+BASEDIR=$(dirname $(readlink -f $0))
 
 source $BASEDIR/set-env.sh
 
