@@ -8,8 +8,8 @@
   "bin": {
     "ci.build": "./ci.build.sh",
     "ci.startup": "./ci.startup.sh",
-    "env.run": "./ci.startup.sh",
-    "env.debug": "./ci.startup.sh"
+    "env.run": "./env.run.sh",
+    "env.debug": "./env.debug.sh"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
