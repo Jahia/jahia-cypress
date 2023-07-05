@@ -1,4 +1,5 @@
 import Chainable = Cypress.Chainable;
+import Chainer = Cypress.Chainer;
 
 export type ComponentType<Component> = { new(p: Chainable<JQuery>, assertion?: (s: JQuery) => void): Component, defaultSelector: string };
 
@@ -24,8 +25,7 @@ export class BaseComponent {
         return cy.get('@component' + this.id, {log: false});
     }
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    should(arg, ...others) {
+    should: Chainer<JQuery> = (arg, ...others) => {
         return cy.get('@component' + this.id, {log: false}).should(arg, ...others);
     }
 }
