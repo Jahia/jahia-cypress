@@ -36,7 +36,7 @@ export const login = (username = 'root', password: string = Cypress.env('SUPER_U
     });
 };
 
-export const loginAndStoreSession = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD')): void  => {
+export const loginAndStoreSession = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD')): void => {
     cy.session('session-' + username, () => {
         cy.login(username, password); // Edit in chief
     }, {
@@ -44,4 +44,4 @@ export const loginAndStoreSession = (username = 'root', password: string = Cypre
             cy.request('/start').its('status').should('eq', 200);
         }
     });
-}
+};

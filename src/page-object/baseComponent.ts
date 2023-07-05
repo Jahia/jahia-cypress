@@ -26,6 +26,6 @@ export class BaseComponent {
     }
 
     should: Chainer<JQuery> = (arg, ...others) => {
-        return cy.get('@component' + this.id, {log: false}).should(arg, ...others)
+        return cy.get('@component' + this.id, {log: false}).should(arg, ...others);
     }
 }
