@@ -5,6 +5,8 @@
 
 
 
+import RequestOptions = Cypress.RequestOptions;
+
 declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -103,7 +105,7 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         })
     }
 
-    const request = {
+    const request: Partial<RequestOptions> = {
         url: `${jahiaServer.url}/modules/api/provisioning`,
         method: 'POST',
         auth: {
@@ -115,7 +117,7 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         log: false
     }
 
-    if(typeof timeout !== 'undefined'){
+    if (typeof timeout !== 'undefined') {
         request.timeout = timeout
     }
 

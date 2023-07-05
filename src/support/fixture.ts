@@ -5,7 +5,7 @@ export const fixture = function(originalCommand: ((...args: any[]) => any), fixt
     return cy.wrap({}, {log:false}).then(() => {
         return originalCommand(fixture, ...args).then(f => {
             return f
-        }).catch((err) => {
+        }).catch(() => {
             return null;
         });
     }).then(file => {

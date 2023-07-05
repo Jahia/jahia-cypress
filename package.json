@@ -5,6 +5,12 @@
     "build": "tsc",
     "lint": "eslint src -c .eslintrc.json --ext .ts"
   },
+  "bin": {
+    "ci.build": "./ci.build.sh",
+    "ci.startup": "./ci.startup.sh",
+    "env.run": "./ci.startup.sh",
+    "env.debug": "./ci.startup.sh"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
