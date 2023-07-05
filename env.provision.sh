@@ -2,7 +2,7 @@
 # This script can be used to warmup the environment and execute the tests
 # It is used by the docker image at startup
 
-BASEDIR=$(dirname "$0")
+BASEDIR=$(dirname $(readlink -f $0))
 
 source $BASEDIR/set-env.sh
 

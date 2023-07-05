@@ -3,7 +3,7 @@
 # This script controls the startup of the container environment
 # It can be used as an alternative to having docker-compose up started by the CI environment
 
-BASEDIR=$(dirname "$0")
+BASEDIR=$(dirname $(readlink -f $0))
 
 source $BASEDIR/set-env.sh
 
