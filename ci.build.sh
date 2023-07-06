@@ -21,8 +21,22 @@ fi
 
 if [ -d ./jahia-module ]; then
   cd jahia-module
-  mvn clean install
-  cp target/*-SNAPSHOT.jar ../artifacts/
+  if [ -e "pom.xml" ]; then
+    mvn clean install
+    cp target/*-SNAPSHOT.jar ../artifacts/
+  elif [ -e "package.json" ]; then
+    rm ./*-SNAPSHOT.tgz
+    yarn install && yarn build && yarn pack
+
+    packages=$(ls *.tgz)
+    for package in $packages
+    do
+      filename=$(basename "$package" .tgz)
+      new_filename="$filename-SNAPSHOT.tgz"
+      mv "$package" "$new_filename"
+    done
+    cp ./*-SNAPSHOT.tgz ../artifacts/
+  fi
   cd ..
 fi
 
