@@ -22,9 +22,9 @@ export const enableModule = (moduleName: string, siteKey: string): void => {
     });
 };
 
-export const editServerName = (siteKey: string, serverName: string): void => {
-    cy.executeGroovy('groovy/admin/editSiteServerName.groovy', {
+export const editSite = (siteKey: string, config: {serverName: string} = {serverName: 'localhost'}): void => {
+    cy.executeGroovy('groovy/admin/editSite.groovy', {
         SITEKEY: siteKey,
-        SERVERNAME: serverName
+        SERVERNAME: config.serverName
     });
 };
