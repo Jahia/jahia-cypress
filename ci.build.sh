@@ -26,7 +26,7 @@ if [ -d ./jahia-module ]; then
     cp target/*-SNAPSHOT.jar ../artifacts/
   elif [ -e "package.json" ]; then
     rm ./*-SNAPSHOT.tgz
-    yarn install && yarn build && yarn pack
+    yarn set version stable && yarn install && yarn build && yarn jahia-pack
 
     packages=$(ls *.tgz)
     for package in $packages
