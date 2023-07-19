@@ -21,3 +21,10 @@ export const enableModule = (moduleName: string, siteKey: string): void => {
         type: 'application/yaml'
     });
 };
+
+export const editSite = (siteKey: string, config: {serverName: string} = {serverName: 'localhost'}): void => {
+    cy.executeGroovy('groovy/admin/editSite.groovy', {
+        SITEKEY: siteKey,
+        SERVERNAME: config.serverName
+    });
+};
