@@ -32,6 +32,12 @@ if [[ -z "${CYPRESS_CONFIGURATION_FILE}" ]]; then
   CYPRESS_CONFIGURATION_FILE=cypress.config.ts
 fi
 
+if [[ "${TESTS_PROFILE}" != "" ]]; then
+  CYPRESS_CONFIGURATION_FILE=${TESTS_PROFILE}
+else
+  CYPRESS_CONFIGURATION_FILE="cypress.config.ts"
+fi
+
 echo "$(date +'%d %B %Y - %k:%M') == Running Cypress with configuration file ${CYPRESS_CONFIGURATION_FILE} =="
 
 yarn e2e:ci --config-file "${CYPRESS_CONFIGURATION_FILE}"
