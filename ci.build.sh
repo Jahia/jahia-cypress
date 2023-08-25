@@ -23,7 +23,7 @@ if [ -d ./jahia-module ]; then
   cd jahia-module
   if [ -e "pom.xml" ]; then
     mvn clean install
-    cp target/*-SNAPSHOT.jar ../artifacts/
+    find . -type f -name "*-SNAPSHOT.jar" -exec cp {} ../artifacts/ \;
   elif [ -e "package.json" ]; then
     rm ./*-SNAPSHOT.tgz
     yarn set version stable && yarn install && yarn build && yarn jahia-pack
