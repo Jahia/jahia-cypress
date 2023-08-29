@@ -16,9 +16,7 @@ export const unpublishNode = (path: string, languages: string): void => {
     cy.apollo({
         variables: {
             pathOrId: path,
-            languages: languages,
-            upublishSubNodes: true,
-            includeSubTree: true
+            languages: languages
         },
         mutationFile: 'graphql/jcr/mutation/unpublishNode.graphql'
     });
