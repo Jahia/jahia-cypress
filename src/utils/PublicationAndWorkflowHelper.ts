@@ -12,6 +12,16 @@ export const publishAndWaitJobEnding = (path: string, languages: string[] = ['en
     waitAllJobsFinished('Publication timeout for node: ' + path, 60000);
 };
 
+export const unpublishNode = (pathOrId: string, languages: string) => {
+    return cy.apollo({
+        variables: {
+            pathOrId: pathOrId,
+            languages: languages
+        },
+        mutationFile: 'graphql/jcr/mutation/unpublishNode.graphql'
+    });
+}
+
 export const startWorkflow = (pathOrId: string, definition: string, language: string): Cypress.Chainable => {
     return cy.apollo({
         variables: {
@@ -27,6 +37,10 @@ export const validateAllWorkflows = (): void => {
     cy.executeGroovy('groovy/admin/completeWorkflows.groovy');
     waitAllJobsFinished('All workflows validated but some jobs are still running after a minute', 60000);
 };
+
+export const abortAllWorkflows = () => {
+    cy.executeGroovy('groovy/admin/abortWorkflows.groovy');
+}
 
 export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): void => {
     cy.waitUntil(
