@@ -1,0 +1,7 @@
+mutation unpublishNode($pathOrId: String!, $languages: [String]!) {
+    jcr(workspace: EDIT) {
+        mutateNode(pathOrId: $pathOrId) {
+            unpublish(languages: $languages)
+        }
+    }
+}
