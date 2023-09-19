@@ -28,3 +28,11 @@ export const deleteUser = (userName: string): void => {
         USER_NAME: userName
     });
 };
+
+export const addUserToGroup = (userName: string, groupName: string, siteKey?: string): void => {
+    cy.executeGroovy('groovy/admin/addUserToGroup.groovy', {
+        USER_NAME: userName,
+        GROUP_NAME: groupName,
+        SITE_KEY: siteKey ? `"${siteKey}"` : 'null'
+    });
+};
