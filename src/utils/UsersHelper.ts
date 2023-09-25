@@ -12,6 +12,19 @@ export const grantRoles = (pathOrId: string, roleNames: Array<string>, principal
     });
 };
 
+export const revokeRoles = (pathOrId: string, roleNames: Array<string>, principalName: string, principalType: string): Cypress.Chainable => {
+    cy.log('Revoke role(s) ' + roleNames + ' with principal type ' + principalType + ' to ' + principalName + ' on node ' + pathOrId);
+    return cy.apollo({
+        variables: {
+            pathOrId: pathOrId,
+            roleNames: roleNames,
+            principalName: principalName,
+            principalType: principalType
+        },
+        mutationFile: 'graphql/jcr/mutation/revokeRoles.graphql'
+    });
+};
+
 export const createUser = (userName: string, password: string, properties: { name: string, value: string }[] = []): void => {
     const userProperties = properties.map(property => {
         return 'properties.setProperty("' + property.name + '", "' + property.value + '")';

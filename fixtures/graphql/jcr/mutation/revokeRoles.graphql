@@ -1,0 +1,16 @@
+mutation revokeRoles(
+    $pathOrId: String!
+    $roleNames: [String]!
+    $principalName: String!
+    $principalType: PrincipalType!
+) {
+    jcr {
+        mutateNode(pathOrId: $pathOrId) {
+            revokeRoles(
+                roleNames: $roleNames
+                principalType: $principalType
+                principalName: $principalName
+            )
+        }
+    }
+}
