@@ -7,7 +7,7 @@ export class Dropdown extends BaseComponent {
 
     select(item: string): Dropdown {
         this.get().click();
-        getComponent(Menu).select(item);
+        getComponent(Menu, null, $el => expect($el).to.be.visible).select(item);
         return this;
     }
 }
