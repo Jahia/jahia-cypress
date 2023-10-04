@@ -49,8 +49,8 @@ export const getNodeByPath = (path: string, properties?: string[], language?: st
             path: path,
             properties: properties,
             language: language,
-            childrenTypes: childrenTypes,
-            workspace: workspace
+            childrenTypes: childrenTypes || [],
+            workspace: workspace || 'EDIT'
         },
         queryFile: 'graphql/jcr/query/getNodeByPath.graphql'
     });
