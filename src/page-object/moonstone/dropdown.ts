@@ -7,7 +7,9 @@ export class Dropdown extends BaseComponent {
 
     select(item: string): Dropdown {
         this.get().click();
-        getComponent(Menu, null, $el => expect($el).to.be.visible).select(item);
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(500);
+        getComponent(Menu, this).select(item);
         return this;
     }
 }
