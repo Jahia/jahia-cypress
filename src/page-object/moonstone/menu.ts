@@ -1,7 +1,7 @@
 import {BaseComponent} from '../baseComponent';
 
 export class Menu extends BaseComponent {
-    static defaultSelector = '.moonstone-menu:visible'
+    static defaultSelector = '.moonstone-menu:not(.moonstone-hidden)'
 
     select(item: string): Menu {
         // eslint-disable-next-line cypress/no-unnecessary-waiting
