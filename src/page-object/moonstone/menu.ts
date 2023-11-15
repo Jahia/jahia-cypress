@@ -1,5 +1,5 @@
 import {BaseComponent} from '../baseComponent';
-import {getComponentByRole, getComponentBySelector} from "../utils";
+import {getComponentByRole} from '../utils';
 
 export class Menu extends BaseComponent {
     static defaultSelector = '.moonstone-menu:not(.moonstone-hidden)'
