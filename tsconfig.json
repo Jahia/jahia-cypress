@@ -6,7 +6,12 @@
     "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": [
+      "cypress",
+      "node",
+      "cypress-real-events"
+    ]
   },
   "include": [
     "./src/**/*"
