@@ -4,5 +4,5 @@ export const getJahiaVersion = (): Cypress.Chainable => {
         queryFile: 'graphql/jcr/query/getJahiaVersion.graphql'
     }).then(result => {
         return result?.data?.admin.jahia.version;
-    })
+    });
 };
