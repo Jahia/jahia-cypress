@@ -1,0 +1,12 @@
+query {
+    admin {
+        jahia {
+            version {
+              release
+              build
+              buildDate
+              isSnapshot
+            }
+        }
+    }
+}
