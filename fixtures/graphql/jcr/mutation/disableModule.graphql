@@ -1,0 +1,9 @@
+mutation disableModule($moduleName: String!, $pathOrId: String!) {
+  jcr {
+    mutateNode(pathOrId: $pathOrId) {
+      mutateProperty(name: "j:installedModules") {
+        removeValue(value: $moduleName)
+      }
+    }
+  }
+}
