@@ -20,4 +20,12 @@ export class Collapsible extends BaseComponent {
         });
         return this;
     }
+
+    shouldBeCollapsed(): boolean {
+        return this.get().find('.moonstone-collapsible_content_collapsed').should('exist');
+    }
+
+    shouldBeExpanded(): boolean {
+        return this.get().find('.moonstone-collapsible_content_expanded').should('exist');
+    }
 }
