@@ -1,0 +1,15 @@
+mutation copyNode($pathOrId: String!, $destParentPathOrId: String!, $destName: String) {
+    jcr {
+        copyNode(
+            pathOrId: $pathOrId
+            destParentPathOrId: $destParentPathOrId
+            destName: $destName
+        ) {
+            node {
+                name
+                uuid
+                path
+            }
+        }
+    }
+}

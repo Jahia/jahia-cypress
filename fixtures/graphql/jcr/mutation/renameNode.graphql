@@ -1,0 +1,7 @@
+mutation($pathOrId: String!, $newName: String!) {
+    jcr(workspace: EDIT) {
+        mutateNode(pathOrId: $pathOrId) {
+            rename(name: $newName)
+        }
+    }
+}
