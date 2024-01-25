@@ -43,6 +43,20 @@ export const addNode = (variables: { parentPathOrId: string, primaryNodeType: st
     });
 };
 
+export const renameNode = (variables: { pathOrId: string, newName: string}): Cypress.Chainable => {
+    return cy.apollo({
+        variables: variables,
+        mutationFile: 'graphql/jcr/mutation/renameNode.graphql'
+    });
+};
+
+export const copyNode = (variables: { pathOrId: string, destParentPathOrId: string, destName?: string}): Cypress.Chainable => {
+    return cy.apollo({
+        variables: variables,
+        mutationFile: 'graphql/jcr/mutation/copyNode.graphql'
+    });
+};
+
 export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: 'EDIT' | 'LIVE' = 'EDIT'): Cypress.Chainable => {
     return cy.apollo({
         variables: {
