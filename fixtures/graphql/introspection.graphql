@@ -1,0 +1,53 @@
+query IntrospectionQuery ($typeName: String!) {
+    __type(name: $typeName) {
+        kind
+        name
+        description
+        fields {
+            name
+            description
+            args {
+                name
+                description
+                type {
+                    kind
+                    name
+                    description
+                    ofType {
+                        kind
+                        name
+                        description
+                    }
+                }
+            }
+            type {
+                kind
+                name
+                description
+                ofType {
+                    kind
+                    name
+                    description
+                }
+            }
+        }
+        inputFields {
+            name
+            description
+            type {
+                kind
+                name
+                description
+                ofType {
+                    kind
+                    name
+                    description
+                    ofType {
+                        kind
+                        name
+                    }
+                }
+            }
+        }
+    }
+}
