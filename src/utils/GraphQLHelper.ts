@@ -15,7 +15,8 @@ export const getDescriptions = (rootNode: string): Cypress.Chainable => {
 };
 
 const execIntrospection = (typeName: string, types: GraphQLType[], nodePath): Cypress.Chainable => {
-    // Do not process default type names (String, Int, ...) and only process a node once for a given path
+    // Do not execute introspection on default type names (String, Int, ...) 
+    // only process a node once for a given name
     if (['String', 'Int', 'Boolean', 'Long'].includes(typeName) || types.find(t => t.name === typeName) !== undefined) {
         return;
     }
