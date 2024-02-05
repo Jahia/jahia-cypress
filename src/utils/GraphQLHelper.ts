@@ -1,3 +1,5 @@
+/* eslint max-depth: ["error", 8] */
+
 interface GraphQLType {
     name: string
     nodePath: string[]
@@ -15,7 +17,7 @@ export const getDescriptions = (rootNode: string): Cypress.Chainable => {
 };
 
 const execIntrospection = (typeName: string, types: GraphQLType[], nodePath): Cypress.Chainable => {
-    // Do not execute introspection on default type names (String, Int, ...) 
+    // Do not execute introspection on default type names (String, Int, ...)
     // only process a node once for a given name
     if (['String', 'Int', 'Boolean', 'Long'].includes(typeName) || types.find(t => t.name === typeName) !== undefined) {
         return;
