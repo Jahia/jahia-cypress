@@ -1,6 +1,6 @@
 {
   "name": "@jahia/cypress",
-  "version": "3.17.4",
+  "version": "3.17.7",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src -c .eslintrc.json --ext .ts"

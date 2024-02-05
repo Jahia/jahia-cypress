@@ -22,6 +22,13 @@ export const enableModule = (moduleName: string, siteKey: string): void => {
     });
 };
 
+export const disableModule = (moduleName: string, siteKey: string): void => {
+    cy.apollo({
+        mutationFile: 'graphql/jcr/mutation/disableModule.graphql',
+        variables: {moduleName, pathOrId: `/sites/${siteKey}`}
+    });
+};
+
 export const editSite = (siteKey: string, config: {serverName: string} = {serverName: 'localhost'}): void => {
     cy.executeGroovy('groovy/admin/editSite.groovy', {
         SITEKEY: siteKey,
