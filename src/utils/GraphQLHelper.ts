@@ -76,7 +76,7 @@ const execIntrospection = (typeName: string, types: GraphQLType[], nodePath): Cy
                     }
 
                     // Fetch more data via a deeper introspection query whenever possible
-                    return Cypress.Promise.each(fields, (field: any) => {
+                    return Cypress.Promise.each(fields, (field: {type: {kind: string; name: string; ofType: { name: string}}}) => {
                         if (['OBJECT', 'NON_NULL', 'SCALAR', 'LIST'].includes(field.type.kind)) {
                             let childTypeName = field.type.name;
                             if (field.type.kind === 'NON_NULL' || field.type.kind === 'LIST') {
