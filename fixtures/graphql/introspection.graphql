@@ -1,35 +1,40 @@
-query IntrospectionQuery ($typeName: String!) {
+query IntrospectionQuery($typeName: String!) {
     __type(name: $typeName) {
         kind
         name
         description
-        fields {
+        fields(includeDeprecated: true) {
             name
             description
+            deprecationReason
+            isDeprecated
             args {
                 name
                 description
                 type {
                     kind
                     name
-                    description
-                    ofType {
-                        kind
-                        name
-                        description
-                    }
                 }
             }
             type {
                 kind
                 name
                 description
-                ofType {
-                    kind
-                    name
-                    description
-                }
             }
+        }
+        interfaces {
+            name
+            description
+        }
+        possibleTypes {
+            name
+            description
+        }
+        enumValues(includeDeprecated: true) {
+            name
+            description
+            deprecationReason
+            isDeprecated
         }
         inputFields {
             name
@@ -38,16 +43,11 @@ query IntrospectionQuery ($typeName: String!) {
                 kind
                 name
                 description
-                ofType {
-                    kind
-                    name
-                    description
-                    ofType {
-                        kind
-                        name
-                    }
-                }
             }
+        }
+        ofType {
+            name
+            description
         }
     }
 }
