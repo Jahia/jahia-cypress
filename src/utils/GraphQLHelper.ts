@@ -16,7 +16,7 @@ interface GraphQLDescription {
 // This list can then be used in Cypress tests to look for missing descriptions
 export const getDescriptions = (rootNode: string): Cypress.Chainable => {
     cy.log('Starting analysis from GraphQL node: ' + rootNode);
-    return execIntrospection(rootNode, [], [rootNode]).then(descriptions => {
+    return execIntrospection(rootNode, [], []).then(descriptions => {
         return descriptions;
     });
 };
