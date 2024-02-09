@@ -20,15 +20,27 @@ query IntrospectionQuery($typeName: String!) {
                 kind
                 name
                 description
+                ofType {
+                    name
+                    description
+                }
             }
         }
         interfaces {
             name
             description
+            ofType {
+                name
+                description
+            }            
         }
         possibleTypes {
             name
             description
+            ofType {
+                name
+                description
+            }            
         }
         enumValues(includeDeprecated: true) {
             name
@@ -43,11 +55,19 @@ query IntrospectionQuery($typeName: String!) {
                 kind
                 name
                 description
+                ofType {
+                    name
+                    description
+                }                
             }
         }
         ofType {
             name
             description
+            ofType {
+                name
+                description
+            }            
         }
     }
 }
