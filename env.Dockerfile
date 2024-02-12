@@ -1,4 +1,4 @@
-FROM cypress/browsers:node16.16.0-chrome107-ff107-edge
+FROM cypress/browsers:node-20.11.0-chrome-121.0.6167.85-1-ff-120.0-edge-121.0.2277.83-1
 
 ARG MAVEN_VER="3.8.1"
 ARG MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
@@ -15,7 +15,7 @@ COPY --chown=jahians:jahians package.json yarn.lock /home/jahians/
 RUN mkdir -p /home/jahians/run-artifacts /home/jahians/results /home/jahians/cypress/plugins
 
 #CI=true reduces the verbosity of the installation logs
-RUN CI=true yarn install
+RUN CI=true yarn install --non-interactive
 
 COPY --chown=jahians:jahians . /home/jahians
 
