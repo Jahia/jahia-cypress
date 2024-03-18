@@ -2,7 +2,6 @@ FROM cypress/browsers:node-20.10.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.
 
 ARG MAVEN_VER="3.8.1"
 ARG MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
-ARG YARN_VERSION="1.22.19"
 
 RUN apt-get update && apt-get install -y jq curl
 
@@ -16,8 +15,7 @@ COPY --chown=jahians:jahians package.json yarn.lock /home/jahians/
 RUN mkdir -p /home/jahians/run-artifacts /home/jahians/results /home/jahians/cypress/plugins
 
 #CI=true reduces the verbosity of the installation logs
-RUN CI=true yarn set version ${YARN_VERSION} ; \
-    yarn install
+RUN CI=true yarn install --non-interactive
 
 COPY --chown=jahians:jahians . /home/jahians
 
