@@ -39,6 +39,6 @@ if [ -d ./jahia-module ]; then
   fi
   cd ..
 fi
-YARN_VERSION=${YARN_VERSION:-1.22.22}
+YARN_VERSION=${YARN_VERSION:-1.22.19}
 
 docker build --build-arg YARN_VERSION=${YARN_VERSION} -f $BASEDIR/env.Dockerfile -t ${TESTS_IMAGE} .
