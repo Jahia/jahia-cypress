@@ -16,12 +16,11 @@ WORKDIR /home/jahians
 COPY --chown=jahians:jahians . /home/jahians
 
 #CI=true reduces the verbosity of the installation logs
-RUN CI=true yarn set version ${YARN_VERSION} \
-    CI=true yarn install; \
-    ls -al /home/jahians/ ; \
-    /home/jahians/node_modules/.bin/cypress install; \
-    mkdir -p .m2; \
-    cp maven.settings.xml .m2/settings.xml; \
-    exit 0
+RUN CI=true yarn set version ${YARN_VERSION} ; \
+    yarn install; \
+    /home/jahians/node_modules/.bin/cypress install
+
+# Exit 0 is used to not fail if the maven.settings.xml file is not present
+RUN mkdir -p .m2; cp maven.settings.xml .m2/settings.xml; exit 0    
 
 CMD /bin/bash -c /home/jahians/env.run.sh

@@ -1,6 +1,6 @@
 {
   "name": "@jahia/cypress",
-  "version": "3.19.0",
+  "version": "3.19.1",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src -c .eslintrc.json --ext .ts"
@@ -8,8 +8,8 @@
   "bin": {
     "ci.build": "./ci.build.sh",
     "ci.startup": "./ci.startup.sh",
-    "env.run": "./env.run.sh",
-    "env.debug": "./env.debug.sh"
+    "env.debug": "./env.debug.sh",
+    "env.run": "./env.run.sh"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,5 +33,6 @@
     "cypress-real-events": "^1.11.0",
     "graphql": "^15.5.0",
     "graphql-tag": "^2.11.0"
-  }
+  },
+  "packageManager": "yarn@1.22.19"
 }
