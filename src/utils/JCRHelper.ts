@@ -1,3 +1,5 @@
+type Workspace = 'EDIT' | 'LIVE';
+
 export const setNodeProperty = (pathOrId: string, property: string, value: string | Array<string>, language: string): Cypress.Chainable => {
     let mutationFile = 'graphql/jcr/mutation/setProperty.graphql';
     if (value instanceof Array) {
@@ -15,10 +17,11 @@ export const setNodeProperty = (pathOrId: string, property: string, value: strin
     });
 };
 
-export const deleteNode = (pathOrId: string): Cypress.Chainable => {
+export const deleteNode = (pathOrId: string, workspace: Workspace = 'EDIT'): Cypress.Chainable => {
     return cy.apollo({
         variables: {
-            pathOrId: pathOrId
+            pathOrId: pathOrId,
+            workspace
         },
         mutationFile: 'graphql/jcr/mutation/deleteNode.graphql'
     });
@@ -43,7 +46,7 @@ export const addNode = (variables: { parentPathOrId: string, primaryNodeType: st
     });
 };
 
-export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: 'EDIT' | 'LIVE' = 'EDIT'): Cypress.Chainable => {
+export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: Workspace = 'EDIT'): Cypress.Chainable => {
     return cy.apollo({
         variables: {
             path: path,
