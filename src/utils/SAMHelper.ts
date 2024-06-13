@@ -5,7 +5,7 @@ export const waitUntilSAMStatusGreen = (severity = 'MEDIUM', timeout = 60000, in
             queryFile: 'graphql/sam/healthStatus.graphql',
             variables: {
                 severity: severity
-            },            
+            }
         }).then(result => {
             const healthStatus = result?.data?.admin?.jahia?.healthCheck?.status;
             if (healthStatus) {
