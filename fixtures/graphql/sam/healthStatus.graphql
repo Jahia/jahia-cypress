@@ -1,0 +1,12 @@
+query($severity: GqlProbeSeverity) {
+    admin {
+        jahia {
+            healthCheck(severity: $severity) {
+                status {
+                    health
+                    message
+                }
+            }
+        }
+    }
+}
