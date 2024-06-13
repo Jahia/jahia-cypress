@@ -6,3 +6,4 @@ export * from './VanityUrlHelper';
 export * from './ClusterHelper';
 export * from './JahiaPlatformHelper';
 export * from './GraphQLHelper';
+export * from './SAMHelper';
