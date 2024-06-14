@@ -1,7 +1,7 @@
 /*
     When Jahia is starting or performing provisioning operations
     it is expected for the SAM probe to alternate beween GREEN, YELLOW and RED statuses.
-    
+
     The primary use of this method is to wait until a Jahia platform stabilizes after a startup or
     provisioning operation.
 
