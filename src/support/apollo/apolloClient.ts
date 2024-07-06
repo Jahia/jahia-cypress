@@ -4,7 +4,8 @@ import {formDataHttpLink, uploadLink} from './links';
 interface AuthMethod {
     token?: string
     username?: string
-    password?: string
+    password?: string,
+    url?: string
 }
 
 declare global {
@@ -21,20 +22,20 @@ export type ApolloClientOptions = Cypress.Loggable & {
     setCurrentApolloClient: boolean
 }
 
-export const apolloClient = function (authMethod?: AuthMethod, options: ApolloClientOptions = {
+export const apolloClient = function (authMethod: AuthMethod = {url: Cypress.config().baseUrl}, options: ApolloClientOptions = {
     log: true,
     setCurrentApolloClient: true
 }): void {
     const headers: { authorization?: string } = {};
-    if (authMethod === undefined) {
-        headers.authorization = `Basic ${btoa('root:' + Cypress.env('SUPER_USER_PASSWORD'))}`;
-    } else if (authMethod.token !== undefined) {
+    if (authMethod.token !== undefined) {
         headers.authorization = `APIToken ${authMethod.token}`;
     } else if (authMethod.username !== undefined && authMethod.password !== undefined) {
         headers.authorization = `Basic ${btoa(authMethod.username + ':' + authMethod.password)}`;
+    } else {
+        headers.authorization = `Basic ${btoa('root:' + Cypress.env('SUPER_USER_PASSWORD'))}`;
     }
 
-    const links = [uploadLink, formDataHttpLink(Cypress.config().baseUrl, headers)];
+    const links = [uploadLink, formDataHttpLink(authMethod.url, headers)];
 
     const client = new ApolloClient({
         link: from(links),
