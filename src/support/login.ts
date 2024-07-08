@@ -7,8 +7,8 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            login(username?: string, password?: string): Chainable<Cypress.Response<any>>
-            loginAndStoreSession(username?: string, password?: string): Chainable<Cypress.Response<any>>
+            login(username?: string, password?: string, url?: string): Chainable<Cypress.Response<any>>
+            loginAndStoreSession(username?: string, password?: string, url?: string): Chainable<Cypress.Response<any>>
         }
     }
 }
@@ -36,12 +36,12 @@ export const login = (username = 'root', password: string = Cypress.env('SUPER_U
     });
 };
 
-export const loginAndStoreSession = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD')): void => {
+export const loginAndStoreSession = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD'), url = '/start'): void => {
     cy.session('session-' + username, () => {
         cy.login(username, password); // Edit in chief
     }, {
         validate() {
-            cy.request('/start').its('status').should('eq', 200);
+            cy.request(url).its('status').should('eq', 200);
         }
     });
 };
