@@ -22,6 +22,15 @@ export type ApolloClientOptions = Cypress.Loggable & {
     setCurrentApolloClient: boolean
 }
 
+export const switchApolloClient = function (authMethod: AuthMethod = {url: Cypress.config().baseUrl}, options: ApolloClientOptions = {
+    log: true,
+    setCurrentApolloClient: true
+}): void {
+    // Switch context to apollo client
+    cy.visit(authMethod.url, {failOnStatusCode: false});
+    return apolloClient(authMethod, options);
+};
+
 export const apolloClient = function (authMethod: AuthMethod = {url: Cypress.config().baseUrl}, options: ApolloClientOptions = {
     log: true,
     setCurrentApolloClient: true
