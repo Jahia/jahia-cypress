@@ -1,3 +1,4 @@
+dist/
 ./node_modules
 .yalc/
 node_modules
