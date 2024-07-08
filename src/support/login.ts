@@ -13,7 +13,7 @@ declare global {
     }
 }
 
-export const login = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD')): void => {
+export const login = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD'), url = '/cms/login'): void => {
     Cypress.log({
         name: 'login',
         message: `Login with ${username}`,
@@ -26,11 +26,11 @@ export const login = (username = 'root', password: string = Cypress.env('SUPER_U
 
     cy.request({
         method: 'POST',
-        url: '/cms/login',
         form: true,
         body: {username, password},
         followRedirect: false,
-        log: false
+        log: false,
+        url
     }).then(res => {
         expect(res.status, 'Login result').to.eq(302);
     });

@@ -1,10 +1,11 @@
 import {ApolloClient, from, InMemoryCache, NormalizedCacheObject} from '@apollo/client/core';
 import {formDataHttpLink, uploadLink} from './links';
 
-interface AuthMethod {
+interface HostConfig {
     token?: string
     username?: string
-    password?: string
+    password?: string,
+    url?: string
 }
 
 declare global {
@@ -12,7 +13,7 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            apolloClient(authMethod?: AuthMethod): Chainable<ApolloClient<NormalizedCacheObject>>
+            apolloClient(config?: HostConfig): Chainable<ApolloClient<NormalizedCacheObject>>
         }
     }
 }
@@ -21,20 +22,29 @@ export type ApolloClientOptions = Cypress.Loggable & {
     setCurrentApolloClient: boolean
 }
 
-export const apolloClient = function (authMethod?: AuthMethod, options: ApolloClientOptions = {
+export const switchApolloClient = function (config: HostConfig = {url: Cypress.config().baseUrl}, options: ApolloClientOptions = {
+    log: true,
+    setCurrentApolloClient: true
+}): void {
+    // Switch context to apollo client
+    cy.visit(config.url, {failOnStatusCode: false});
+    return apolloClient(config, options);
+};
+
+export const apolloClient = function (config: HostConfig = {url: Cypress.config().baseUrl}, options: ApolloClientOptions = {
     log: true,
     setCurrentApolloClient: true
 }): void {
     const headers: { authorization?: string } = {};
-    if (authMethod === undefined) {
+    if (config.token !== undefined) {
+        headers.authorization = `APIToken ${config.token}`;
+    } else if (config.username !== undefined && config.password !== undefined) {
+        headers.authorization = `Basic ${btoa(config.username + ':' + config.password)}`;
+    } else {
         headers.authorization = `Basic ${btoa('root:' + Cypress.env('SUPER_USER_PASSWORD'))}`;
-    } else if (authMethod.token !== undefined) {
-        headers.authorization = `APIToken ${authMethod.token}`;
-    } else if (authMethod.username !== undefined && authMethod.password !== undefined) {
-        headers.authorization = `Basic ${btoa(authMethod.username + ':' + authMethod.password)}`;
     }
 
-    const links = [uploadLink, formDataHttpLink(Cypress.config().baseUrl, headers)];
+    const links = [uploadLink, formDataHttpLink(config.url, headers)];
 
     const client = new ApolloClient({
         link: from(links),
@@ -53,7 +63,7 @@ export const apolloClient = function (authMethod?: AuthMethod, options: ApolloCl
             message: 'Create new apollo client',
             consoleProps: () => {
                 return {
-                    Auth: authMethod,
+                    Config: config,
                     Yielded: client
                 };
             }

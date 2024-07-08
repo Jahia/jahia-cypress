@@ -13,13 +13,14 @@ cy.apolloClient()
 
 ### Arguments
 
-#### &gt; auth (`AuthMethod`) 
+#### &gt; config (`HostConfig`)
 
-If no authorization is passed, will use root credentials. Otherwise :
+If no authorization is passed, will use root credentials and cypress base url. Otherwise :
 
 - token: An API token
 - username
 - password 
+- url
 
 #### &gt; options (`ApolloClientOptions`)
 
