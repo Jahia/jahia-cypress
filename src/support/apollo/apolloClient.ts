@@ -22,16 +22,16 @@ export type ApolloClientOptions = Cypress.Loggable & {
     setCurrentApolloClient: boolean
 }
 
-export const switchApolloClient = function (config: HostConfig = {url: Cypress.config().baseUrl}, options: ApolloClientOptions = {
+export const switchApolloClient = function (config: HostConfig = {}, options: ApolloClientOptions = {
     log: true,
     setCurrentApolloClient: true
 }): void {
     // Switch context to apollo client
-    cy.visit(config.url, {failOnStatusCode: false});
+    cy.visit(config.url || Cypress.config().baseUrl, {failOnStatusCode: false});
     return apolloClient(config, options);
 };
 
-export const apolloClient = function (config: HostConfig = {url: Cypress.config().baseUrl}, options: ApolloClientOptions = {
+export const apolloClient = function (config: HostConfig = {}, options: ApolloClientOptions = {
     log: true,
     setCurrentApolloClient: true
 }): void {
@@ -44,7 +44,7 @@ export const apolloClient = function (config: HostConfig = {url: Cypress.config(
         headers.authorization = `Basic ${btoa('root:' + Cypress.env('SUPER_USER_PASSWORD'))}`;
     }
 
-    const links = [uploadLink, formDataHttpLink(config.url, headers)];
+    const links = [uploadLink, formDataHttpLink(config.url || Cypress.config().baseUrl, headers)];
 
     const client = new ApolloClient({
         link: from(links),
