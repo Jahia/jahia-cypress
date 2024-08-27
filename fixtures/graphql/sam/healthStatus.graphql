@@ -6,6 +6,13 @@ query($severity: GqlProbeSeverity) {
                     health
                     message
                 }
+                probes(health: YELLOW) {
+                    name
+                    status {
+                        health
+                        message
+                    }
+                }                
             }
         }
     }

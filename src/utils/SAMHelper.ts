@@ -10,6 +10,7 @@
 */
 export const waitUntilSAMStatusGreen = (severity = 'MEDIUM', timeout = 60000, interval = 500, greenMatchCount = 10) : void => {
     let greenCount = 0;
+    let lastGraphqlResponse = {};
     cy.waitUntil(() =>
         cy.apollo({
             fetchPolicy: 'no-cache',
@@ -19,13 +20,14 @@ export const waitUntilSAMStatusGreen = (severity = 'MEDIUM', timeout = 60000, in
             }
         }).then(result => {
             const healthStatus = result?.data?.admin?.jahia?.healthCheck?.status;
+            lastGraphqlResponse = result?.data?.admin?.jahia?.healthCheck;
             if (healthStatus) {
                 greenCount = healthStatus.health === 'GREEN' ? greenCount + 1 : 0;
                 return greenCount >= greenMatchCount;
             }
         }),
     {
-        errorMsg: `Timeout waiting for SAM to be green for severity: ${severity}`,
+        errorMsg: `Timeout waiting for SAM to be green for severity: ${severity}. Last GraphQL response: ${JSON.stringify(lastGraphqlResponse)}`,
         timeout: timeout,
         verbose: true,
         interval: interval
