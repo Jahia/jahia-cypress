@@ -8,6 +8,9 @@ bash $BASEDIR/env.provision.sh
 
 source $BASEDIR/set-env.sh
 
+echo "$(date +'%d %B %Y - %k:%M') == env.run.sh == Printing the most important environment variables"
+echo "$(date +'%d %B %Y - %k:%M') == NEXUS_USERNAME: ${NEXUS_USERNAME:0:3}***${NEXUS_USERNAME:(-6)}"
+
 echo "$(date +'%d %B %Y - %k:%M') == Fetching the list of installed modules =="
 bash -c "unset npm_config_package; npx --yes @jahia/jahia-reporter@latest utils:modules \
   --moduleId=\"${MODULE_ID}\" \
