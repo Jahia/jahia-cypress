@@ -11,6 +11,7 @@ START_TIME=$SECONDS
 
 echo "$(date +'%d %B %Y - %k:%M') == Printing the most important environment variables"
 echo " MANIFEST: ${MANIFEST}"
+echo " NEXUS_USERNAME: ${NEXUS_USERNAME:0:3}***${NEXUS_USERNAME:(-6)}"
 echo " TESTS_IMAGE: ${TESTS_IMAGE}"
 echo " JAHIA_IMAGE: ${JAHIA_IMAGE}"
 echo " JAHIA_CLUSTER_ENABLED: ${JAHIA_CLUSTER_ENABLED}"
