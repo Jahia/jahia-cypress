@@ -56,6 +56,8 @@ else
   curl ${MANIFEST} --output ./run-artifacts/curl-manifest
   MANIFEST="curl-manifest"
 fi
+sed -i -e "s/NEXUS_USERNAME/$(echo ${NEXUS_USERNAME} | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" ./run-artifacts/${MANIFEST}
+sed -i -e "s/NEXUS_PASSWORD/$(echo ${NEXUS_PASSWORD} | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" ./run-artifacts/${MANIFEST}
 
 echo "$(date +'%d %B %Y - %k:%M') == Executing manifest: ${MANIFEST} =="
 curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_URL}/modules/api/provisioning --form script="@./run-artifacts/${MANIFEST};type=text/yaml" $(find assets -type f | sed -E 's/^(.+)$/--form file=\"@\1\"/' | xargs)
