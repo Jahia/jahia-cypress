@@ -10,6 +10,11 @@ source $BASEDIR/set-env.sh
 
 echo "$(date +'%d %B %Y - %k:%M') == env.run.sh == Printing the most important environment variables"
 echo "$(date +'%d %B %Y - %k:%M') == NEXUS_USERNAME: ${NEXUS_USERNAME:0:3}***${NEXUS_USERNAME:(-6)}"
+echo "$(date +'%d %B %Y - %k:%M') == DEBUG: ${DEBUG}"
+
+if [[ "${DEBUG}" == "true" ]]; then
+  touch /tmp/debug
+fi
 
 echo "$(date +'%d %B %Y - %k:%M') == Fetching the list of installed modules =="
 bash -c "unset npm_config_package; npx --yes @jahia/jahia-reporter@latest utils:modules \
@@ -49,10 +54,20 @@ if [[ $? -eq 0 ]]; then
   echo "$(date +'%d %B %Y - %k:%M') == Full execution successful =="
   echo "success" > ./results/test_success
   yarn report:merge; yarn report:html
-  exit 0
 else
   echo "$(date +'%d %B %Y - %k:%M') == One or more failed tests =="
   echo "failure" > ./results/test_failure
   yarn report:merge; yarn report:html
+fi
+
+WAIT_DURATION=0
+while [[ -e /tmp/debug ]]; do
+  echo "Debug file present - $(( ++ WAIT_DURATION ))s - waiting for file removal or expiration of GitHub Actions timeout..."
+  sleep 1;
+done
+
+if [[ -e ./results/test_success ]]; then
+  exit 0
+else
   exit 1
 fi
