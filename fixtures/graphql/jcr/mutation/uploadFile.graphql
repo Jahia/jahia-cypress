@@ -1,0 +1,11 @@
+mutation uploadFile($name: String!, $path: String!, $mimeType: String!, $file: String!) {
+    jcr {
+        addNode(name: $name, parentPathOrId: $path, primaryNodeType: "jnt:file") {
+            addChild(name: "jcr:content", primaryNodeType: "jnt:resource") {
+                content: mutateProperty(name: "jcr:data") { setValue(type: BINARY, value: $file)}
+                contentType: mutateProperty(name: "jcr:mimeType") { setValue(value: $mimeType)}
+            }
+            uuid
+        }
+    }
+}
