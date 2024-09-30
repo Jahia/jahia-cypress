@@ -87,3 +87,20 @@ export const getNodeTypes = (filter = {}): Cypress.Chainable => {
         queryFile: 'graphql/jcr/query/getNodeTypes.graphql'
     });
 };
+
+export const uploadFile = (fixturePath: string, parentPathOrId: string, name: string, mimeType: string): Cypress.Chainable => {
+    return cy.fixture(fixturePath, 'binary')
+        .then(image => {
+            const blob = Cypress.Blob.binaryStringToBlob(image, mimeType);
+            const file = new File([blob], name, {type: blob.type});
+            return cy.apollo({
+                mutationFile: 'graphql/jcr/mutation/uploadFile.graphql',
+                variables: {
+                    parentPathOrId,
+                    name,
+                    mimeType,
+                    file
+                }
+            });
+        });
+};
