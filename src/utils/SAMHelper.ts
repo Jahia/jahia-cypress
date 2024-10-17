@@ -30,7 +30,7 @@ export const healthCheck = (severity = 'MEDIUM', probeHealthFilter = 'GREEN'): C
  * @param interval the interval in milliseconds, default is 500
  * @param statusMatchCount the number of consecutive status matches before the waitUntil resolves, default is 1
  */
-export const waitUntilSAMStatus = (expectedHealth: string, severity = 'MEDIUM', probeHealthFilter = 'GREEN', timeout = 60000, interval = 500, statusMatchCount = 1) => {
+export const waitUntilSAMStatus = ({expectedHealth, severity = 'MEDIUM', probeHealthFilter = 'GREEN', timeout = 60000, interval = 500, statusMatchCount = 1}) : void => {
     let statusCount = 0;
     let lastGraphqlResponse = {};
     cy.waitUntil(() =>
@@ -62,6 +62,6 @@ export const waitUntilSAMStatus = (expectedHealth: string, severity = 'MEDIUM', 
  */
 export const waitUntilSAMStatusGreen = (severity = 'MEDIUM', timeout = 60000, interval = 500, greenMatchCount = 10) : void => {
     // We use YELLOW as the probeHealthFilter because we are not interested in potential GREEN probes in the response
-    waitUntilSAMStatus('GREEN', severity, 'YELLOW', timeout, interval, greenMatchCount);
+    waitUntilSAMStatus({expectedHealth: 'GREEN', severity, probeHealthFilter: 'YELLOW', timeout, interval, statusMatchCount: greenMatchCount});
 };
 
