@@ -1,4 +1,4 @@
-query($severity: GqlProbeSeverity) {
+query($severity: GqlProbeSeverity, $probeHealthFilter: GqlProbeHealth) {
     admin {
         jahia {
             healthCheck(severity: $severity) {
@@ -6,13 +6,15 @@ query($severity: GqlProbeSeverity) {
                     health
                     message
                 }
-                probes(health: YELLOW) {
+                probes(health: $probeHealthFilter) {
                     name
+                    severity
+                    description
                     status {
                         health
                         message
                     }
-                }                
+                }
             }
         }
     }
