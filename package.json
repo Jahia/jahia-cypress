@@ -1,6 +1,6 @@
 {
   "name": "@jahia/cypress",
-  "version": "3.28.0",
+  "version": "3.29.0",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src -c .eslintrc.json --ext .ts"
@@ -32,8 +32,7 @@
     "@apollo/client": "^3.4.9",
     "cypress-real-events": "^1.11.0",
     "graphql": "^15.5.0",
-    "graphql-tag": "^2.11.0",
-    "node-ssh": "^13.2.0"
+    "graphql-tag": "^2.11.0"
   },
   "packageManager": "yarn@4.5.0"
 }
