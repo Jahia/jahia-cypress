@@ -28,9 +28,9 @@ export const healthCheck = (severity = 'MEDIUM', probeHealthFilter = 'GREEN'): C
  * @param probeHealthFilter the filter for the health check probes, default is GREEN
  * @param timeout the timeout in milliseconds, default is 60000
  * @param interval the interval in milliseconds, default is 500
- * @param statusMatchCount the number of consecutive status matches before the waitUntil resolves, default is 1
+ * @param statusMatchCount the number of consecutive status matches before the waitUntil resolves, default is 3
  */
-export const waitUntilSAMStatus = ({expectedHealth, severity = 'MEDIUM', probeHealthFilter = 'GREEN', timeout = 60000, interval = 500, statusMatchCount = 1}) : void => {
+export const waitUntilSAMStatus = ({expectedHealth, severity = 'MEDIUM', probeHealthFilter = 'GREEN', timeout = 60000, interval = 500, statusMatchCount = 3}) : void => {
     let statusCount = 0;
     let lastGraphqlResponse = {};
     cy.waitUntil(() =>
