@@ -43,7 +43,9 @@ export const waitUntilSAMStatus = ({expectedHealth, severity = 'MEDIUM', probeHe
             }
         }),
     {
-        errorMsg: `Timeout waiting for SAM to be ${expectedHealth} for severity: ${severity} and probeHealthFilter: ${probeHealthFilter}. Last GraphQL response: ${JSON.stringify(lastGraphqlResponse)}`,
+        errorMsg: () => {
+            return `Timeout waiting for SAM to be ${expectedHealth} for severity: ${severity} and probeHealthFilter: ${probeHealthFilter}. Last GraphQL response: ${JSON.stringify(lastGraphqlResponse)}`;
+        },
         timeout: timeout,
         verbose: true,
         interval: interval
