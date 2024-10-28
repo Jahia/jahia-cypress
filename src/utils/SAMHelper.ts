@@ -4,16 +4,18 @@ import Chainable = Cypress.Chainable
 /**
  * Simple health check query
  * @param severity the severity of the health check, default is MEDIUM
- * @param probeHealthFilter the filter for the health check probes, default is GREEN
+ * @param probeHealthFilter return only probes with health status matching or above, default is null
+ * @param probeNamesFilter return and calculate health status only for the probes with the given names, default is null
  */
-export const healthCheck = (severity = 'MEDIUM', probeHealthFilter = 'GREEN'): Chainable<any> => {
+export const healthCheck = (severity = 'MEDIUM', probeHealthFilter = null, probeNamesFilter: string[] = null): Chainable<any> => {
     return cy
         .apollo({
             fetchPolicy: 'no-cache',
             queryFile: 'graphql/sam/healthStatus.graphql',
             variables: {
                 severity,
-                probeHealthFilter
+                probeHealthFilter,
+                probeNamesFilter
             }
         })
         .then((response: any) => {
@@ -25,16 +27,17 @@ export const healthCheck = (severity = 'MEDIUM', probeHealthFilter = 'GREEN'): C
  * Wait until the health check returns the expected health
  * @param expectedHealth the expected health status
  * @param severity the severity of the health check, default is MEDIUM
- * @param probeHealthFilter the filter for the health check probes, default is GREEN
+ * @param probeHealthFilter return only probes with health status matching or above, default is null
+ * @param probeNamesFilter return and calculate health status only for the probes with the given names, default is null
  * @param timeout the timeout in milliseconds, default is 60000
  * @param interval the interval in milliseconds, default is 500
  * @param statusMatchCount the number of consecutive status matches before the waitUntil resolves, default is 3
  */
-export const waitUntilSAMStatus = ({expectedHealth, severity = 'MEDIUM', probeHealthFilter = 'GREEN', timeout = 60000, interval = 500, statusMatchCount = 3}) : void => {
+export const waitUntilSAMStatus = ({expectedHealth, severity = 'MEDIUM', probeHealthFilter = null, probeNamesFilter = null, timeout = 60000, interval = 500, statusMatchCount = 3}) : void => {
     let statusCount = 0;
     let lastGraphqlResponse = {};
     cy.waitUntil(() =>
-        healthCheck(severity, probeHealthFilter).then(result => {
+        healthCheck(severity, probeHealthFilter, probeNamesFilter).then(result => {
             lastGraphqlResponse = result;
             const healthStatus = result?.status;
             if (healthStatus) {
