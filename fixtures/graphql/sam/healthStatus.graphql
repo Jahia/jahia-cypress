@@ -1,7 +1,7 @@
-query($severity: GqlProbeSeverity, $probeHealthFilter: GqlProbeHealth) {
+query($severity: GqlProbeSeverity, $probeHealthFilter: GqlProbeHealth, $probeNamesFilter: [String!]) {
     admin {
         jahia {
-            healthCheck(severity: $severity) {
+            healthCheck(severity: $severity, includes: $probeNamesFilter) {
                 status {
                     health
                     message
