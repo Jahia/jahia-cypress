@@ -32,6 +32,13 @@ export class Menu extends BaseComponent {
         return this;
     }
 
+    /** Can be used for choicelist dropdown menu */
+    selectByValue(value: string): Menu {
+        this.get().find(`.moonstone-menuItem[data-value="${value}"]`).scrollIntoView().should('be.visible');
+        this.get().find(`.moonstone-menuItem[data-value="${value}"]`).trigger('click');
+        return this;
+    }
+
     close(): Chainable<unknown> {
         return cy.get(Menu.overlaySelector).click('topRight');
     }
