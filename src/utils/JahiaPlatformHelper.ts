@@ -15,3 +15,9 @@ export const getStartedModulesVersion = (): Cypress.Chainable => {
         return result?.data?.dashboard.modules;
     });
 };
+
+export const getStartedModuleVersion = (moduleId: string): Cypress.Chainable => {
+    return getStartedModulesVersion().then(modules => {
+        return modules.find(module => module.id === moduleId)?.version;
+    });
+};
