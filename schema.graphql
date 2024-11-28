@@ -100,6 +100,8 @@ interface JCRNode {
     defaultWipInfo: wipInfo
     "Returns the node definition that applies to this node."
     definition: JCRNodeDefinition
+    "The depth in the JCR Tree of the JCR node this object represents"
+    depth: Int!
     "GraphQL representation of a descendant node, based on its relative path"
     descendant(
         "Name or relative path of the sub node"
@@ -123,6 +125,8 @@ interface JCRNode {
         last: Int,
         "fetching only the first certain number of nodes"
         limit: Int,
+        "Maximum depth in JCR tree for descendants from the current node, 0 (or less) for all sub nodes, 1 for one sub level, etc"
+        maxDepth: Int,
         "fetching only nodes after this node (inclusive)"
         offset: Int,
         "Filter of descendant nodes by their property values; null to avoid such filtering"
@@ -749,6 +753,8 @@ type GenericJCRNode implements JCRNode {
     defaultWipInfo: wipInfo
     "Returns the node definition that applies to this node."
     definition: JCRNodeDefinition
+    "The depth in the JCR Tree of the JCR node this object represents"
+    depth: Int!
     "GraphQL representation of a descendant node, based on its relative path"
     descendant(
         "Name or relative path of the sub node"
@@ -772,6 +778,8 @@ type GenericJCRNode implements JCRNode {
         last: Int,
         "fetching only the first certain number of nodes"
         limit: Int,
+        "Maximum depth in JCR tree for descendants from the current node, 0 (or less) for all sub nodes, 1 for one sub level, etc"
+        maxDepth: Int,
         "fetching only nodes after this node (inclusive)"
         offset: Int,
         "Filter of descendant nodes by their property values; null to avoid such filtering"
@@ -998,29 +1006,36 @@ type GqlBackgroundJob {
     group: String
     "The job (Boolean) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobBooleanProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): Boolean
+    "Job description"
+    jobDescription: String
     "The job (Int) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobIntegerProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): Int
     "The job (Long) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobLongProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): Long
     "The job state is different from the status, it reflect the last action done on the job instance (Started, Vetoed, Finished)"
     jobState: GqlBackgroundJobState
     "The job status"
     jobStatus: GqlBackgroundJobStatus
+    "List of strings property from the job map (eg. publicationInfos, publicationPaths)"
+    jobStringListProperty(
+        "The name of the property"
+        name: String
+    ): [String]
     "The job (String) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobStringProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): String
-    "The job name"
+    "The name of the property"
     name: String
     "GraphQL representation of publication job"
     publicationJob: GqlPublicationBackgroundJob
@@ -1028,6 +1043,26 @@ type GqlBackgroundJob {
     siteKey: String
     "The user key. The returned value will be null in case the job doesn't have associated user key"
     userKey: String
+}
+
+"A connection to a list of items."
+type GqlBackgroundJobConnection {
+    "a list of edges"
+    edges: [GqlBackgroundJobEdge]
+    "a list of nodes"
+    nodes: [GqlBackgroundJob]
+    "details about this specific page"
+    pageInfo: PageInfo!
+}
+
+"An edge in a connection"
+type GqlBackgroundJobEdge {
+    "cursor marks a unique position or index into the connection"
+    cursor: String!
+    "index in the connection"
+    index: Int
+    "The item at the end of the edge"
+    node: GqlBackgroundJob
 }
 
 "Condition for override item"
@@ -1107,58 +1142,6 @@ type GqlDashboard {
     modules: [GqlModule]
     "Whether the tools are accessible on the installation"
     toolsAccess: Boolean
-}
-
-type GqlDistributedSessionsMutation {
-    "Delete a session"
-    removeSession(
-        "Session id"
-        id: String!
-    ): Boolean
-}
-
-type GqlDistributedSessionsQuery {
-    localSessions(
-        "fetching only nodes after this node (exclusive)"
-        after: String,
-        "fetching only nodes before this node (exclusive)"
-        before: String,
-        "Filter by graphQL fields values"
-        fieldFilter: InputFieldFiltersInput,
-        "Group fields by criteria"
-        fieldGrouping: InputFieldGroupingInput,
-        "sort by GraphQL field values"
-        fieldSorter: InputFieldSorterInput,
-        "fetching only the first certain number of nodes"
-        first: Int,
-        "fetching only the last certain number of nodes"
-        last: Int,
-        "fetching only the first certain number of nodes"
-        limit: Int,
-        "fetching only nodes after this node (inclusive)"
-        offset: Int
-    ): GqlSessionConnection
-    sessions(
-        "fetching only nodes after this node (exclusive)"
-        after: String,
-        "fetching only nodes before this node (exclusive)"
-        before: String,
-        "Filter by graphQL fields values"
-        fieldFilter: InputFieldFiltersInput,
-        "Group fields by criteria"
-        fieldGrouping: InputFieldGroupingInput,
-        "sort by GraphQL field values"
-        fieldSorter: InputFieldSorterInput,
-        "fetching only the first certain number of nodes"
-        first: Int,
-        "fetching only the last certain number of nodes"
-        last: Int,
-        "fetching only the first certain number of nodes"
-        limit: Int,
-        "fetching only nodes after this node (inclusive)"
-        offset: Int
-    ): GqlSessionConnection
-    sessionsCount: Int
 }
 
 type GqlEditorForm {
@@ -1380,9 +1363,29 @@ type GqlHealthCheck {
     status: GqlProbeStatus
 }
 
-type GqlHzPartition {
-    id: Int
-    owner: String
+"jContent API"
+type GqlJContent {
+    "Returns html with marked differences"
+    diffHtml(
+        "New html"
+        newHtml: String,
+        "Original html"
+        originalHtml: String
+    ): String
+}
+
+"jContent API"
+type GqlJContentMutations {
+    "Flushes cache for a page, checks adminCache permission and node type"
+    flushPageCache(
+        "Page path"
+        pagePath: String!
+    ): Boolean
+    "Flushes cache for a site, will resolve site node if the path supplied is not a site, checks adminCache permission"
+    flushSiteCache(
+        "Site path"
+        sitePath: String!
+    ): Boolean
 }
 
 type GqlJcrImageTransformMutation {
@@ -1582,31 +1585,38 @@ type GqlPublicationBackgroundJob {
     group: String
     "The job (Boolean) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobBooleanProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): Boolean
+    "Job description"
+    jobDescription: String
     "The job (Int) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobIntegerProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): Int
     "The job (Long) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobLongProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): Long
     "The job state is different from the status, it reflect the last action done on the job instance (Started, Vetoed, Finished)"
     jobState: GqlBackgroundJobState
     "The job status"
     jobStatus: GqlBackgroundJobStatus
+    "List of strings property from the job map (eg. publicationInfos, publicationPaths)"
+    jobStringListProperty(
+        "The name of the property"
+        name: String
+    ): [String]
     "The job (String) property that correspond to the given name. The returned value will be null in case the job doesn't have the property"
     jobStringProperty(
-        "The job name"
+        "The name of the property"
         name: String
     ): String
     "Publication language"
     language: String
-    "The job name"
+    "The name of the property"
     name: String
     "The site key. The returned value will be null in case the job doesn't have associated site key"
     siteKey: String
@@ -1645,7 +1655,26 @@ type GqlPublicationInfo {
 "Scheduler object which allows to access to background jobs"
 type GqlScheduler {
     "List of active jobs"
-    jobs: [GqlBackgroundJob]
+    jobs(
+        "fetching only nodes after this node (exclusive)"
+        after: String,
+        "fetching only nodes before this node (exclusive)"
+        before: String,
+        "Exclude jobs with these statuses"
+        excludeStatuses: [GqlBackgroundJobStatus],
+        "fetching only the first certain number of nodes"
+        first: Int,
+        "The group jobs belong to"
+        group: String,
+        "Include jobs with these statuses"
+        includeStatuses: [GqlBackgroundJobStatus],
+        "fetching only the last certain number of nodes"
+        last: Int,
+        "fetching only the first certain number of nodes"
+        limit: Int,
+        "fetching only nodes after this node (inclusive)"
+        offset: Int
+    ): GqlBackgroundJobConnection
 }
 
 "API Scope"
@@ -1654,36 +1683,6 @@ type GqlScope {
     description: String
     "The name of the scope"
     name: String
-}
-
-type GqlSession {
-    cost: Long
-    creationTime: String
-    id: String
-    lastAccessedTime: String
-    maxInactiveIntervalInSeconds: Int
-    partition: GqlHzPartition
-    user: User
-}
-
-"A connection to a list of items."
-type GqlSessionConnection {
-    "a list of edges"
-    edges: [GqlSessionEdge]
-    "a list of nodes"
-    nodes: [GqlSession]
-    "details about this specific page"
-    pageInfo: PageInfo!
-}
-
-"An edge in a connection"
-type GqlSessionEdge {
-    "cursor marks a unique position or index into the connection"
-    cursor: String!
-    "index in the connection"
-    index: Int
-    "The item at the end of the edge"
-    node: GqlSession
 }
 
 type GqlWorkflowEvent {
@@ -2630,6 +2629,8 @@ type JCRSite implements JCRNode {
     defaultWipInfo: wipInfo
     "Returns the node definition that applies to this node."
     definition: JCRNodeDefinition
+    "The depth in the JCR Tree of the JCR node this object represents"
+    depth: Int!
     "GraphQL representation of a descendant node, based on its relative path"
     descendant(
         "Name or relative path of the sub node"
@@ -2653,6 +2654,8 @@ type JCRSite implements JCRNode {
         last: Int,
         "fetching only the first certain number of nodes"
         limit: Int,
+        "Maximum depth in JCR tree for descendants from the current node, 0 (or less) for all sub nodes, 1 for one sub level, etc"
+        maxDepth: Int,
         "fetching only nodes after this node (inclusive)"
         offset: Int,
         "Filter of descendant nodes by their property values; null to avoid such filtering"
@@ -2682,7 +2685,7 @@ type JCRSite implements JCRNode {
         "The name of the permission"
         permissionName: String!
     ): Boolean
-    "Returns the node of the home page"
+    "Returns the node of the home page or null if no home page is defined or is not accessible"
     homePage: JCRNode
     "Retrieves a collection of module IDs, which are installed on the site, the node belongs to"
     installedModules: [String]
@@ -2929,8 +2932,6 @@ type JahiaAdminMutation {
         "Service name"
         service: String!
     ): Boolean
-    "Distributed sessions admin"
-    distributedSessions: GqlDistributedSessionsMutation
     "Shutdown the server"
     shutdown(
         "Do not send the shutdown event"
@@ -2953,8 +2954,6 @@ type JahiaAdminQuery {
     ): GqlConfigurationQuery
     "Details about the database Jahia is connected to"
     database: JahiaDatabase
-    "Distributed sessions admin"
-    distributedSessions: GqlDistributedSessionsQuery
     "HealthCheck node"
     healthCheck(
         "Returns only SAM probes with probe names included in this list"
@@ -3112,6 +3111,8 @@ type Mutation {
     admin: AdminMutation!
     "Main access field to the DX GraphQL Form mutation API"
     forms: GqlEditorFormMutations
+    "Main access field to the jContent mutation API"
+    jcontent: GqlJContentMutations
     "JCR Mutation"
     jcr(
         "Should save"
@@ -3328,6 +3329,8 @@ type Query {
     dashboard: GqlDashboard
     "Main access field to the DX GraphQL Form API"
     forms: GqlEditorForms
+    "Main access field to the jContent API"
+    jcontent: GqlJContent
     "JCR Queries"
     jcr(
         "The name of the workspace to fetch the node from; either EDIT, LIVE, or null to use EDIT by default"
@@ -3686,6 +3689,8 @@ type VanityUrl implements JCRNode {
     defaultWipInfo: wipInfo
     "Returns the node definition that applies to this node."
     definition: JCRNodeDefinition
+    "The depth in the JCR Tree of the JCR node this object represents"
+    depth: Int!
     "GraphQL representation of a descendant node, based on its relative path"
     descendant(
         "Name or relative path of the sub node"
@@ -3709,6 +3714,8 @@ type VanityUrl implements JCRNode {
         last: Int,
         "fetching only the first certain number of nodes"
         limit: Int,
+        "Maximum depth in JCR tree for descendants from the current node, 0 (or less) for all sub nodes, 1 for one sub level, etc"
+        maxDepth: Int,
         "fetching only nodes after this node (inclusive)"
         offset: Int,
         "Filter of descendant nodes by their property values; null to avoid such filtering"
