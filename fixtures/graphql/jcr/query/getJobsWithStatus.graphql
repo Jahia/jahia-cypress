@@ -3,9 +3,11 @@ query getJobsWithStatus{
         jahia {
             scheduler{
                 jobs {
-                    siteKey
-                    group
-                    jobStatus
+                    nodes {
+                        siteKey
+                        group
+                        jobStatus
+                    }
                 }
             }
         }
