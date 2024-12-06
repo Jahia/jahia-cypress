@@ -1065,6 +1065,18 @@ type GqlBackgroundJobEdge {
     node: GqlBackgroundJob
 }
 
+"Channel information"
+type GqlChannel {
+    "Channel label (not localized)"
+    displayName: String
+    "Return true if channel is visible, otherwise false"
+    isVisible: Boolean
+    "Channel name/identifier"
+    name: String
+    "Return variants for this channel, if available"
+    variants: [GqlVariant]
+}
+
 "Condition for override item"
 type GqlCondition {
     "Item will apply only on this nodetype"
@@ -1365,6 +1377,8 @@ type GqlHealthCheck {
 
 "jContent API"
 type GqlJContent {
+    "Returns all available channels"
+    channels: [GqlChannel]
     "Returns html with marked differences"
     diffHtml(
         "New html"
@@ -1654,8 +1668,10 @@ type GqlPublicationInfo {
 
 "Scheduler object which allows to access to background jobs"
 type GqlScheduler {
-    "List of active jobs"
-    jobs(
+    "List of active jobs (deprecated)"
+    jobs: [GqlBackgroundJob] @deprecated(reason: "Use paginatedJobs instead")
+    "List of active jobs (paginated)"
+    paginatedJobs(
         "fetching only nodes after this node (exclusive)"
         after: String,
         "fetching only nodes before this node (exclusive)"
@@ -1683,6 +1699,24 @@ type GqlScope {
     description: String
     "The name of the scope"
     name: String
+}
+
+"Variant information for a given channel"
+type GqlVariant {
+    "Variant display name/label (not localized)"
+    displayName: String
+    "Variant dimension (width x height) if available"
+    imageSize: GqlVariantDimension
+    "Variant name/identifier"
+    name: String
+}
+
+"Represents dimensions (width, height) of a variant"
+type GqlVariantDimension {
+    "Variant height"
+    height: String
+    "Variant width"
+    width: String
 }
 
 type GqlWorkflowEvent {

@@ -51,7 +51,7 @@ export const waitAllJobsFinished = (errorMessage?: string, timeout = 60000): voi
                     queryFile: 'graphql/jcr/query/getJobsWithStatus.graphql'
                 })
                 .then(response => {
-                    const jobs = response?.data?.admin?.jahia?.scheduler?.jobs.nodes;
+                    const jobs = response?.data?.admin?.jahia?.scheduler?.jobs;
                     const publicationJobs = jobs.filter(job => job.group === 'PublicationJob');
                     const hasActivePublicationJobs = publicationJobs.some(job => job.jobStatus === 'EXECUTING');
                     return !hasActivePublicationJobs;
