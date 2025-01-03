@@ -36,17 +36,12 @@ export const editSite = (siteKey: string, config: {serverName: string} = {server
     });
 };
 
-export const exportSite = (serverUrl: string, siteToExport: string = 'export.zip', exportFile: string, exportPath: string): void => {
-
-    let exportUrl = `${serverUrl}/cms/export/default/${exportFile}?exportformat=site&live=true&sitebox=${siteToExport}`
-    if(exportPath ){
-        exportUrl = `${exportUrl}&exportPath=${exportPath}`
+export const exportSite = (serverUrl: string, siteToExport : string, exportFile = 'export.zip', exportPath = ''): void => {
+    let exportUrl = `${serverUrl}/cms/export/default/${exportFile}?exportformat=site&live=true&sitebox=${siteToExport}`;
+    if (exportPath !== '') {
+        exportUrl = `${exportUrl}&exportPath=${exportPath}`;
     }
-    console.log(`+++++++++++++++++++ ${exportUrl}`)
 
-    cy.request(exportUrl)
-
-
-
+    cy.request(exportUrl);
 };
 
