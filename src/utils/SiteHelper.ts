@@ -38,3 +38,13 @@ export const editSite = (siteKey: string, config: {serverName: string} = {server
         SERVERNAME: config.serverName
     }, jahiaServer);
 };
+
+export const exportSite = (serverUrl: string, siteToExport : string, exportFile = 'export.zip', exportPath = ''): void => {
+    let exportUrl = `${serverUrl}/cms/export/default/${exportFile}?exportformat=site&live=true&sitebox=${siteToExport}`;
+    if (exportPath !== '') {
+        exportUrl = `${exportUrl}&exportPath=${exportPath}`;
+    }
+
+    cy.request(exportUrl);
+};
+
