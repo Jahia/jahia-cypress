@@ -81,13 +81,13 @@ if [[ -d artifacts/ ]]; then
     echo "$(date +'%d %B %Y - %k:%M') [MODULE_INSTALL] == Module submitted =="
   done
 
-  # This is done after classic .jar module to ensure NPM modules are installed after engine module
+  # This is done after classic .jar module to ensure Javascript modules are installed after engine module
   for file in $(ls -1 *-SNAPSHOT.tgz | sort -n)
     do
-      echo "$(date +'%d %B %Y - %k:%M') [MODULE_INSTALL] == Submitting NPM module from: $file =="
+      echo "$(date +'%d %B %Y - %k:%M') [MODULE_INSTALL] == Submitting Javascript module from: $file =="
       curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_URL}/modules/api/provisioning --form script='[{"installAndStartBundle":"'"$file"'", "forceUpdate":true}]' --form file=@$file
       echo
-      echo "$(date +'%d %B %Y - %k:%M') [MODULE_INSTALL] == NPM Module submitted =="
+      echo "$(date +'%d %B %Y - %k:%M') [MODULE_INSTALL] == Javascript Module submitted =="
     done
   cd ..
 fi
