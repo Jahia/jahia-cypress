@@ -103,3 +103,16 @@ module.exports = (on, config) => {
 ## Open-Source
 
 This is an Open-Source codebase, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source)
+
+## Use jahia-cypress with local changes
+
+During development time we often need to add or edit a method in jahia-cypress to use it somewhere else. 
+Here is the procedure test locally :
+ - do your changes in jahia-cypress
+ - execute command line > yarn build
+ - access the project where you want to call method from jahia-cypress (either jahia-ee, jexperience, ...)
+ - edit tests/package.json file
+ - find line "@jahia/cypress"
+ - set  "@jahia/cypress": "path/to/your/local/jahia-cypress",
+ - execute command line > yarn install
+ - you can now use the new method from jahia-cypress
