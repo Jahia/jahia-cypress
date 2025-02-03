@@ -39,10 +39,24 @@ export const deleteNodeProperty = (pathOrId: string, property: string, language:
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const addNode = (variables: { parentPathOrId: string, primaryNodeType: string, name: string, properties?: any[], children?: any[], mixins?: any[] }): Cypress.Chainable => {
+export const addNode = (variables: {
+    parentPathOrId: string,
+    primaryNodeType: string,
+    name: string,
+    properties?: any[],
+    children?: any[],
+    mixins?: any[]
+}): Cypress.Chainable => {
     return cy.apollo({
         variables: variables,
         mutationFile: 'graphql/jcr/mutation/addNode.graphql'
+    });
+};
+
+export const addMixins = (pathOrId: string, mixins: string[]): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {pathOrId: pathOrId, mixins: mixins},
+        mutationFile: 'graphql/jcr/mutation/addMixins.graphql'
     });
 };
 
