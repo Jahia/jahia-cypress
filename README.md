@@ -103,3 +103,6 @@ module.exports = (on, config) => {
 ## Open-Source
 
 This is an Open-Source codebase, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source)
+
+## How to release
+From Github release panel, draft a new release with a tag named `vX.Y.Z` and a title `vX.Y.Z`. The release will be published to NPM automatically.
