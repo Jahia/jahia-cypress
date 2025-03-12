@@ -1,0 +1,11 @@
+query($username: String!, $siteKey: String) {
+    admin {
+        userAdmin {
+            user(username: $username, site: $siteKey) {
+                node {
+                    path
+                }
+            }
+        }
+    }
+}

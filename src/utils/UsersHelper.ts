@@ -1,5 +1,3 @@
-import gql from 'graphql-tag';
-
 export const grantRoles = (pathOrId: string, roleNames: Array<string>, principalName: string, principalType: string): Cypress.Chainable => {
     cy.log('Grant role(s) ' + roleNames + ' with principal type ' + principalType + ' to ' + principalName + ' on node ' + pathOrId);
     return cy.apollo({
@@ -26,7 +24,10 @@ export const revokeRoles = (pathOrId: string, roleNames: Array<string>, principa
     });
 };
 
-export const createUser = (userName: string, password: string, properties: { name: string, value: string }[] = []): void => {
+export const createUser = (userName: string, password: string, properties: {
+    name: string,
+    value: string
+}[] = []): void => {
     const userProperties = properties.map(property => {
         return 'properties.setProperty("' + property.name + '", "' + property.value + '")';
     });
@@ -39,17 +40,12 @@ export const createUser = (userName: string, password: string, properties: { nam
 
 export const getUserPath = (username: string, siteKey = ''): Cypress.Chainable => {
     return cy.apollo({
-        query: gql`query {
-                              admin {
-                                userAdmin {
-                                  user(username: "${username}", site: "${siteKey}") {
-                                    node {
-                                      path
-                                    }
-                                  }
-                                }
-                              }
-                            }`}
+        variables: {
+            siteKey,
+            username
+        },
+        queryFile: 'graphql/jcr/query/getUserPath.graphql'
+    }
     );
 };
 

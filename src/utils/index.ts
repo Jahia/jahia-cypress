@@ -7,4 +7,4 @@ export * from './ClusterHelper';
 export * from './JahiaPlatformHelper';
 export * from './GraphQLHelper';
 export * from './SAMHelper';
-export * from './ImportExportHelper';
+export * from './ExportHelper';
