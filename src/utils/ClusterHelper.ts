@@ -1,4 +1,4 @@
-export const waitUntilJournalSync = (predicate?: (cluster: any) => boolean, timeout = 60000,
+export const waitUntilJournalSync = (predicate?: (cluster) => boolean, timeout = 60000,
     interval = 1000) : void => {
     cy.waitUntil(() =>
         cy.apollo({

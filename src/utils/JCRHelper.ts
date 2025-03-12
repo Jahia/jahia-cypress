@@ -1,5 +1,3 @@
-import gql from 'graphql-tag';
-
 type Workspace = 'EDIT' | 'LIVE';
 
 export const setNodeProperty = (pathOrId: string, property: string, value: string | Array<string>, language: string): Cypress.Chainable => {
@@ -40,14 +38,13 @@ export const deleteNodeProperty = (pathOrId: string, property: string, language:
     });
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addNode = (variables: {
     parentPathOrId: string,
     primaryNodeType: string,
     name: string,
-    properties?: any[],
-    children?: any[],
-    mixins?: any[]
+    properties?: [],
+    children?: [],
+    mixins?: []
 }): Cypress.Chainable => {
     return cy.apollo({
         variables: variables,
@@ -62,6 +59,7 @@ export const addMixins = (pathOrId: string, mixins: string[]): Cypress.Chainable
     });
 };
 
+// eslint-disable-next-line max-params
 export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: Workspace = 'EDIT'): Cypress.Chainable => {
     return cy.apollo({
         variables: {
