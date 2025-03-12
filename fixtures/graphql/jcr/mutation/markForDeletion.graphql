@@ -1,0 +1,7 @@
+mutation startWorkflow($pathOrId: String!) {
+  jcr {
+    mutateNode(pathOrId:$pathOrId) {
+      markForDeletion
+    }
+  }
+}

@@ -1,3 +1,5 @@
+import gql from 'graphql-tag';
+
 type Workspace = 'EDIT' | 'LIVE';
 
 export const setNodeProperty = (pathOrId: string, property: string, value: string | Array<string>, language: string): Cypress.Chainable => {
@@ -100,6 +102,17 @@ export const getNodeTypes = (filter = {}): Cypress.Chainable => {
         },
         queryFile: 'graphql/jcr/query/getNodeTypes.graphql'
     });
+};
+
+export const markForDeletion = (pathOrId: string): Cypress.Chainable => {
+    return cy.apollo(
+        {
+            variables: {
+                pathOrId: pathOrId
+            },
+            mutationFile: 'graphql/jcr/mutation/markForDeletion.graphql'
+        }
+    );
 };
 
 export const uploadFile = (fixturePath: string, parentPathOrId: string, name: string, mimeType: string): Cypress.Chainable => {

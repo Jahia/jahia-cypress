@@ -1,3 +1,4 @@
+import gql from 'graphql-tag';
 
 export const grantRoles = (pathOrId: string, roleNames: Array<string>, principalName: string, principalType: string): Cypress.Chainable => {
     cy.log('Grant role(s) ' + roleNames + ' with principal type ' + principalType + ' to ' + principalName + ' on node ' + pathOrId);
@@ -36,9 +37,42 @@ export const createUser = (userName: string, password: string, properties: { nam
     });
 };
 
+export const getUserPath = (username: string, siteKey = ''): Cypress.Chainable => {
+    return cy.apollo({
+        query: gql`query {
+                              admin {
+                                userAdmin {
+                                  user(username: "${username}", site: "${siteKey}") {
+                                    node {
+                                      path
+                                    }
+                                  }
+                                }
+                              }
+                            }`}
+    );
+};
+
 export const deleteUser = (userName: string): void => {
     cy.executeGroovy('groovy/admin/deleteUser.groovy', {
         USER_NAME: userName
+    });
+};
+
+export const createGroup = (groupName: string, hidden?: boolean, siteKey = ''): void => {
+    cy.executeGroovy('groovy/admin/userGroupHelper.groovy', {
+        OPERATION: 'create',
+        GROUPNAME: groupName,
+        HIDDEN: hidden ? 'true' : 'false',
+        SITEKEY: siteKey
+    });
+};
+
+export const deleteGroup = (groupName: string, siteKey = ''): void => {
+    cy.executeGroovy('groovy/admin/userGroupHelper.groovy', {
+        OPERATION: 'delete',
+        GROUPNAME: groupName,
+        SITEKEY: siteKey
     });
 };
 
