@@ -9,7 +9,7 @@ source $BASEDIR/set-env.sh
 #!/usr/bin/env bash
 START_TIME=$SECONDS
 
-echo "$(date +'%d %B %Y - %k:%M') == Printing the most important environment variables"
+echo "$(date +'%d %B %Y - %k:%M') == env.provision.sh == Printing the most important environment variables"
 echo " MANIFEST: ${MANIFEST}"
 echo " NEXUS_USERNAME: ${NEXUS_USERNAME:0:3}***${NEXUS_USERNAME:(-6)}"
 echo " TESTS_IMAGE: ${TESTS_IMAGE}"

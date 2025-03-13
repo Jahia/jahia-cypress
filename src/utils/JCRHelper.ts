@@ -38,14 +38,13 @@ export const deleteNodeProperty = (pathOrId: string, property: string, language:
     });
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addNode = (variables: {
     parentPathOrId: string,
     primaryNodeType: string,
     name: string,
-    properties?: any[],
-    children?: any[],
-    mixins?: any[]
+    properties?: [],
+    children?: [],
+    mixins?: []
 }): Cypress.Chainable => {
     return cy.apollo({
         variables: variables,
@@ -60,6 +59,7 @@ export const addMixins = (pathOrId: string, mixins: string[]): Cypress.Chainable
     });
 };
 
+// eslint-disable-next-line max-params
 export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: Workspace = 'EDIT'): Cypress.Chainable => {
     return cy.apollo({
         variables: {
@@ -100,6 +100,17 @@ export const getNodeTypes = (filter = {}): Cypress.Chainable => {
         },
         queryFile: 'graphql/jcr/query/getNodeTypes.graphql'
     });
+};
+
+export const markForDeletion = (pathOrId: string): Cypress.Chainable => {
+    return cy.apollo(
+        {
+            variables: {
+                pathOrId: pathOrId
+            },
+            mutationFile: 'graphql/jcr/mutation/markForDeletion.graphql'
+        }
+    );
 };
 
 export const uploadFile = (fixturePath: string, parentPathOrId: string, name: string, mimeType: string): Cypress.Chainable => {

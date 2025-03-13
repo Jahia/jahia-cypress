@@ -8,9 +8,12 @@ bash $BASEDIR/env.provision.sh
 
 source $BASEDIR/set-env.sh
 
+MODE=${MODE:-ci}
+
 echo "$(date +'%d %B %Y - %k:%M') == env.run.sh == Printing the most important environment variables"
 echo "$(date +'%d %B %Y - %k:%M') == NEXUS_USERNAME: ${NEXUS_USERNAME:0:3}***${NEXUS_USERNAME:(-6)}"
 echo "$(date +'%d %B %Y - %k:%M') == DEBUG: ${DEBUG}"
+echo "$(date +'%d %B %Y - %k:%M') == CYPRESS MODE: ${MODE}"
 
 if [[ "${DEBUG}" == "true" ]]; then
   touch /tmp/debug
@@ -48,7 +51,7 @@ fi
 
 echo "$(date +'%d %B %Y - %k:%M') == Running Cypress with configuration file ${CYPRESS_CONFIGURATION_FILE} =="
 
-NO_COLOR=1 yarn e2e:ci --config-file "${CYPRESS_CONFIGURATION_FILE}"
+NO_COLOR=1 yarn e2e:${MODE} --config-file "${CYPRESS_CONFIGURATION_FILE}"
 
 if [[ $? -eq 0 ]]; then
   echo "$(date +'%d %B %Y - %k:%M') == Full execution successful =="
