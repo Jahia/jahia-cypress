@@ -27,12 +27,12 @@ if [[ -z ${JAHIA_LICENSE} ]]; then
 fi
 
 echo "$(date +'%d %B %Y - %k:%M') == Cluster enabled: ${JAHIA_CLUSTER_ENABLED} =="
-if [[ "${JAHIA_CLUSTER_ENABLED}" == "true" ]]; then
+if [[ "${JAHIA_CLUSTER_ENABLED}" == "true" ||  ${JAHIA_CLUSTER_ENABLED} == true ]]; then
     export CLUSTER_PROFILE="--profile cluster"
 fi
 
 echo "$(date +'%d %B %Y - %k:%M') == Starting environment =="
-docker-compose up -d --renew-anon-volumes ${CLUSTER_PROFILE}
+docker-compose ${CLUSTER_PROFILE} up -d --renew-anon-volumes
 if [[ "$1" != "notests" ]]; then
     docker ps -a
     docker stats --no-stream
