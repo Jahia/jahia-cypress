@@ -42,9 +42,11 @@ export const addNode = (variables: {
     parentPathOrId: string,
     primaryNodeType: string,
     name: string,
-    properties?: [],
-    children?: [],
-    mixins?: []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    properties?: any [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    children?: any [],
+    mixins?: string []
 }): Cypress.Chainable => {
     return cy.apollo({
         variables: variables,
