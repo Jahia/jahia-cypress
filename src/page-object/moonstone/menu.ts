@@ -18,8 +18,8 @@ export class Menu extends BaseComponent {
     }
 
     shouldHaveRoleItem(role: string):void {
-        this.get().find(`.moonstone-menuItem[data-sel-role=${role}]`).scrollIntoView();
-        this.get().find(`.moonstone-menuItem[data-sel-role=${role}]`).should('be.visible');
+        this.get().find(`.moonstone-menuItem[data-sel-role="${role}"]`).scrollIntoView();
+        this.get().find(`.moonstone-menuItem[data-sel-role="${role}"]`).should('be.visible');
     }
 
     shouldNotHaveItem(item: string):void {
