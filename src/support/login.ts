@@ -7,13 +7,14 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            login(username?: string, password?: string, url?: string): Chainable<Cypress.Response<any>>
+            login(username?: string, password?: string, config?: string| {url?: string; rememberMe?: boolean}): Chainable<Cypress.Response<any>>
             loginAndStoreSession(username?: string, password?: string, url?: string): Chainable<Cypress.Response<any>>
         }
     }
 }
-
-export const login = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD'), url = '/cms/login'): void => {
+// Disable linter to keep as this for backward compatibility
+// eslint-disable-next-line default-param-last
+export const login = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD'), config: string | { url?: string, rememberMe?: boolean }): void => {
     Cypress.log({
         name: 'login',
         message: `Login with ${username}`,
@@ -23,11 +24,22 @@ export const login = (username = 'root', password: string = Cypress.env('SUPER_U
             };
         }
     });
+    const body: {username: string, password: string, useCookie?: string} = {username, password};
+    let url = '/cms/login';
+    if (typeof config === 'object') {
+        if (config.rememberMe) {
+            body.useCookie = 'on';
+        }
+
+        url = config.url ?? url;
+    } else {
+        url = config ?? url;
+    }
 
     cy.request({
         method: 'POST',
         form: true,
-        body: {username, password},
+        body,
         followRedirect: false,
         log: false,
         url
