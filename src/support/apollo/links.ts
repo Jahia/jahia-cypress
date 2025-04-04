@@ -2,12 +2,13 @@
 import {HttpLink} from '@apollo/client/link/http';
 import fetch from 'cross-fetch';
 import {setContext} from '@apollo/client/link/context';
+import { ApolloClient, InMemoryCache } from '@apollo/client';
 
 interface ApolloRequestInit extends RequestInit {
     formData?: FormData
 }
 
-export const formDataHttpLink = (baseUrl: string, headers: unknown) => {
+export const formDataHttpLink = (baseUrl: string, headers: Record<string, string>) => {
     return new HttpLink({
         uri: `${baseUrl}/modules/graphql`,
         headers,
@@ -63,3 +64,11 @@ export const uploadLink = setContext((operation, {fetchOptions}) => {
         }
     };
 });
+
+export const createApolloClient = (baseUrl: string, headers: Record<string, string>) => {
+    return new ApolloClient({
+        link: formDataHttpLink(baseUrl, headers).concat(uploadLink),
+        cache: new InMemoryCache()
+    });
+};
+

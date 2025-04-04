@@ -2,16 +2,16 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
+    "lib": [
+      "dom",
+      "es2015",
+      "es2018"
+    ],
     "module": "commonjs",
     "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "types": [
-      "cypress",
-      "node",
-      "cypress-real-events"
-    ]
   },
   "include": [
     "./src/**/*"
