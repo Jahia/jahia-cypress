@@ -19,9 +19,12 @@ export const deleteSite = (siteKey: string, jahiaServer?: JahiaServer): void => 
 
 export const enableModule = (moduleName: string, siteKey: string, jahiaServer?: JahiaServer): void => {
     cy.runProvisioningScript({
-        fileContent: '- enable: "' + moduleName + '"\n  site: "' + siteKey + '"',
-        type: 'application/yaml'
-    }, undefined, jahiaServer);
+        script: {
+            fileContent: '- enable: "' + moduleName + '"\n  site: "' + siteKey + '"',
+            type: 'application/yaml'
+        },
+        jahiaServer
+    });
 };
 
 export const disableModule = (moduleName: string, siteKey: string): void => {

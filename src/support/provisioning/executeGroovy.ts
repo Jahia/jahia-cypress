@@ -26,11 +26,15 @@ const serverDefaults = {
 
 export const executeGroovy = function (scriptFile: string, replacements?: { [key: string]: string }, jahiaServer: JahiaServer = serverDefaults): void {
     cy.runProvisioningScript({
-        fileContent: '- executeScript: "' + scriptFile + '"',
-        type: 'application/yaml'
-    }, [{
-        fileName: scriptFile,
-        replacements,
-        type: 'text/plain'
-    }], jahiaServer).then(r => r[0]);
+        script: {
+            fileContent: '- executeScript: "' + scriptFile + '"',
+            type: 'application/yaml'
+        },
+        files: [{
+            fileName: scriptFile,
+            replacements,
+            type: 'text/plain'
+        }],
+        jahiaServer
+    }).then(r => r[0]);
 };
