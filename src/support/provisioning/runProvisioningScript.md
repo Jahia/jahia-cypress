@@ -45,6 +45,15 @@ Additional files that can be referenced in the script. When an operation require
 
 - `log` : should the command be logged or not
 
+#### &gt; timeout (`Number`)
+
+the timeout in milliseconds
+
+#### &gt; requestOptions (`RequestOptions`)
+
+Addition options for the cypress request object, some useful ones are:
+- `failOnStatusCode` : useful when you expect a 4xx or 5xx error and need to test it
+
 ### Yields
 
 The provisioning script result, as JSON object
