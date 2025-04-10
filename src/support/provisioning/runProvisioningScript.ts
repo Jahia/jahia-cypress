@@ -8,10 +8,17 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            runProvisioningScript(script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer?: JahiaServer): Chainable<any>
+            runProvisioningScript(params: RunProvisioningScriptParams): Chainable<void>;
         }
     }
+}
+
+export interface RunProvisioningScriptParams {
+    script: FormFile | StringDictionary[];
+    files?: FormFile[];
+    jahiaServer?: JahiaServer; // Optional, defaults to serverDefaults
+    options?: Cypress.Loggable; // Optional, defaults to { log: true }
+    requestOptions?: Partial<RequestOptions>; // Optional, defaults to {}
 }
 
 export type StringDictionary = { [key: string]: string }
@@ -68,8 +75,13 @@ function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
     return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
 }
 
-// eslint-disable-next-line default-param-last, max-params
-export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log: true}, timeout?: number, requestOptions: Partial<RequestOptions> = {}): void => {
+export const runProvisioningScript = ({
+    script,
+    files,
+    jahiaServer = serverDefaults,
+    options = {log: true},
+    requestOptions = {}
+}: RunProvisioningScriptParams): void => {
     const formData = new FormData();
 
     if (isFormFile(script)) {
@@ -122,10 +134,6 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
         log: false,
         ...requestOptions
     };
-
-    if (typeof timeout !== 'undefined') {
-        request.timeout = timeout;
-    }
 
     cy.request(request).then(res => {
         response = res;
