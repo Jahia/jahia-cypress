@@ -139,16 +139,16 @@ export const runProvisioningScript = ({
     cy.request(request).then(res => {
         response = res;
 
-        // in case of server error, we don't need to decode the response
-        if (res.status !== 200) {
-            result = res;
-        } else {
+        // If the response status is 200, decode the response, otherwise return the response as is
+        if (res.status === 200) {
             try {
                 const decoder = new TextDecoder();
                 result = JSON.parse(decoder.decode(response.body));
             } catch (e) {
                 result = e;
             }
+        } else {
+            result = res;
         }
 
         logger?.end();
