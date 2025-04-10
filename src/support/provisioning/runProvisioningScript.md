@@ -45,7 +45,7 @@ Additional files that can be referenced in the script. When an operation require
 
 - `log` : should the command be logged or not
 
-#### &gt; timeout (`Number`)
+#### &gt; timeout (`number`)
 
 the timeout in milliseconds
 
