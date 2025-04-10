@@ -16,7 +16,8 @@ declare global {
 export interface RunProvisioningScriptParams {
     script: FormFile | StringDictionary[];
     files?: FormFile[];
-    jahiaServer?: JahiaServer; // Optional, defaults to serverDefaults
+    /** Optional, defaults to serverDefaults */
+    jahiaServer?: JahiaServer;
     options?: Cypress.Loggable; // Optional, defaults to { log: true }
     requestOptions?: Partial<RequestOptions>; // Optional, defaults to {}
 }
