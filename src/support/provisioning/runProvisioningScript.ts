@@ -8,7 +8,7 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            runProvisioningScript(params: RunProvisioningScriptParams): Chainable<void>;
+            runProvisioningScript(params: RunProvisioningScriptParams): Chainable<unknown>;
         }
     }
 }
