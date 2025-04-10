@@ -13,8 +13,11 @@ declare global {
 }
 
 export const installBundle = function (bundleFile: string): void {
-    cy.runProvisioningScript([{installBundle: bundleFile}], [{
-        fileName: bundleFile,
-        type: 'text/plain'
-    }]);
+    cy.runProvisioningScript({
+        script: [{installBundle: bundleFile}],
+        files: [{
+            fileName: bundleFile,
+            type: 'text/plain'
+        }]
+    });
 };
