@@ -69,7 +69,7 @@ function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
 }
 
 // eslint-disable-next-line default-param-last, max-params
-export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log: true}, timeout?: number): void => {
+export const runProvisioningScript = (script: FormFile | StringDictionary[], files?: FormFile[], jahiaServer: JahiaServer = serverDefaults, options: Cypress.Loggable = {log: true}, timeout?: number, requestOptions: Partial<RequestOptions> = {}): void => {
     const formData = new FormData();
 
     if (isFormFile(script)) {
@@ -119,7 +119,8 @@ export const runProvisioningScript = (script: FormFile | StringDictionary[], fil
             sendImmediately: true
         },
         body: formData,
-        log: false
+        log: false,
+        ...requestOptions
     };
 
     if (typeof timeout !== 'undefined') {
