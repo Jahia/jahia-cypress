@@ -60,7 +60,7 @@ Options for the Cypress command.
 
 - **log**: (`boolean`) - Indicates whether the command should be logged or not.
 
-#### `requestOptions` (`Partial<RequestOptions>`)
+#### `requestOptions` (`RequestOptions`)
 
 Additional options for the Cypress request object. Some useful ones include:
 
