@@ -138,12 +138,17 @@ export const runProvisioningScript = ({
 
     cy.request(request).then(res => {
         response = res;
-        expect(res.status, 'Script result').to.eq(200);
-        try {
-            const decoder = new TextDecoder();
-            result = JSON.parse(decoder.decode(response.body));
-        } catch (e) {
-            result = e;
+
+        // in case of server error, we don't need to decode the response
+        if (res.status !== 200) {
+            result = res;
+        } else {
+            try {
+                const decoder = new TextDecoder();
+                result = JSON.parse(decoder.decode(response.body));
+            } catch (e) {
+                result = e;
+            }
         }
 
         logger?.end();
