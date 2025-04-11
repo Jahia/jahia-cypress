@@ -23,7 +23,7 @@ export class Log {
      * @param {string} message - log message
      * @returns {Cypress.Chainable<any>} - Cypress chainable object
      */
-    static info(message: string): Cypress.Chainable<any> {
+    static info(message: string): Cypress.Chainable {
         return Log._send_('INFO', message);
     }
 
@@ -32,7 +32,7 @@ export class Log {
      * @param {string} message - log message
      * @returns {Cypress.Chainable<any>} - Cypress chainable object
      */
-    static debug(message: string): Cypress.Chainable<any> {
+    static debug(message: string): Cypress.Chainable {
         return Log._send_('DEBUG', message);
     }
 
@@ -41,7 +41,7 @@ export class Log {
      * @param {string} message - log message
      * @returns {Cypress.Chainable<any>} - Cypress chainable object
      */
-    static error(message: string): Cypress.Chainable<any> {
+    static error(message: string): Cypress.Chainable {
         return Log._send_('ERROR', message);
     }
 
@@ -50,7 +50,7 @@ export class Log {
      * @param {string} message - log message
      * @returns {Cypress.Chainable<any>} - Cypress chainable object
      */
-    static warning(message: string): Cypress.Chainable<any> {
+    static warning(message: string): Cypress.Chainable {
         return Log._send_('WARNING', message);
     }
 
@@ -60,7 +60,7 @@ export class Log {
      * @param {string} json - json object to be logged
      * @returns {Cypress.Chainable<any>} - Cypress chainable object
      */
-    static json(level: string, json: string): Cypress.Chainable<any> {
+    static json(level: string, json: string): Cypress.Chainable {
         return Log._send_(level, JSON.stringify(json, null, 2));
     }
 
@@ -75,7 +75,7 @@ export class Log {
      * @returns {Cypress.Chainable<any>} - Cypress chainable object
      * @private
      */
-    private static _send_(level: string, message: string): Cypress.Chainable<any> {
+    private static _send_(level: string, message: string): Cypress.Chainable {
         // Check if the log level is valid
         if (!Log.levels.includes(level.toUpperCase())) {
             throw new Error(`Log level "${level}" is not supported. Supported levels are: ${Log.levels.join(', ')}`);
