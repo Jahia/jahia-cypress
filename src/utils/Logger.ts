@@ -21,7 +21,7 @@ export class Log {
     /**
      * Logs INFO message
      * @param {string} message - log message
-     * @returns {Cypress.Chainable<any>} - Cypress chainable object
+     * @returns {Cypress.Chainable} - Cypress chainable object
      */
     static info(message: string): Cypress.Chainable {
         return Log._send_('INFO', message);
@@ -30,7 +30,7 @@ export class Log {
     /**
      * Logs DEBUG message
      * @param {string} message - log message
-     * @returns {Cypress.Chainable<any>} - Cypress chainable object
+     * @returns {Cypress.Chainable} - Cypress chainable object
      */
     static debug(message: string): Cypress.Chainable {
         return Log._send_('DEBUG', message);
@@ -39,7 +39,7 @@ export class Log {
     /**
      * Logs ERROR message
      * @param {string} message - log message
-     * @returns {Cypress.Chainable<any>} - Cypress chainable object
+     * @returns {Cypress.Chainable} - Cypress chainable object
      */
     static error(message: string): Cypress.Chainable {
         return Log._send_('ERROR', message);
@@ -48,7 +48,7 @@ export class Log {
     /**
      * Logs WARNING message
      * @param {string} message - log message
-     * @returns {Cypress.Chainable<any>} - Cypress chainable object
+     * @returns {Cypress.Chainable} - Cypress chainable object
      */
     static warning(message: string): Cypress.Chainable {
         return Log._send_('WARNING', message);
@@ -58,7 +58,7 @@ export class Log {
      * Logs JSON object with logging level given
      * @param {string} level - log level (e.g. 'INFO', 'DEBUG', 'WARNING', 'ERROR')
      * @param {string} json - json object to be logged
-     * @returns {Cypress.Chainable<any>} - Cypress chainable object
+     * @returns {Cypress.Chainable} - Cypress chainable object
      */
     static json(level: string, json: string): Cypress.Chainable {
         return Log._send_(level, JSON.stringify(json, null, 2));
@@ -72,7 +72,7 @@ export class Log {
      *       and uses the Cypress.log method to display the message in the Cypress log
      * @note The method is private and should not be called directly
      *       Use the public methods (info, debug, error, warning) to send log messages
-     * @returns {Cypress.Chainable<any>} - Cypress chainable object
+     * @returns {Cypress.Chainable} - Cypress chainable object
      * @private
      */
     private static _send_(level: string, message: string): Cypress.Chainable {
