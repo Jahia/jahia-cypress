@@ -1,22 +1,19 @@
 /**
- * Helper class to log messages to Cypress log with different log levels (INFO, DEBUG, WARNING, ERROR).
+ * Helper class to decorate Cypress log messages with different log levels (INFO and DEBUG at the moment).
  * Class contains only static methods and should not be instantiated.
  * @example
  *      Log.info('This is an info message');
  *      Log.debug('This is a debug message');
- *      Log.error('This is an error message');
- *      Log.warning('This is a warning message');
  *      Log.json('DEBUG', myJSON);
  *      Log.info('My info message').then(() => { ... });
  * @note The log level can be set by changing the `Log.LEVEL` variable in the code (default is `INFO`).
- *       Error and Warning messages don't affect test execution or final result
- *       and serve only for visibility purpose at the moment.
+ *       It tells the logger to log only messages with the given level and above.
  */
 export class Log {
     // The default log level is set to 'INFO' and can be changed by setting the Log.LEVEL variable in the code
     static LEVEL = 'INFO';
     // The log levels are defined in the levels array and are ordered from the lowest to the highest priority
-    private static levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR'];
+    private static levels = ['DEBUG', 'INFO'];
 
     /**
      * Logs INFO message
@@ -37,26 +34,8 @@ export class Log {
     }
 
     /**
-     * Logs ERROR message
-     * @param {string} message - log message
-     * @returns {Cypress.Chainable} - Cypress chainable object
-     */
-    static error(message: string): Cypress.Chainable {
-        return Log._send_('ERROR', message);
-    }
-
-    /**
-     * Logs WARNING message
-     * @param {string} message - log message
-     * @returns {Cypress.Chainable} - Cypress chainable object
-     */
-    static warning(message: string): Cypress.Chainable {
-        return Log._send_('WARNING', message);
-    }
-
-    /**
      * Logs JSON object with logging level given
-     * @param {string} level - log level (e.g. 'INFO', 'DEBUG', 'WARNING', 'ERROR')
+     * @param {string} level - log level (e.g. 'INFO', 'DEBUG')
      * @param {string} json - json object to be logged
      * @returns {Cypress.Chainable} - Cypress chainable object
      */
@@ -66,7 +45,7 @@ export class Log {
 
     /**
      * Private method to send the log message to Cypress log
-     * @param {string} level - log level (e.g. 'INFO', 'DEBUG', 'WARNING', 'ERROR')
+     * @param {string} level - log level (e.g. 'INFO', 'DEBUG')
      * @param {string} message - log message
      * @note The method checks if the log level is enabled before sending the message to Cypress log
      *       and uses the Cypress.log method to display the message in the Cypress log
