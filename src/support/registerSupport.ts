@@ -4,6 +4,7 @@ import {login, loginAndStoreSession} from './login';
 import {logout} from './logout';
 import {fixture} from './fixture';
 import {repeatUntil} from './repeatUntil';
+import {step} from './testStep';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -19,4 +20,6 @@ export const registerSupport = (): void => {
     Cypress.Commands.add('repeatUntil', repeatUntil);
 
     Cypress.Commands.overwrite('fixture', fixture);
+
+    Cypress.Commands.add('step', step);
 };
