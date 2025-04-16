@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-namespace */
+/* eslint-disable @typescript-eslint/ban-ts-comment*/
 /**
  *  Extends global Cypress Chainable interface with custom commands from 'commands.js' to avoid TypeScript errors when using them.
  */
@@ -29,12 +29,12 @@ declare global {
 
 export const step = (message: string, func: () => void): void => {
     cy.then(() => {
-        //@ts-ignore
+        // @ts-ignore
         Cypress.log({groupStart: true, displayName: '[ STEP ]', message: `${message}`});
     }).then(() => {
         func();
     }).then(() => {
-        //@ts-ignore
+        // @ts-ignore
         Cypress.log({groupEnd: true, emitOnly: true});
     });
 };
