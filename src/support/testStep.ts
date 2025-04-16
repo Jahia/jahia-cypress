@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment*/
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /**
  *  Extends global Cypress Chainable interface with custom commands from 'commands.js' to avoid TypeScript errors when using them.
  */
