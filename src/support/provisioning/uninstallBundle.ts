@@ -15,7 +15,7 @@ declare global {
 export const uninstallBundle = function (bundleSymbolicName: string): void {
     cy.runProvisioningScript({
         script: {
-            fileContent: '- uninstallBundle: "' + bundleSymbolicName + '"\n',
+            fileContent: '- uninstallModule: "' + bundleSymbolicName + '"\n',
             type: 'application/yaml'
         }
     });
