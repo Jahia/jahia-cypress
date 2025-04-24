@@ -7,17 +7,16 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            installBundle(bundleFile: string): Chainable<Cypress.Response<any>>
+            uninstallModule(moduleSymbolicName: string): Chainable<Cypress.Response<any>>
         }
     }
 }
 
-export const installBundle = function (bundleFile: string): void {
+export const uninstallModule = function (moduleSymbolicName: string): void {
     cy.runProvisioningScript({
-        script: [{installBundle: bundleFile}],
-        files: [{
-            fileName: bundleFile,
-            type: 'text/plain'
-        }]
+        script: {
+            fileContent: '- uninstallModule: "' + moduleSymbolicName + '"\n',
+            type: 'application/yaml'
+        }
     });
 };

@@ -1,5 +1,5 @@
 import {apollo, apolloClient} from './apollo';
-import {executeGroovy, runProvisioningScript, installBundle} from './provisioning';
+import {executeGroovy, runProvisioningScript, installModule, installAndStartModule, uninstallModule} from './provisioning';
 import {login, loginAndStoreSession} from './login';
 import {logout} from './logout';
 import {fixture} from './fixture';
@@ -12,7 +12,9 @@ export const registerSupport = (): void => {
 
     Cypress.Commands.add('runProvisioningScript', runProvisioningScript);
     Cypress.Commands.add('executeGroovy', executeGroovy);
-    Cypress.Commands.add('installBundle', installBundle);
+    Cypress.Commands.add('installModule', installModule);
+    Cypress.Commands.add('installAndStartModule', installAndStartModule);
+    Cypress.Commands.add('uninstallModule', uninstallModule);
 
     Cypress.Commands.add('login', login);
     Cypress.Commands.add('loginAndStoreSession', loginAndStoreSession);
