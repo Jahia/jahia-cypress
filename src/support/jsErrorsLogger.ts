@@ -12,31 +12,29 @@ const envVarHookFlag = '__JS_LOGGER_HOOK_ATTACHED__';
 const envVarStrategy = '__JS_LOGGER_STRATEGY__';
 
 /**
- * Returns the current strategy for handling JavaScript errors and warnings in Cypress tests.
- * @returns  { 'failFast' | 'failAfterAll' | 'failAfterEach' } - The current strategy for handling JavaScript errors and warnings.
- * - 'failFast': Fail immediately when an error is detected.
- * - 'failAfterAll': Collect errors and warnings after all tests and fail at the end of the test suite.
- * - 'failAfterEach': Collect errors and warnings after each test and fail if any issues are found.
+ * Strategy for handling JavaScript errors and warnings in Cypress tests.
+ * - 'failFast': Fail *immediately* when an error is detected.
+ * - 'failAfterEach': Collect all errors and warnings *during test* execution and fail if any issues are found.
+ * - 'failAfterAll': Collect all errors and warnings *after all tests* and fail at the end of the test suite.
  */
-const getStrategy = (): 'failFast' | 'failAfterAll' | 'failAfterEach' => {
+type Strategy = 'failFast' | 'failAfterAll' | 'failAfterEach';
+
+/**
+ * Returns the current strategy for handling JavaScript errors and warnings in Cypress tests.
+ * @returns {Strategy} - The current strategy for handling JavaScript errors and warnings.
+ */
+const getStrategy = (): Strategy => {
     return Cypress.env(envVarStrategy) || 'failFast';
 };
 
 /**
  * Sets the strategy for handling JavaScript errors and warnings in Cypress tests.
- * @param strategy  { 'failFast' | 'failAfterAll' | 'failAfterEach' } - Strategy for handling JavaScript errors and warnings.
- * - 'failFast': Fail immediately when an error is detected.
- * - 'failAfterAll': Collect errors and warnings after all tests and fail at the end of the test suite.
- * - 'failAfterEach': Collect errors and warnings after each test and fail if any issues are found.
+ * @param {Strategy} strategy - Strategy for handling JavaScript errors and warnings.
  * @throws {Error} If an invalid strategy is provided.
  * @returns {void}
  */
-const setStrategy = (strategy: 'failFast' | 'failAfterAll' | 'failAfterEach'): void => {
-    if (['failFast', 'failAfterAll', 'failAfterEach'].includes(strategy)) {
-        Cypress.env(envVarStrategy, strategy);
-    } else {
-        throw new Error(`Invalid strategy: ${strategy}. Valid strategies are 'failFast', 'failAfterAll', and 'failAfterEach'.`);
-    }
+const setStrategy = (strategy: Strategy): void => {
+    Cypress.env(envVarStrategy, strategy);
 };
 
 /**
