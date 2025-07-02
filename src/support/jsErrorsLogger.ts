@@ -55,7 +55,7 @@ function setAllowedJsWarnings(warnings: string[]): void { Cypress.env(envVarAllo
  * It sets up listeners for console errors and warnings, collects them after each test,
  * and throws an error if any issues are found after all tests are executed.
  */
-function attachHook(): void {
+function attachHooks(): void {
     // Skip hook attachment if the logger is disabled (e.g. from CI/CD pipeline)
     if (isDisabled()) { return; }
 
@@ -274,7 +274,7 @@ function attachFailFast(): void {
  * Exports the jsLogger module with methods to attach hooks, enable/disable logging, and set allowed warnings.
  */
 export const jsErrorsLogger = {
-    attachHook,
+    attachHooks,
     setAllowedJsWarnings,
     setStrategy,
     STRATEGY

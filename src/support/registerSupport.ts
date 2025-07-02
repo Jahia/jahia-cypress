@@ -30,5 +30,5 @@ export const registerSupport = (): void => {
     // attaching the JavaScript errors logger hooks here ensures that logger is initialized automatically
     // for all tests without needing to call it explicitly in each test file.
     // This is useful for capturing and logging JavaScript errors across all tests.
-    jsErrorsLogger.attachHook();
+    jsErrorsLogger.attachHooks();
 };
