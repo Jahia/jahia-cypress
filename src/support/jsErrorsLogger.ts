@@ -151,7 +151,7 @@ function attachFailAfterAll(): void {
                     return `TEST: ${failure.test}\nISSUES:\n${failure.errors.map((e: string) => `- ${e}`).join('\n')}`;
                 }).join('\n\n');
                 // Throw an error with the collected issues
-                throw new Error('CONSOLE ERRORS and WARNINGS FOUND:\n' + errorMessage);
+                throw new Error('CONSOLE ERRORS and WARNINGS FOUND:\n\n' + errorMessage);
             } else {
                 cy.log('[JS ERRORS LOGGER] No console errors or warnings found.');
             }
@@ -209,7 +209,7 @@ function attachFailAfterEach(): void {
                 // Format the error message for each test
                 const errorMessage = consoleIssues.map((e: string) => `- ${e}`).join('\n');
                 // Throw an error with the collected issues
-                throw new Error('CONSOLE ERRORS and WARNINGS FOUND:\n' + errorMessage);
+                throw new Error('CONSOLE ERRORS and WARNINGS FOUND:\n\n' + errorMessage);
             } else {
                 cy.log('[JS ERRORS LOGGER] No console errors or warnings found.');
             }
