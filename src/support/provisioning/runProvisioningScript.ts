@@ -47,6 +47,15 @@ function processContent(formFile: FormFile) {
     }
 
     formFile.fileContent = content;
+    // If the file has an encoding, create a Blob with the new Blob constructor. It handle correctly the encoding
+    // for the groovy scripts
+    // Did not change for all files because jar files can be added as well, which are binary files
+    // In that case the function binaryStringToBlob will be used
+    if (formFile.encoding) {
+        return new Blob([content], {type: formFile.type});
+    }
+
+    // Default to binary string to blob conversion
     return Cypress.Blob.binaryStringToBlob(content, formFile.type);
 }
 
