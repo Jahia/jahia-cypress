@@ -33,7 +33,8 @@ export const executeGroovy = function (scriptFile: string, replacements?: { [key
         files: [{
             fileName: scriptFile,
             replacements,
-            type: 'text/plain'
+            type: 'text/plain',
+            encoding: 'utf-8'
         }],
         jahiaServer
     }).then(r => r[0]);
