@@ -5,8 +5,7 @@ import {logout} from './logout';
 import {fixture} from './fixture';
 import {repeatUntil} from './repeatUntil';
 import {step} from './testStep';
-// FUNCTIONALITY IS TEMPORARY DISABLED DUE TO UNEXPECTED ISSUES
-// import {jsErrorsLogger} from './jsErrorsLogger';
+import {JahiaHooks} from './jahiaHooks';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -31,6 +30,7 @@ export const registerSupport = (): void => {
     // attaching the JavaScript errors logger hooks here ensures that logger is initialized automatically
     // for all tests without needing to call it explicitly in each test file.
     // This is useful for capturing and logging JavaScript errors across all tests.
-    // FUNCTIONALITY IS TEMPORARY DISABLED DUE TO UNEXPECTED ISSUES
-    // jsErrorsLogger.attachHooks();
+    JahiaHooks.attach();
+    // Temporary disable JahiaHooks by default to avoid unnecessary logging in CI/CD pipelines
+    JahiaHooks.disable();
 };
