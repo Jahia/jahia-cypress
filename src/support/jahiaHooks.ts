@@ -80,7 +80,7 @@ function setCollectedIssues(items: CollectorItem []): void { Cypress.env(envVarC
 function isDisabled(): boolean { return Cypress.env(envVarDisabled) === true; }
 
 /**
- * Checks if the js errors and warnings logger is disabled.
+ * Disables the js errors and warnings logger.
  * @returns {void}
  */
 function disable(): void { Cypress.env(envVarDisabled, true); }
@@ -155,7 +155,7 @@ function collectIssues(): Cypress.Chainable {
         })
         .then(() => {
             // Return a Cypress chainable object to allow chaining
-            cy.wrap(null, {log: false});
+            return cy.wrap(null, {log: false});
         });
 }
 

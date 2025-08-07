@@ -15,14 +15,14 @@ The JavaScript Errors Logger is a comprehensive monitoring and reporting module 
 
 The logger supports three distinct strategies for handling JavaScript errors and warnings:
 
-### 1. Fail Fast
+### 1. Fail Fast (default)
 - **Strategy**: `STRATEGY.failFast`
 - **Behavior**: Fails immediately when an error or warning is detected; the rest of tests will be executed
 - **Use Case**: Best for development environments where immediate feedback is crucial
 - **Pros**: Quick identification of issues
 - **Cons**: May stop test execution on first error, preventing discovery of additional issues
 
-### 2. Fail After Each Test (default)
+### 2. Fail After Each Test
 - **Strategy**: `STRATEGY.failAfterEach`
 - **Behavior**: Collects errors/warnings during test execution and fails at the end of the one; the rest of tests will be skipped
 - **Use Case**: Suitable when you want the test to complete but still get immediate feedback
