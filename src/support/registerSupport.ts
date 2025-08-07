@@ -32,5 +32,5 @@ export const registerSupport = (): void => {
     // This is useful for capturing and logging JavaScript errors across all tests.
     JahiaHooks.attach();
     // Temporary disable JahiaHooks by default to avoid unnecessary logging in CI/CD pipelines
-    JahiaHooks.disable();
+    //JahiaHooks.disable();
 };

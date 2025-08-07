@@ -35,6 +35,15 @@ const envVarStrategy = '__JS_LOGGER_STRATEGY__';
 enum STRATEGY { failFast, failAfterAll, failAfterEach }
 
 /**
+ * Auxiliary type to represent a single item in the collector.
+ * It contains the test title and an array of error or warning messages collected during the test.
+ */
+type CollectorItem = {
+    test: string; // The title of the test where the issue was found
+    errors: string[]; // Array of error or warning messages collected during the test
+};
+
+/**
  * Returns the current strategy for handling JavaScript errors and warnings in Cypress tests.
  * @returns {STRATEGY} - The current strategy for handling JavaScript errors and warnings.
  * @note be careful with Cypress.env(envVarStrategy), since it might return `0` for `failFast` strategy,
@@ -42,7 +51,6 @@ enum STRATEGY { failFast, failAfterAll, failAfterEach }
  */
 function getStrategy(): STRATEGY {
     return typeof Cypress.env(envVarStrategy) === 'undefined' ? STRATEGY.failFast : Cypress.env(envVarStrategy);
-    //return Cypress.env(envVarStrategy) || STRATEGY.failFast;
 }
 
 /**
@@ -55,19 +63,15 @@ function setStrategy(strategy: STRATEGY): void { Cypress.env(envVarStrategy, str
 
 /**
  * Returns console issues collected during the test execution.
- * @returns {Object[]} - Array of collected issues, each issue is an object with test title and errors.
+ * @returns {CollectorItem []} - Array of collected issues, each issue is an object with test title and errors.
  */
-function getCollectedIssues(): Object [] {
-    return Cypress.env(envVarCollector) || [];
-}
+function getCollectedIssues(): CollectorItem [] { return Cypress.env(envVarCollector) || []; }
 
 /**
  * Sets the console issues collected during the test execution.
  * @returns {void}
  */
-function setCollectedIssues(items: Object []): void {
-    Cypress.env(envVarCollector, items);
-}
+function setCollectedIssues(items: CollectorItem []): void { Cypress.env(envVarCollector, items); }
 
 /**
  * Checks if the js errors and warnings logger is disabled.
@@ -79,17 +83,13 @@ function isDisabled(): boolean { return Cypress.env(envVarDisabled) === true; }
  * Checks if the js errors and warnings logger is disabled.
  * @returns {void}
  */
-function disable(): void {
-    Cypress.env(envVarDisabled, true);
-}
+function disable(): void { Cypress.env(envVarDisabled, true); }
 
 /**
  * Enables the js errors and warnings logger.
  * @returns {void}
  */
-function enable(): void {
-    Cypress.env(envVarDisabled, false);
-}
+function enable(): void { Cypress.env(envVarDisabled, false); }
 
 /**
  * Returns the list of allowed warnings that will not be reported by the logger.
@@ -130,7 +130,7 @@ function collectIssues(): Cypress.Chainable {
     // Look for console errors and warnings, collected by the spies
     return cy.get('@errors')
         .invoke('getCalls')
-        .then (errors => {
+        .then(errors => {
             // All errors should be collected
             consoleIssues = errors;
 
@@ -149,13 +149,13 @@ function collectIssues(): Cypress.Chainable {
             if (consoleIssues.length > 0) {
                 setCollectedIssues([
                     ...getCollectedIssues(),
-                    { test: Cypress.currentTest.title, errors: consoleIssues }
+                    {test: Cypress.currentTest.title, errors: consoleIssues}
                 ]);
             }
         })
         .then(() => {
             // Return a Cypress chainable object to allow chaining
-            cy.wrap(null, { log: false })
+            cy.wrap(null, {log: false});
         });
 }
 
@@ -199,18 +199,14 @@ function attach(): void {
 
         // Depending on the strategy, collect issues and analyze them
         // If the strategy is failFast, issues will be collected in 'window:load'
-        switch (getStrategy()) {
-            case STRATEGY.failAfterEach:
-                // failAfterEach: Collect issues after each test and analyze them immediately
-                collectIssues().then(() => analyzeIssues());
-                return;
-            case STRATEGY.failAfterAll:
-                // failAfterAll: Collect issues after each test, but analyze them only after all tests are executed
-                collectIssues();
-                return;
-            default:
-                // failFast: do nothing here, issues will be collected in 'window:load' hook
-                return;
+        if (getStrategy() === STRATEGY.failAfterEach) {
+            // Collect issues after each test and analyze them immediately
+            collectIssues().then(() => analyzeIssues());
+        } else if (getStrategy() === STRATEGY.failAfterAll) {
+            // Collect issues after each test, but analyze them only after all tests are executed
+            collectIssues();
+        } else {
+            // Do nothing for failFast strategy, issues will be collected and analyzed in 'window:load' hook
         }
     });
 
