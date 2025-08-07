@@ -130,19 +130,19 @@ function collectIssues(): Cypress.Chainable {
     // Look for console errors and warnings, collected by the spies
     return cy.get('@errors')
         .invoke('getCalls')
-        .then(calls => {
+        .then(errorCalls => {
             // All errors should be collected
-            consoleIssues = calls.flatMap((call: { args: string[] }) => call.args);
+            consoleIssues = errorCalls.flatMap((call: { args: string[] }) => call.args);
 
             // Analyze warnings
             cy.get('@warnings')
                 .invoke('getCalls')
-                .then(calls => {
-                    calls.flatMap((call: { args: string[] }) => call.args).forEach((arg: string) => {
+                .then(warningCalls => {
+                    warningCalls.flatMap((call: { args: string[] }) => call.args).forEach((arg: string) => {
                         // Only warnings not in the allowed list should be collected
                         if (!allowedWarnings.some((item: string) => arg.includes(item))) { consoleIssues.push(arg); }
                     });
-                })
+                });
         })
         .then(() => {
             // Update the Cypress environment variable with the collected issues
