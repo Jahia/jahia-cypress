@@ -94,7 +94,7 @@ function _send_(level: LEVEL, message: string): Cypress.Chainable {
         // and use cy.wrap() to return the Cypress chainable object
         return cy.then(() => {
             Cypress.log({displayName: `[ ${Log.LEVEL[level].toUpperCase()} ]`, message: `${message}`});
-        }).then(cy.wrap);
+        }).then(() => cy.wrap(null, {log: false}));
     }
 }
 
