@@ -54,6 +54,31 @@ export const addNode = (variables: {
     });
 };
 
+export const createPage = (parentPath: string, pageName: string, template = 'simple') => {
+    const props = [
+        {name: 'j:templateName', type: 'STRING', value: template},
+        {name: 'jcr:title', type: 'STRING', value: pageName, language: 'en'},
+        {name: 'jcr:title', type: 'STRING', value: pageName, language: 'fr'}
+    ];
+    addNode({
+        parentPathOrId: parentPath,
+        name: pageName,
+        primaryNodeType: 'jnt:page',
+        properties: props
+    });
+    addNode({
+        parentPathOrId: parentPath + '/' + pageName,
+        name: 'area-main',
+        primaryNodeType: 'jnt:contentList'
+    });
+    addNode({
+        parentPathOrId: parentPath + '/' + pageName + '/area-main',
+        name: 'text',
+        primaryNodeType: 'jnt:text',
+        properties: [{language: 'en', name: 'text', type: 'STRING', value: 'text'}]
+    });
+};
+
 export const addMixins = (pathOrId: string, mixins: string[]): Cypress.Chainable => {
     return cy.apollo({
         variables: {pathOrId: pathOrId, mixins: mixins},
