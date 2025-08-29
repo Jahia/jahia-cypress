@@ -54,13 +54,13 @@ export const addNode = (variables: {
     });
 };
 
-export const createPage = (parentPath: string, pageName: string, template = 'simple') => {
+export const createPage = (parentPath: string, pageName: string, template = 'simple'): Cypress.Chainable => {
     const props = [
         {name: 'j:templateName', type: 'STRING', value: template},
         {name: 'jcr:title', type: 'STRING', value: pageName, language: 'en'},
         {name: 'jcr:title', type: 'STRING', value: pageName, language: 'fr'}
     ];
-    addNode({
+    const page = addNode({
         parentPathOrId: parentPath,
         name: pageName,
         primaryNodeType: 'jnt:page',
@@ -77,6 +77,7 @@ export const createPage = (parentPath: string, pageName: string, template = 'sim
         primaryNodeType: 'jnt:text',
         properties: [{language: 'en', name: 'text', type: 'STRING', value: 'text'}]
     });
+    return page;
 };
 
 export const addMixins = (pathOrId: string, mixins: string[]): Cypress.Chainable => {
