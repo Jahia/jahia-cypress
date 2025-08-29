@@ -60,24 +60,28 @@ export const createPage = (parentPath: string, pageName: string, template = 'sim
         {name: 'jcr:title', type: 'STRING', value: pageName, language: 'en'},
         {name: 'jcr:title', type: 'STRING', value: pageName, language: 'fr'}
     ];
-    const page = addNode({
+
+    const pagePath = parentPath + '/' + pageName;
+
+    return addNode({
         parentPathOrId: parentPath,
         name: pageName,
         primaryNodeType: 'jnt:page',
         properties: props
+    }).then(() => {
+        return addNode({
+            parentPathOrId: pagePath,
+            name: 'area-main',
+            primaryNodeType: 'jnt:contentList'
+        });
+    }).then(() => {
+        return addNode({
+            parentPathOrId: pagePath + '/area-main',
+            name: 'text',
+            primaryNodeType: 'jnt:text',
+            properties: [{language: 'en', name: 'text', type: 'STRING', value: 'text'}]
+        });
     });
-    addNode({
-        parentPathOrId: parentPath + '/' + pageName,
-        name: 'area-main',
-        primaryNodeType: 'jnt:contentList'
-    });
-    addNode({
-        parentPathOrId: parentPath + '/' + pageName + '/area-main',
-        name: 'text',
-        primaryNodeType: 'jnt:text',
-        properties: [{language: 'en', name: 'text', type: 'STRING', value: 'text'}]
-    });
-    return page;
 };
 
 export const addMixins = (pathOrId: string, mixins: string[]): Cypress.Chainable => {
