@@ -8,7 +8,7 @@ declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
-            runProvisioningScript(params: RunProvisioningScriptParams): Chainable<Cypress.Response<any>>;
+            runProvisioningScript(params: RunProvisioningScriptParams): Chainable<unknown>;
         }
     }
 }
@@ -91,7 +91,7 @@ export const runProvisioningScript = ({
     jahiaServer = serverDefaults,
     options = {log: true},
     requestOptions = {}
-}: RunProvisioningScriptParams): Cypress.Chainable<Cypress.Response<any>> => {
+}: RunProvisioningScriptParams): void => {
     const formData = new FormData();
 
     if (isFormFile(script)) {
@@ -145,10 +145,10 @@ export const runProvisioningScript = ({
         ...requestOptions
     };
 
-    return cy.request(request).then(res => {
+    cy.request(request).then(res => {
         response = res;
 
-        // If the response status is 200, decode the response, otherwise keep original for logging
+        // If the response status is 200, decode the response, otherwise return the response as is
         if (res.status === 200) {
             try {
                 const decoder = new TextDecoder();
@@ -161,6 +161,7 @@ export const runProvisioningScript = ({
         }
 
         logger?.end();
-        return res; // Yield the full Cypress.Response
+        return result;
     });
 };
+
