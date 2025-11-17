@@ -73,7 +73,6 @@ function attachLoggerStyles() {
         styleSheet.textContent += `
         .command.command-name-ptf-${name} span.command-method {
             margin-right: 0.5rem;
-            min-width: 10px;
             border-radius: 0.125rem;
             border-width: 1px;
             padding: 0.125rem 0.375rem;
@@ -184,7 +183,7 @@ function _send_(level: LEVEL, message: string): Cypress.Chainable {
         // use cy.then() to ensure that the log message is sent in the correct order
         // and use cy.wrap() to return the Cypress chainable object
         return cy.then(() => {
-            Cypress.log({name: `ptf-${Log.LEVEL[level].toLowerCase()}`, displayName: `[ ${Log.LEVEL[level].toUpperCase()} ]`, message: `${message}`});
+            Cypress.log({name: `ptf-${Log.LEVEL[level].toLowerCase()}`, displayName: `${Log.LEVEL[level].toUpperCase()}`, message: `${message}`});
         }).then(() => cy.wrap(null, {log: false}));
     }
 }
