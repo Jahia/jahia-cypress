@@ -5,7 +5,6 @@ import {logout} from './logout';
 import {fixture} from './fixture';
 import {repeatUntil} from './repeatUntil';
 import {step} from './testStep';
-import {JahiaHooks} from './jahiaHooks';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -25,11 +24,4 @@ export const registerSupport = (): void => {
     Cypress.Commands.overwrite('fixture', fixture);
 
     Cypress.Commands.add('step', step);
-
-    // Since registerSupport() function is called in each repo from e2e.js,
-    // attaching the JavaScript errors logger hooks here ensures that logger is initialized automatically
-    // for all tests without needing to call it explicitly in each test file.
-    // This is useful for capturing and logging JavaScript errors across all tests.
-    JahiaHooks.attach();
-    JahiaHooks.disable();
 };

@@ -40,22 +40,25 @@ The logger supports three distinct strategies for handling JavaScript errors and
 
 ### Environment Variables
 
-| Variable                       | Type | Description |
-|--------------------------------|------|-------------|
-| `CYPRESS_JAHIA_HOOKS_DISABLED` | boolean | Disables the logger when set to `true` |
+| Variable                        | Type | Description |
+|---------------------------------|------|-------------|
+| `JAHIA_HOOKS_DISABLE_JS_LOGGER` | boolean | Disables the logger when set to `true` |
 
 ### Programmatic Configuration
 
 It is **strongly** recommended to add custom configuration in project's common files, e.g. `tests/cypress/support/e2e.js` to have it applied to all test-cases within the project.
 
 ```typescript
-import { JahiaHooks } from '@jahia/cypress';
+import { jsErrorsLogger } from '@jahia/cypress';
+
+// Attach Logger
+jsErrorsLogger.enable();
 
 // Set preferrable error handling strategy
-JahiaHooks.setStrategy(JahiaHooks.STRATEGY.failFast);
+jsErrorsLogger.setStrategy(jsErrorsLogger.STRATEGY.failFast);
 
 // Define allowed warnings that won't trigger failures
-JahiaHooks.setAllowedJsWarnings([
+jsErrorsLogger.setAllowedJsWarnings([
   'Warning: React Hook',
   'Warning: componentWillReceiveProps'
 ]);
@@ -65,7 +68,16 @@ JahiaHooks.setAllowedJsWarnings([
 
 ### Basic Setup
 
-The logger is automatically initialized when jahia-cypress is imported and registered in the Cypress support files. No manual setup is required for basic functionality.
+#### Enable the Logger for the repo
+This call should only be used in `tests/cypress/support/e2e.js`. Add the following code in the repo where functionality should be used:
+
+```typescript
+import { jsErrorsLogger } from '@jahia/cypress';
+
+before(() => {
+    jsErrorsLogger.enable();
+});
+```
 
 ### Disabling the Logger
 
@@ -73,31 +85,17 @@ The logger is automatically initialized when jahia-cypress is imported and regis
 
 ```bash
 # Disable in CI/CD or specific environments
-export CYPRESS_JAHIA_HOOKS_DISABLED="true"
-```
-#### Disable for the whole repo
-add the following to your `tests/cypress/support/e2e.js` file in the repo where functionality should be temporarily disabled:
-
-```typescript
-import { JahiaHooks } from '@jahia/cypress';
-
-before(() => {
-    JahiaHooks.disable();
-});
+export JAHIA_HOOKS_DISABLE_JS_LOGGER="true"
 ```
 
 #### Disable for the specific Spec
 
 ```typescript
-import { JahiaHooks } from '@jahia/cypress';
+import { jsErrorsLogger } from '@jahia/cypress';
 
 describe('Tests with disabled JS logger', () => {
   before(() => {
-      JahiaHooks.disable();
-  });
-  
-  after(() => {
-      JahiaHooks.enable();
+      jsErrorsLogger.disable();
   });
   
   it('should run without JS error monitoring', () => {
@@ -154,10 +152,10 @@ ISSUES:
 
 | Method | Parameters | Return Type | Description                                            |
 |--------|------------|-------------|--------------------------------------------------------|
-| `setStrategy(strategy)` | STRATEGY enum | void | Sets the error handling strategy                       |
-| `setAllowedJsWarnings(warnings)` | string[] | void | Configures allowed warning messages                    |
-| `disable()` | - | void | Disables the logger for the current repo, spec or test |
-| `enable()` | - | void | Enables the logger for the current repo, spec or test |
+| `setStrategy(strategy)` | STRATEGY enum | void | Sets the error handling strategy |
+| `setAllowedJsWarnings(warnings)` | string[] | void | Configures allowed warning messages  |
+| `disable()` | - | void | Disables the logger for the current spec |
+| `enable()` | - | void | Enables the logger for the current repo |
 
 ### Enums
 
