@@ -5,7 +5,8 @@
  * Provides methods to enable, disable, and check logger status.
  */
 
-const envVarDisabled = 'JAHIA_HOOKS_DISABLED';
+const envVarDisableAll = 'JAHIA_HOOKS_DISABLE';
+const envVarDisableJsLogger = 'JAHIA_HOOKS_DISABLE_JS_LOGGER';
 const envVarCollector = '__JS_LOGGER_FAILURES__';
 const envVarAllowedWarnings = '__JS_LOGGER_ALLOWED_WARNINGS__';
 const envVarStrategy = '__JS_LOGGER_STRATEGY__';
@@ -77,19 +78,7 @@ function setCollectedIssues(items: CollectorItem []): void { Cypress.env(envVarC
  * Checks if the js errors and warnings logger is disabled.
  * @returns {boolean} - true if the logger is disabled, false otherwise.
  */
-function isDisabled(): boolean { return Cypress.env(envVarDisabled) === true; }
-
-/**
- * Disables the js errors and warnings logger.
- * @returns {void}
- */
-function disable(): void { Cypress.env(envVarDisabled, true); }
-
-/**
- * Enables the js errors and warnings logger.
- * @returns {void}
- */
-function enable(): void { Cypress.env(envVarDisabled, false); }
+function isDisabled(): boolean { return ((Cypress.env(envVarDisableAll) === true) || (Cypress.env(envVarDisableJsLogger) === true)); }
 
 /**
  * Returns the list of allowed warnings that will not be reported by the logger.
@@ -180,12 +169,21 @@ function analyzeIssues(): void {
 }
 
 /**
+ * Disables the js errors and warnings logger.
+ * @returns {void}
+ */
+function disable(): void { Cypress.env(envVarDisableJsLogger, true); }
+
+/**
  * Attaches custom hooks to Cypress events to monitor and report JavaScript errors and warnings.
  * This method is called automatically in registerSupport.ts#registerSupport
  * It sets up listeners for console errors and warnings, collects them after each test,
  * and throws an error if any issues are found after all tests are executed.
  */
-function attach(): void {
+function enable(): void {
+    // Ensure the logger is enabled by default
+    Cypress.env(envVarDisableJsLogger, false);
+
     // Attach errors and warnings collector
     attachJsInterceptor();
 
@@ -238,8 +236,7 @@ function attach(): void {
 /**
  * Exports the jsLogger module with methods to attach hooks, enable/disable logging, and set allowed warnings.
  */
-export const JahiaHooks = {
-    attach,
+export const jsErrorsLogger = {
     setAllowedJsWarnings,
     getAllowedJsWarnings,
     setStrategy,
