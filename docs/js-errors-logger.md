@@ -137,7 +137,7 @@ ISSUES:
 ## Best Practices
 
 ### Development Environment
-- Use `STRATEGY.failAfgerEach` for immediate feedback during development
+- Use `STRATEGY.failAfterEach` for immediate feedback during development
 - Configure comprehensive allowed warnings list for known, acceptable warnings
 - Enable detailed logging for debugging purposes
 

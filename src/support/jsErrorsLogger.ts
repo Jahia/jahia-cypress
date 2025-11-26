@@ -27,7 +27,7 @@ const envVarStrategy = '__JS_LOGGER_STRATEGY__';
  *   Cons: Reporting might be confusing, e.g. - cypress will report the very last test as failed, while many tests might have issues.
  *         This is because the hook is executed after all tests are completed, so the last test is reported as failed.
  */
-enum STRATEGY { failAfterAll, failAfterEach }
+enum STRATEGY { failAfterEach, failAfterAll }
 
 /**
  * Auxiliary type to represent a single item in the collector.
@@ -162,7 +162,7 @@ function analyzeIssues(): void {
     if (failures.length > 0) {
         // Group all issues by test title
         const groupedByTest = failures.reduce((acc: Record<string, CollectorItem[]>, failure) => {
-            acc[failure.test] ||= [];
+            acc[failure.test] = acc[failure.test] || [];
             acc[failure.test].push(failure);
 
             return acc;
