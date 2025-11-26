@@ -15,14 +15,14 @@ The JavaScript Errors Logger is a comprehensive monitoring and reporting module 
 
 The logger supports three distinct strategies for handling JavaScript errors and warnings:
 
-### 1. Fail After Each Test (default)
+### 1. Fail After Each Test
 - **Strategy**: `STRATEGY.failAfterEach`
 - **Behavior**: Collects errors/warnings during test execution and fails at the end of the one; the rest of tests will be skipped
 - **Use Case**: Suitable when you want the test to complete but still get immediate feedback
 - **Pros**: Allows test to be executed till the end before providing a report
 - **Cons**: Since the analysis happens in afterEach() hook, the rest of spec will be ignored
 
-### 2. Fail After All Tests
+### 2. Fail After All Tests (default)
 - **Strategy**: `STRATEGY.failAfterAll`
 - **Behavior**: Collects all errors/warnings and reports them after the entire test suite completes; the last test will be marked as failed
 - **Use Case**: Ideal for CI/CD environments where you want a complete test run overview

@@ -61,7 +61,7 @@ function getEmoji(type: string): string {
  *       which is falsy in JavaScript, so we need to check if the variable is undefined.
  */
 function getStrategy(): STRATEGY {
-    return typeof Cypress.env(envVarStrategy) === 'undefined' ? STRATEGY.failAfterEach : Cypress.env(envVarStrategy);
+    return typeof Cypress.env(envVarStrategy) === 'undefined' ? STRATEGY.failAfterAll : Cypress.env(envVarStrategy);
 }
 
 /**
