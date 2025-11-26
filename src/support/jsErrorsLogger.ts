@@ -40,6 +40,20 @@ type CollectorItem = {
 };
 
 /**
+ * Returns an emoji based on the type of message.
+ * @param {string} type
+ */
+function getEmoji(type: string): string {
+    switch (type) {
+        case 'warn':
+            return '⚠️';
+        case 'error':
+            return '❌️';
+        default:
+            return '';
+    }
+}
+/**
  * Returns the current strategy for handling JavaScript errors and warnings in Cypress tests.
  * @returns {STRATEGY} - The current strategy for handling JavaScript errors and warnings.
  * @note be careful with Cypress.env(envVarStrategy), since it might return `0` for `failAfterEach` strategy,
@@ -129,16 +143,16 @@ function collectIssues(win: Cypress.AUTWindow): Cypress.Chainable {
         .invoke('getCalls')
         .then(errorCalls => {
             // All errors should be collected
-            consoleIssues = errorCalls.flatMap((call: { args: string[] }) => call.args.map((arg: string) => ({type: 'error', msg: arg})));
+            consoleIssues = errorCalls.flatMap((call: { args: unknown[] }) => call.args.map((arg: string) => ({type: 'error', msg: String(arg)})));
         })
         .then(() => {
             // Analyze warnings
             cy.get('@warnings')
                 .invoke('getCalls')
                 .then(warningCalls => {
-                    warningCalls.flatMap((call: { args: string[] }) => call.args).forEach((arg: string) => {
+                    warningCalls.flatMap((call: { args: unknown[] }) => call.args).forEach((arg: string) => {
                         // Only warnings not in the allowed list should be collected
-                        if (!allowedWarnings.some((item: string) => arg.includes(item))) { consoleIssues.push({type: 'warn', msg: arg}); }
+                        if (!allowedWarnings.some((item: string) => arg.includes(item))) { consoleIssues.push({type: 'warn', msg: String(arg)}); }
                     });
                 });
         })
@@ -157,33 +171,40 @@ function collectIssues(win: Cypress.AUTWindow): Cypress.Chainable {
  * Analyzes collected JavaScript errors and warnings and throws an error if any were found.
  */
 function analyzeIssues(): void {
-    const failures = getCollectedIssues();
+    cy.then(() => {
+        const failures = getCollectedIssues();
 
-    if (failures.length > 0) {
-        // Group all issues by test title
-        const groupedByTest = failures.reduce((acc: Record<string, CollectorItem[]>, failure) => {
-            acc[failure.test] = acc[failure.test] || [];
-            acc[failure.test].push(failure);
+        if (failures.length > 0) {
+            // Group all issues by test title
+            const groupedByTest = failures.reduce((acc: Record<string, CollectorItem[]>, failure) => {
+                acc[failure.test] = acc[failure.test] || [];
+                acc[failure.test].push(failure);
 
-            return acc;
-        }, {} as Record<string, CollectorItem[]>);
+                return acc;
+            }, {} as Record<string, CollectorItem[]>);
 
-        // Format the error message for each test with its collected issues
-        const errorMessage = Object.entries(groupedByTest).map(([test, items]) => {
-            const urlsAndErrors = items.map(item =>
-                `URL: ${item.url}\nISSUES:\n${item.errors.map((e: {type: string; msg: string}) => `- ${e.type === 'warn' ? '⚠️' : '❌️'} ${e.msg}`).join('\n')}`
-            ).join('\n\n');
+            // Format the error message for each test with its collected issues
+            const errorMessage = Object.entries(groupedByTest).map(([test, items]) => {
+                const urlsAndErrors = items.map(item =>
+                    `URL: ${item.url}\nISSUES:\n${item.errors.map((e: {
+                        type: string;
+                        msg: string
+                    }) => `- ${e.type === 'warn' ? getEmoji('warn') : getEmoji('error')} ${e.msg}`).join('\n')}`
+                ).join('\n\n');
 
-            // Return the formatted message for the test; use fixed-width separators for better readability, when the message might be wrapped
-            return `❌️ TEST: ${test.trim()} ❌️\n${'-'.repeat(50)}\n${urlsAndErrors}\n${'='.repeat(50)}`;
-        }).join('\n\n');
+                // Return the formatted message for the test;
+                // Intentionally use fixed-width (50 chars) separators for better readability,
+                // when the message might be wrapped
+                return `${getEmoji('error')}️ TEST: ${test.trim()} ${getEmoji('error')}️\n${'-'.repeat(50)}\n${urlsAndErrors}\n${'='.repeat(50)}`;
+            }).join('\n\n');
 
-        // Reset the collector for the next test run
-        setCollectedIssues([]);
+            // Reset the collector for the next test run
+            setCollectedIssues([]);
 
-        // Throw an error with the collected issues
-        throw new Error('CONSOLE ERRORS and WARNINGS FOUND:\n\n' + errorMessage);
-    }
+            // Throw an error with the collected issues
+            throw new Error('CONSOLE ERRORS and WARNINGS FOUND:\n\n' + errorMessage);
+        }
+    });
 }
 
 /**
