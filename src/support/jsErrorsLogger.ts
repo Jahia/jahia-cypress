@@ -53,6 +53,7 @@ function getEmoji(type: string): string {
             return '';
     }
 }
+
 /**
  * Returns the current strategy for handling JavaScript errors and warnings in Cypress tests.
  * @returns {STRATEGY} - The current strategy for handling JavaScript errors and warnings.
