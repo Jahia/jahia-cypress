@@ -1,5 +1,6 @@
 /* eslint-disable brace-style */
 /* eslint-disable max-statements-per-line */
+
 /**
  * Module for monitoring and reporting JavaScript errors and warnings in Cypress tests.
  * Provides methods to enable, disable, and check logger status.
@@ -171,8 +172,8 @@ function collectIssues(win: Cypress.AUTWindow): Cypress.Chainable {
 /**
  * Analyzes collected JavaScript errors and warnings and throws an error if any were found.
  */
-function analyzeIssues(): void {
-    cy.then(() => {
+function analyzeIssues(): Cypress.Chainable {
+    return cy.wrap(null).then(() => {
         const failures = getCollectedIssues();
 
         if (failures.length > 0) {
