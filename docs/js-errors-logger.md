@@ -28,6 +28,26 @@ The logger supports three distinct strategies for handling JavaScript errors and
 - **Use Case**: Ideal for CI/CD environments where you want a complete test run overview
 - **Pros**: Complete test suite execution with comprehensive error reporting
 - **Cons**: Error reporting may be confusing as the last test will be marked as failed, since the errors analysis and reporting is done in after() hook
+- **Hint:** To make reporting less confusing, dummy test can be added by the end of the spec to provide more clarity on why the spec failed, e.g:
+
+```typescript
+describe('Tests for the UI module', () => {
+  it('Should validate flow A', () => {
+    ...
+  });
+
+  ...
+  ...
+  ...
+
+  // Dummy test to fail if any errors or warnings appear in the browser console,
+  // providing clearer insight into execution and failure reasons.
+  // Analysis itself will happen inside jsErrorsLogger module (if one is enabled).
+  it('Should ensure errors and warnings absense in browser console', () => { 
+    cy.log('Analyze console messages');
+  });
+});
+```
 
 ## Usage
 
