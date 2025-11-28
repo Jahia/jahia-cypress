@@ -234,7 +234,7 @@ function enable(): void {
      */
     afterEach(() => {
         // Skip the hook if the logger is disabled or if the strategy is not failAfterEach
-        if (isDisabled() || getStrategy() !== STRATEGY.failAfterEach) { return; }
+        if (isDisabled() || (getStrategy() !== STRATEGY.failAfterEach)) { return; }
         // Analyze collected errors and warnings
         analyzeIssues();
     });
@@ -244,7 +244,7 @@ function enable(): void {
      */
     after(() => {
         // Skip the hook if the logger is disabled or if the strategy is not failAfterAll
-        if (isDisabled() || getStrategy() !== STRATEGY.failAfterAll) { return; }
+        if (isDisabled() || (getStrategy() !== STRATEGY.failAfterAll)) { return; }
         // Analyze collected errors and warnings
         analyzeIssues();
     });
