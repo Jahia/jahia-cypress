@@ -28,6 +28,47 @@ The logger supports three distinct strategies for handling JavaScript errors and
 - **Use Case**: Ideal for CI/CD environments where you want a complete test run overview
 - **Pros**: Complete test suite execution with comprehensive error reporting
 - **Cons**: Error reporting may be confusing as the last test will be marked as failed, since the errors analysis and reporting is done in after() hook
+- **Hint:** To make reporting less confusing, dummy test can be added by the end of the spec to provide more clarity on why the spec failed, e.g:
+
+```typescript
+describe('Tests for the UI module', () => {
+  it('Should validate flow A', () => { ... });
+
+  it('Should validate flow B', () => { ... });
+
+  it('Should validate flow C', () => { ... });
+  ...
+
+  // Dummy test to fail if any errors or warnings appear in the browser console,
+  // providing clearer insight into execution and failure reasons.
+  // Analysis itself will happen inside jsErrorsLogger module (if one is enabled).
+  it('Should ensure errors and warnings absense in browser console', () => { 
+    cy.log('Analyze console messages');
+  });
+});
+```
+Say, there were JavaScript errors and warnings in all tests. Without that dummy test, the very last test in spec will be marked by Cypress as failed, even though it might pass:
+```
+✓ Should validate flow A
+✓ Should validate flow B
+- Should validate flow C
+  ... <errors/warnings list for each visited url, grouped by test> ...
+```
+But with that dummy test it will be much clearer what exactly happened:
+```
+✓ Should validate flow A
+✓ Should validate flow B
+✓ Should validate flow C
+- Should ensure errors and warnings absence in browser console during spec execution
+  ... <errors/warnings list for each visited url, grouped by test> ...
+```
+And in case of JavaScript errors and warnings absense (and all tests passed) it will also be much clearer - what validations were performed:
+```
+✓ Should validate flow A
+✓ Should validate flow B
+✓ Should validate flow C
+✓ Should ensure errors and warnings absense in browser console during spec execution
+```
 
 ## Usage
 

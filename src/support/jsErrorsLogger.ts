@@ -1,5 +1,6 @@
 /* eslint-disable brace-style */
 /* eslint-disable max-statements-per-line */
+
 /**
  * Module for monitoring and reporting JavaScript errors and warnings in Cypress tests.
  * Provides methods to enable, disable, and check logger status.
@@ -108,13 +109,12 @@ function setAllowedJsWarnings(warnings: string[]): void { Cypress.env(envVarAllo
  */
 function attachJsInterceptor(): void {
     /**
-     * Custom 'window:before:load' hook to attach interceptors before the page is loaded,
-     * allowing us to spy on console messages.
+     * Custom 'window:before:load' hook to attach interceptors before the page is loaded and spy on console messages.
      */
-    Cypress.on('window:before:load', window => {
+    cy.on('window:before:load', window => {
         // Skip 'window:before:load' hook if the logger is disabled
         if (isDisabled()) { return; }
-        // Spy on console.error and console.warn to capture errors and warnings
+        // Spy on console.error and console.warn methods to capture errors and warnings
         cy.spy(window.console, 'error').as('errors');
         cy.spy(window.console, 'warn').as('warnings');
     });
@@ -122,10 +122,10 @@ function attachJsInterceptor(): void {
     /**
      * Custom 'window:load' hook to collect JavaScript errors and warnings right after the page is loaded.
      */
-    Cypress.on('window:load', win => {
+    cy.on('window:load', win => {
         // Skip 'window:load' hook if the logger is disabled
         if (isDisabled()) { return; }
-        // Collect issues immediately after the window is loaded and analyze them
+        // Collect errors and warnings after the page is fully loaded
         collectIssues(win);
     });
 }
@@ -135,9 +135,7 @@ function attachJsInterceptor(): void {
  * @returns {Cypress.Chainable} - Cypress chainable object that resolves when issues are collected.
  */
 function collectIssues(win: Cypress.AUTWindow): Cypress.Chainable {
-    const allowedWarnings = getAllowedJsWarnings();
     let consoleIssues: {type: string, msg: string}[] = [];
-    const url = win.location.href;
 
     // Look for console errors and warnings, collected by the spies
     return cy.get('@errors')
@@ -147,10 +145,11 @@ function collectIssues(win: Cypress.AUTWindow): Cypress.Chainable {
             consoleIssues = errorCalls.flatMap((call: { args: unknown[] }) => call.args.map((arg: string) => ({type: 'error', msg: String(arg)})));
         })
         .then(() => {
-            // Analyze warnings
-            cy.get('@warnings')
+            // Analyze warnings - return the chain to maintain proper async flow
+            return cy.get('@warnings')
                 .invoke('getCalls')
                 .then(warningCalls => {
+                    const allowedWarnings = getAllowedJsWarnings();
                     warningCalls.flatMap((call: { args: unknown[] }) => call.args).forEach((arg: string) => {
                         // Only warnings not in the allowed list should be collected
                         if (!allowedWarnings.some((item: string) => arg.includes(item))) { consoleIssues.push({type: 'warn', msg: String(arg)}); }
@@ -162,7 +161,7 @@ function collectIssues(win: Cypress.AUTWindow): Cypress.Chainable {
             if (consoleIssues.length > 0) {
                 setCollectedIssues([
                     ...getCollectedIssues(),
-                    {url: url, test: Cypress.currentTest.title, errors: consoleIssues}
+                    {url: win.location.href, test: Cypress.currentTest.title, errors: consoleIssues}
                 ]);
             }
         });
@@ -171,10 +170,8 @@ function collectIssues(win: Cypress.AUTWindow): Cypress.Chainable {
 /**
  * Analyzes collected JavaScript errors and warnings and throws an error if any were found.
  */
-function analyzeIssues(): void {
-    cy.then(() => {
-        const failures = getCollectedIssues();
-
+function analyzeIssues(): Cypress.Chainable {
+    return cy.wrap(getCollectedIssues()).then(failures => {
         if (failures.length > 0) {
             // Group all issues by test title
             const groupedByTest = failures.reduce((acc: Record<string, CollectorItem[]>, failure) => {
@@ -220,18 +217,24 @@ function disable(): void { Cypress.env(envVarDisableJsLogger, true); }
  * and throws an error if any issues are found after each or all tests are executed (depending on the strategy chosen).
  */
 function enable(): void {
-    // Ensure the logger is enabled by default
+    // Ensure the logger is enabled
     Cypress.env(envVarDisableJsLogger, false);
 
-    // Attach errors and warnings collector
-    attachJsInterceptor();
+    /**
+     * Attach Cypress hooks forconsole messages collecting before EACH test execution.
+     * Use 'beforeEach' hook and local (cy) context instead of global (Cypress) one
+     * to ensure proper async flow and avoid events and hooks flakiness.
+     */
+    before(() => {
+        attachJsInterceptor();
+    });
 
     /**
      * Custom 'afterEach' hook to analyze JavaScript errors and warnings after EACH test execution.
      */
     afterEach(() => {
         // Skip the hook if the logger is disabled or if the strategy is not failAfterEach
-        if (isDisabled() || getStrategy() !== STRATEGY.failAfterEach) { return; }
+        if (isDisabled() || (getStrategy() !== STRATEGY.failAfterEach)) { return; }
         // Analyze collected errors and warnings
         analyzeIssues();
     });
@@ -241,7 +244,7 @@ function enable(): void {
      */
     after(() => {
         // Skip the hook if the logger is disabled or if the strategy is not failAfterAll
-        if (isDisabled() || getStrategy() !== STRATEGY.failAfterAll) { return; }
+        if (isDisabled() || (getStrategy() !== STRATEGY.failAfterAll)) { return; }
         // Analyze collected errors and warnings
         analyzeIssues();
     });
