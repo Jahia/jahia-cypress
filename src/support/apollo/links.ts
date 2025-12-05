@@ -7,7 +7,7 @@ interface ApolloRequestInit extends RequestInit {
     formData?: FormData
 }
 
-export const formDataHttpLink = (baseUrl: string, headers: unknown) => {
+export const formDataHttpLink = (baseUrl: string, headers: Record<string, string>) => {
     return new HttpLink({
         uri: `${baseUrl}/modules/graphql`,
         headers,
