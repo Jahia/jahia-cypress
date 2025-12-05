@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {HttpLink} from '@apollo/client/link/http';
 import fetch from 'cross-fetch';
 import {setContext} from '@apollo/client/link/context';
