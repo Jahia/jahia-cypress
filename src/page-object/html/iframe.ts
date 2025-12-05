@@ -2,9 +2,9 @@ import {BaseComponent} from '../baseComponent';
 import Chainable = Cypress.Chainable;
 
 export class IFrame extends BaseComponent {
-    static defaultSelector = 'iframe'
+    static defaultSelector = 'iframe';
 
-    private body: JQuery<HTMLElement>
+    private body: JQuery<HTMLElement>;
 
     constructor(element: Chainable<JQuery>, assertion?: (s: JQuery) => void) {
         super(element, assertion);
