@@ -221,11 +221,11 @@ function enable(): void {
     Cypress.env(envVarDisableJsLogger, false);
 
     /**
-     * Attach Cypress hooks forconsole messages collecting before EACH test execution.
+     * Attach Cypress hooks for console messages collecting before EACH test execution.
      * Use 'beforeEach' hook and local (cy) context instead of global (Cypress) one
      * to ensure proper async flow and avoid events and hooks flakiness.
      */
-    before(() => {
+    beforeEach(() => {
         attachJsInterceptor();
     });
 
