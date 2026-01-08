@@ -32,7 +32,7 @@ if [[ "${JAHIA_CLUSTER_ENABLED}" == "true" ||  ${JAHIA_CLUSTER_ENABLED} == true 
 fi
 
 echo "$(date +'%d %B %Y - %k:%M') == Starting environment =="
-docker-compose ${CLUSTER_PROFILE} up -d --renew-anon-volumes
+docker-compose ${CLUSTER_PROFILE} up -d --renew-anon-volumes $(docker-compose config --services | grep -v "cypress")
 if [[ "$1" != "notests" ]]; then
     docker ps -a
     docker stats --no-stream
