@@ -10,8 +10,13 @@ JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback() {
         log.info("Delete user : USER_NAME" );
 
         JahiaUserManagerService userManagerService = JahiaUserManagerService.getInstance();
-        userManagerService.deleteUser(userManagerService.getUserPath("USER_NAME"), session);
-        session.save();
+        def user = userManagerService.getUserPath("USER_NAME");
+        if (user) {
+            userManagerService.deleteUser(user, session);
+            session.save();
+        } else {
+            log.warn("User USER_NAME cannot be deleted. User not found");
+        }
         return null;
     }
 })
