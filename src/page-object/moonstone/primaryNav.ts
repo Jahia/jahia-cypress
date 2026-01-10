@@ -2,7 +2,7 @@ import {BaseComponent} from '../baseComponent';
 import Chainable = Cypress.Chainable;
 
 export class PrimaryNav extends BaseComponent {
-    static defaultSelector = '.moonstone-primaryNav'
+    static defaultSelector = '.moonstone-primaryNav';
 
     click(itemName: string): void {
         this.get().find(`.moonstone-primaryNavItem[role="${itemName}"]`).click();
