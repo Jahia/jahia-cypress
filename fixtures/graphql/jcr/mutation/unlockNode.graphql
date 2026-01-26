@@ -1,0 +1,7 @@
+mutation unlockNode($pathOrId: String!){
+  jcr{
+    mutateNode(pathOrId: $pathOrId){
+      unlock
+    }
+  }
+}
