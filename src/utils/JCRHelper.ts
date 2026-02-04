@@ -131,3 +131,21 @@ export const uploadFile = (fixturePath: string, parentPathOrId: string, name: st
             });
         });
 };
+
+export const lockNode = (pathOrId: string): Cypress.Chainable => {
+    return cy.apollo({
+        mutationFile: 'graphql/jcr/mutation/lockNode.graphql',
+        variables: {
+            pathOrId: pathOrId
+        }
+    });
+};
+
+export const unlockNode = (pathOrId: string): Cypress.Chainable => {
+    return cy.apollo({
+        mutationFile: 'graphql/jcr/mutation/unlockNode.graphql',
+        variables: {
+            pathOrId: pathOrId
+        }
+    });
+};
