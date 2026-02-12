@@ -38,5 +38,5 @@
     "graphql": "^15.5.0",
     "graphql-tag": "^2.11.0"
   },
-  "packageManager": "yarn@4.5.0"
+  "packageManager": "yarn@4.12.0"
 }
