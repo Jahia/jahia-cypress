@@ -1,10 +1,11 @@
-FROM cypress/browsers:node-20.10.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+FROM cypress/browsers:node-22.21.0-chrome-141.0.7390.107-1-ff-144.0-edge-141.0.3537.92-1
 
 ARG MAVEN_VER="3.8.1"
 ARG MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
 ARG YARN_VERSION="1.22.19"
 
-RUN apt-get update && apt-get install -y jq curl ; \
+RUN apt-get update
+RUN apt-get install -y jq curl ; \
     npm -g install corepack ; \
     corepack enable
 
