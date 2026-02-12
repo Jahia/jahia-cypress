@@ -2,7 +2,7 @@ import {BaseComponent} from '../baseComponent';
 import Chainable = Cypress.Chainable;
 
 export class Accordion extends BaseComponent {
-    static defaultSelector = '.moonstone-accordion'
+    static defaultSelector = '.moonstone-accordion';
 
     click(itemName: string): Accordion {
         this.get().find(`section.moonstone-accordionItem header[aria-controls="${itemName}"]`).click();
