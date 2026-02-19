@@ -14,30 +14,39 @@ export interface GenerateOptions {
   fakerOptions?: Record<string, unknown> | Array<unknown> | string | number | boolean;
 }
 
-// Import injection data from corresponding files in injections-ts directory
-import {xssData} from '../injections/xss-data';
-import {sqlData} from '../injections/sql-data';
-import {bashData} from '../injections/bash-data';
-import {charsData} from '../injections/chars-data';
-import {htmlentitiesData} from '../injections/htmlentities-data';
-import {numbersData} from '../injections/numbers-data';
+// To be used to store injection data in module memory (persists across tests in same spec)
+let injectionData: Record<string, string[]> = {};
 
-const injectionData: Record<string, string[]> = {
-    xss: xssData,
-    sql: sqlData,
-    bash: bashData,
-    chars: charsData,
-    htmlentities: htmlentitiesData,
-    numbers: numbersData
-};
+// Environment variable key for storing injection data in Cypress env (to be shared across specs)
+const ENV_INJECTIONS_DATA = '__JAHIA_CYPRESS_INJECTION_DATA__';
 
 // Environment variable key for storing injection type in Cypress env
 // Can be set either using corresponding FakeData method or as an env var from CI/CD pipeline
 const ENV_INJECTIONS_TYPE = 'JAHIA_CYPRESS_INJECTION_TYPE';
 
+// Known injection types and corresponding fixture files (have to match files in fixtures/injections/)
+const injectionTypes = ['xss', 'sql', 'bash', 'chars', 'htmlentities', 'numbers'];
+
 // Default range for random length of injection payloads; used when length is undefined
 // Random items within the range will be picked and joined into a single string
 const injectionsDefaultLength = {min: 3, max: 6};
+
+/**
+ * Store injection data in Cypress env for persistence across specs
+ * @param {Record<string, string[]>} data Injection data mapped by type
+ * @returns void
+ */
+function setInjectionsData(data: Record<string, string[]>): void {
+    Cypress.env(ENV_INJECTIONS_DATA, data);
+}
+
+/**
+ * Retrieve injection data from Cypress env
+ * @returns {Record<string, string[]>} Injection data mapped by type
+ */
+function getInjectionsData(): Record<string, string[]> {
+    return Cypress.env(ENV_INJECTIONS_DATA) || {};
+}
 
 /**
  * Store FakeData type in Cypress env for persistence across specs
@@ -57,12 +66,40 @@ function getFakeDataType(): string | undefined {
 }
 
 /**
+ * Load injection data from fixture files
+ * Must be called in e2e.js to ensure data is loaded
+ * @returns void
+ * @example
+ * ```typescript
+ * FakeData.enable();
+ * ```
+ */
+function enable(): void {
+    before(() => {
+        // Load injection data from files into module memory
+        cy.wrap(injectionTypes).each((type: string) => {
+            cy.readFile(`./node_modules/@jahia/cypress/fixtures/injections/${type}-data.txt`, 'utf8').then((content: string) => {
+                injectionData[type] = content.split('\n').filter((line: string) => line.trim().length > 0);
+            });
+        });
+
+        cy.then(() => {
+            // Save to env var after all files are loaded
+            // This allows sharing data across different spec files
+            setInjectionsData(injectionData);
+        });
+    });
+}
+
+/**
  * Generate test data based on type and entity parameters
  * @param {GenerateOptions | string} options Generation options or entity string
  * @returns {string} Generated test data
  *
  * @example
  * ```typescript
+ * // In your test file e2e.js, load injection data first:
+ * FakeData.enable();
  *
  * // Generate faker data with entity (shorthand)
  * const name = FakeData.get('person.firstName');
@@ -78,11 +115,11 @@ function getFakeDataType(): string | undefined {
  * // Entity will always be generated using 'xss', since explicitly passed type overrides global settings.
  * const xssName = FakeData.get({entity: 'person.firstName', type: 'xss'});
  *
- * // Generate injection payloads with specific length.
+ * // Generate injection payloads with specific items count.
  * // Entity will always be generated using 'xss', since explicitly passed type overrides global settings.
  * const xssName = FakeData.get({entity: 'person.firstName', type: 'xss', length: 100});
  *
- * // Use all SQL injections
+ * // Generate all SQL injections
  * // Entity will always be generated using 'sql', since explicitly passed type overrides global settings.
  * const allSql = FakeData.get({type: 'sql', length: -1 });
  * ```
@@ -94,51 +131,69 @@ function get(options: GenerateOptions | string): string {
     // Destructure options with defaults
     const {type = getFakeDataType(), entity = 'lorem.sentence', length, fakerOptions} = normalizedOptions;
 
+    // Result array to hold generated data
     let result: string[] = [];
 
-    // If type is specified and exists in injectionData, use it to generate data
-    // Otherwise, use faker to generate data based on the provided entity
-    if (type !== undefined && Object.prototype.hasOwnProperty.call(injectionData, type)) {
-        // Type is specified and exists in injectionData, use it to generate data
-        const data = injectionData[type];
-        if (!data || data.length === 0) {
-            throw new Error(`[FakeData EXCEPTION] No injection data found for type: ${type}.`);
+    // Check if type is provided and matches known injection types
+    if (type !== undefined && injectionTypes.includes(type)) {
+        // Load from env var into module's one if injectionData is empty,
+        // e.g. if FakeData.enable() was called globally, outside of spec, and module's var is not available.
+        // Kinda caching, to speed up operations and avoid reading from disk repeatedly.
+        if (Object.keys(injectionData).length === 0) {
+            injectionData = getInjectionsData();
+        }
+
+        // Validate injection type
+        if (!injectionData[type] || injectionData[type].length === 0) {
+            throw new Error(`[FakeData EXCEPTION] No injection data found for type: ${type}. Available types: ${Object.keys(injectionData).join(', ')}`);
         }
 
         if (length === -1) {
-            // If length is -1, use all available items from the data array
-            result = data;
+            /**
+             * Return all items for length = -1
+             */
+            result = injectionData[type];
         } else if (length && length > 0) {
-            // If length is specified and greater than 0, pick random items until the combined length meets the requirement
+            /**
+             * Fetch random items up to specified length
+             */
             while (result.join('').length < length) {
-                const randomIndex = Math.floor(Math.random() * data.length);
-                result.push(data[randomIndex]);
+                const randomIndex = Math.floor(Math.random() * injectionData[type].length);
+                result.push(injectionData[type][randomIndex]);
             }
 
+            // Trim to exact length if exceeded
             if (result.join('').length > length) {
                 const combined = result.join('');
                 result = [combined.substring(0, length)];
             }
         } else {
-            // If length is not specified, pick a random number of items within the default range
+            /**
+             * Generate random min...max items if length is undefined
+             */
             const itemsCount = Math.floor(Math.random() * injectionsDefaultLength.max) + injectionsDefaultLength.min;
+
             for (let i = 0; i < itemsCount; i++) {
-                const randomIndex = Math.floor(Math.random() * data.length);
-                result.push(data[randomIndex]);
+                const randomIndex = Math.floor(Math.random() * injectionData[type].length);
+                result.push(injectionData[type][randomIndex]);
             }
         }
     } else {
         // No valid type provided, use Faker.js for data generation
-        // Double-check on entity presence before proceeding with faker generation, as it's required for faker method resolution
-        // and throw an error if it's missing or empty to avoid silent failures and provide clear feedback to the user
+        // In case entity is not provided or empty, throw an error
         if (entity === undefined || entity.trim() === '') {
             throw new Error('[FakeData EXCEPTION] No entity provided for faker data generation');
         }
 
+        // Use Faker.js for generating fake data
         let generator: () => string;
+
+        // Parse entity path and dynamically call faker method e.g., "person.firstName" -> faker.person.firstName()
         const parts = entity.split('.');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let fakerMethod: any = faker;
+
+        // Navigate through the faker object
         for (const part of parts) {
             if (fakerMethod && typeof fakerMethod[part] !== 'undefined') {
                 fakerMethod = fakerMethod[part];
@@ -147,6 +202,7 @@ function get(options: GenerateOptions | string): string {
             }
         }
 
+        // Check if the final result is a function; also take into account optional fakerOptions
         if (typeof fakerMethod === 'function') {
             generator = fakerOptions ? () => fakerMethod(fakerOptions) : fakerMethod as () => string;
         } else {
@@ -156,6 +212,7 @@ function get(options: GenerateOptions | string): string {
         result.push(generator());
     }
 
+    // Return concatenated result as a single string
     return result.join('');
 }
 
@@ -168,9 +225,10 @@ function escape(str: string): string {
 }
 
 /**
- * FakeData module - provides methods for generating test data (async get)
+ * FakeData module - provides methods for generating test data
  */
 const FakeData = {
+    enable,
     get,
     getFakeDataType,
     setFakeDataType,
