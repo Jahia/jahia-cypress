@@ -1,0 +1,8 @@
+mutation removeMixins($pathOrId: String!, $mixins: [String]! = []) {
+    jcr(workspace: EDIT) {
+        mutateNode(pathOrId: $pathOrId) {
+            removeMixins(mixins: $mixins)
+            uuid
+        }
+    }
+}

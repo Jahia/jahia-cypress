@@ -1,12 +1,16 @@
+import {ApolloOptions} from '../support';
+
 type Workspace = 'EDIT' | 'LIVE';
 
-export const setNodeProperty = (pathOrId: string, property: string, value: string | Array<string>, language: string): Cypress.Chainable => {
+// eslint-disable-next-line max-params
+export const setNodeProperty = (pathOrId: string, property: string, value: string | Array<string>, language: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     let mutationFile = 'graphql/jcr/mutation/setProperty.graphql';
     if (value instanceof Array) {
         mutationFile = 'graphql/jcr/mutation/setPropertyValues.graphql';
     }
 
     return cy.apollo({
+        ...apolloOptions,
         variables: {
             pathOrId: pathOrId,
             property: property,
@@ -17,8 +21,9 @@ export const setNodeProperty = (pathOrId: string, property: string, value: strin
     });
 };
 
-export const deleteNode = (pathOrId: string, workspace: Workspace = 'EDIT'): Cypress.Chainable => {
+export const deleteNode = (pathOrId: string, workspace: Workspace = 'EDIT', apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         variables: {
             pathOrId: pathOrId,
             workspace
@@ -27,8 +32,9 @@ export const deleteNode = (pathOrId: string, workspace: Workspace = 'EDIT'): Cyp
     });
 };
 
-export const deleteNodeProperty = (pathOrId: string, property: string, language: string): Cypress.Chainable => {
+export const deleteNodeProperty = (pathOrId: string, property: string, language: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         variables: {
             pathOrId: pathOrId,
             property: property,
@@ -47,23 +53,34 @@ export const addNode = (variables: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     children?: any [],
     mixins?: string []
-}): Cypress.Chainable => {
+}, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         variables: variables,
         mutationFile: 'graphql/jcr/mutation/addNode.graphql'
     });
 };
 
-export const addMixins = (pathOrId: string, mixins: string[]): Cypress.Chainable => {
+export const addMixins = (pathOrId: string, mixins: string[], apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         variables: {pathOrId: pathOrId, mixins: mixins},
         mutationFile: 'graphql/jcr/mutation/addMixins.graphql'
     });
 };
 
-// eslint-disable-next-line max-params
-export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: Workspace = 'EDIT'): Cypress.Chainable => {
+export const removeMixins = (pathOrId: string, mixins: string[], apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
+        variables: {pathOrId: pathOrId, mixins: mixins},
+        mutationFile: 'graphql/jcr/mutation/removeMixins.graphql'
+    });
+};
+
+// eslint-disable-next-line max-params
+export const getNodeByPath = (path: string, properties?: string[], language?: string, childrenTypes: string[] = [], workspace: Workspace = 'EDIT', apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
+    return cy.apollo({
+        ...apolloOptions,
         variables: {
             path: path,
             properties: properties,
@@ -75,8 +92,9 @@ export const getNodeByPath = (path: string, properties?: string[], language?: st
     });
 };
 
-export const getNodeAcl = (path: string): Cypress.Chainable => {
+export const getNodeAcl = (path: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         variables: {
             path: path
         },
@@ -84,8 +102,9 @@ export const getNodeAcl = (path: string): Cypress.Chainable => {
     });
 };
 
-export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?: string): Cypress.Chainable => {
+export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         variables: {
             pathOrId: pathOrId,
             destParentPathOrId: destParentPathOrId,
@@ -95,8 +114,9 @@ export const moveNode = (pathOrId: string, destParentPathOrId: string, destName?
     });
 };
 
-export const getNodeTypes = (filter = {}): Cypress.Chainable => {
+export const getNodeTypes = (filter = {}, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         variables: {
             filter: filter
         },
@@ -104,15 +124,14 @@ export const getNodeTypes = (filter = {}): Cypress.Chainable => {
     });
 };
 
-export const markForDeletion = (pathOrId: string): Cypress.Chainable => {
-    return cy.apollo(
-        {
-            variables: {
-                pathOrId: pathOrId
-            },
-            mutationFile: 'graphql/jcr/mutation/markForDeletion.graphql'
-        }
-    );
+export const markForDeletion = (pathOrId: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
+    return cy.apollo({
+        ...apolloOptions,
+        variables: {
+            pathOrId: pathOrId
+        },
+        mutationFile: 'graphql/jcr/mutation/markForDeletion.graphql'
+    });
 };
 
 export const uploadFile = (fixturePath: string, parentPathOrId: string, name: string, mimeType: string): Cypress.Chainable => {
@@ -132,8 +151,9 @@ export const uploadFile = (fixturePath: string, parentPathOrId: string, name: st
         });
 };
 
-export const lockNode = (pathOrId: string): Cypress.Chainable => {
+export const lockNode = (pathOrId: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         mutationFile: 'graphql/jcr/mutation/lockNode.graphql',
         variables: {
             pathOrId: pathOrId
@@ -141,8 +161,9 @@ export const lockNode = (pathOrId: string): Cypress.Chainable => {
     });
 };
 
-export const unlockNode = (pathOrId: string): Cypress.Chainable => {
+export const unlockNode = (pathOrId: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     return cy.apollo({
+        ...apolloOptions,
         mutationFile: 'graphql/jcr/mutation/unlockNode.graphql',
         variables: {
             pathOrId: pathOrId
