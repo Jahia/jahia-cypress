@@ -4,7 +4,7 @@ import Chainable = Cypress.Chainable;
 import {getComponentByRole} from '../utils';
 
 export class Pagination extends BaseComponent {
-    static defaultSelector = '.moonstone-tablePagination'
+    static defaultSelector = '.moonstone-tablePagination';
 
     clickNextPage(): Pagination {
         getComponentByRole(Button, 'table-pagination-button-next-page', this).click();
