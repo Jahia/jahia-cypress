@@ -170,3 +170,15 @@ export const unlockNode = (pathOrId: string, apolloOptions: ApolloOptions = {}):
         }
     });
 };
+
+export const copyNode = (pathOrId: string, destParentPathOrId: string, destName?: string, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
+    return cy.apollo({
+        ...apolloOptions,
+        variables: {
+            pathOrId: pathOrId,
+            destParentPathOrId: destParentPathOrId,
+            destName: destName
+        },
+        mutationFile: 'graphql/copyNode.graphql'
+    });
+};
