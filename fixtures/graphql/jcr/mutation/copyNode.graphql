@@ -1,0 +1,21 @@
+mutation PasteNode(
+    $pathOrId: String!,
+    $destParentPathOrId: String!,
+    $destName: String,
+    $childNodeTypesToSkip: [String]
+) {
+    jcr {
+        copyNode(
+            pathOrId: $pathOrId,
+            destParentPathOrId: $destParentPathOrId,
+            destName: $destName,
+            childNodeTypesToSkip: $childNodeTypesToSkip
+        ) {
+            uuid
+            node {
+                path
+                name
+            }
+        }
+    }
+}
