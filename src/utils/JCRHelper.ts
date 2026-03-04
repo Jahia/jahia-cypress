@@ -179,6 +179,6 @@ export const copyNode = (pathOrId: string, destParentPathOrId: string, destName?
             destParentPathOrId: destParentPathOrId,
             destName: destName
         },
-        mutationFile: 'graphql/copyNode.graphql'
+        mutationFile: 'graphql/jcr/mutation/copyNode.graphql'
     });
 };
