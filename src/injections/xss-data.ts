@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 export const xssData: string[] = [
     '"-prompt(8)-"',
     '\'-prompt(8)-\'',
