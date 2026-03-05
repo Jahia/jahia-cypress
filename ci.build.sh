@@ -41,4 +41,20 @@ if [ -d ./jahia-module ]; then
 fi
 YARN_VERSION=${YARN_VERSION:-1.22.19}
 
-docker build --build-arg YARN_VERSION=${YARN_VERSION} -f $BASEDIR/env.Dockerfile -t ${TESTS_IMAGE} .
+# Use Docker buildx with cache if enabled via environment variables
+if [ "$DOCKER_BUILD_CACHE_ENABLED" = "true" ]; then
+  echo "Docker cache is enabled, building using 'docker buildx build'"
+  echo "cache-from: $DOCKER_BUILDX_CACHE_FROM"
+  echo "cache-to: $DOCKER_BUILDX_CACHE_TO"
+  docker buildx build \
+    --cache-from "$DOCKER_BUILDX_CACHE_FROM" \
+    --cache-to "$DOCKER_BUILDX_CACHE_TO" \
+    --build-arg YARN_VERSION=${YARN_VERSION} \
+    -f $BASEDIR/env.Dockerfile \
+    -t ${TESTS_IMAGE} \
+    --load \
+    .
+else
+  echo "Docker cache is disabled, building using 'docker build'"
+  docker build --build-arg YARN_VERSION=${YARN_VERSION} -f $BASEDIR/env.Dockerfile -t ${TESTS_IMAGE} .
+fi
