@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {HttpLink} from '@apollo/client/link/http';
 import fetch from 'cross-fetch';
 import {setContext} from '@apollo/client/link/context';
@@ -7,7 +6,7 @@ interface ApolloRequestInit extends RequestInit {
     formData?: FormData
 }
 
-export const formDataHttpLink = (baseUrl: string, headers: unknown) => {
+export const formDataHttpLink = (baseUrl: string, headers: Record<string, string>) => {
     return new HttpLink({
         uri: `${baseUrl}/modules/graphql`,
         headers,
