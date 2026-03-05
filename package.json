@@ -38,13 +38,13 @@
     "mochawesome": "^6.3.1",
     "mochawesome-merge": "^4.2.0",
     "mochawesome-report-generator": "^5.2.0",
-    "typescript": "^5.0.4"
+    "typescript": "^4.3.5"
   },
   "dependencies": {
     "@apollo/client": "^3.4.9",
     "cypress-real-events": "^1.14.0",
     "graphql": "^15.5.0",
-    "graphql-tag": "^2.12.6"
+    "graphql-tag": "^2.11.0"
   },
   "packageManager": "yarn@4.5.0"
 }
