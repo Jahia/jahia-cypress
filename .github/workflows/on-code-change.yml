@@ -36,23 +36,24 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'yarn'
-      - run: yarn install
+          cache-dependency-path: 'tests/yarn.lock'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build
           path: dist/
+      - name: Install test dependencies
+        working-directory: tests
+        run: yarn install
       - name: Run Cypress tests
         uses: cypress-io/github-action@v6
         with:
+          working-directory: tests
           install: false
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            results/
-            cypress/screenshots/
-            cypress/videos/
+          path: tests/results/
           retention-days: 7

@@ -9,7 +9,7 @@
  * - Edge cases and error handling
  */
 
-import {jfaker} from '../src/support/jfaker';
+import {jfaker} from '../../../src/support/jfaker';
 
 describe('FakeData (jfaker) Module Tests', () => {
     beforeEach(() => {

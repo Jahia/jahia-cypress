@@ -10,7 +10,7 @@ export default defineConfig({
     e2e: {
         // No baseUrl needed for unit tests
         // Spec pattern for test files
-        specPattern: 'tests/**/*.spec.ts',
+        specPattern: 'cypress/e2e/**/*.spec.ts',
         // Support file
         supportFile: false,
         // Video and screenshot settings
