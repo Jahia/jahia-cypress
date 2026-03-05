@@ -36,12 +36,13 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'yarn'
-          cache-dependency-path: 'tests/yarn.lock'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build
           path: dist/
+      - name: Install library dependencies
+        run: yarn install
       - name: Install test dependencies
         working-directory: tests
         run: yarn install
