@@ -36,11 +36,6 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'yarn'
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: dist/
       - name: Install library dependencies
         run: yarn install
       - name: Install test dependencies
