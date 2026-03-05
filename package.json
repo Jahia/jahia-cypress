@@ -19,7 +19,6 @@
     "url": "git+https://github.com/Jahia/jahia-cypress.git"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.0.0",
     "@jahia/eslint-config": "^2.1.2",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
@@ -35,6 +34,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.9",
+    "@faker-js/faker": "^10.0.0",
     "cypress-real-events": "^1.11.0",
     "graphql": "^15.5.0",
     "graphql-tag": "^2.11.0"
