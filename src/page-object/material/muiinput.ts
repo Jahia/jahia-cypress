@@ -2,7 +2,7 @@ import {BaseComponent} from '../baseComponent';
 import TypeOptions = Cypress.TypeOptions;
 
 export class MUIInput extends BaseComponent {
-    static defaultSelector = 'div'
+    static defaultSelector = 'div';
 
     clear(): MUIInput {
         this.get().clear();
