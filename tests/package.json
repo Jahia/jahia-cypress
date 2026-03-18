@@ -1,5 +1,6 @@
 {
-  "name": "jahia-cypress-tests",
+  "name": "@jahia/cypress-tests",
+  "private": true,
   "scripts": {
     "e2e:ci": "cypress run",
     "e2e:debug": "cypress open",

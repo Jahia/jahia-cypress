@@ -1389,6 +1389,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jahia/cypress-tests@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@jahia/cypress-tests@workspace:."
+  dependencies:
+    "@apollo/client": "npm:^3.4.9"
+    "@faker-js/faker": "npm:^10.0.0"
+    "@jahia/eslint-config": "npm:^2.1.2"
+    "@jahia/jahia-reporter": "npm:^1.1.10"
+    "@types/node": "npm:^20.11.0"
+    "@typescript-eslint/eslint-plugin": "npm:^5.2.0"
+    "@typescript-eslint/parser": "npm:^5.2.0"
+    cross-fetch: "npm:^3.1.5"
+    cypress: "npm:15.7.0"
+    cypress-multi-reporters: "npm:^2.0.5"
+    cypress-real-events: "npm:^1.14.0"
+    cypress-wait-until: "npm:^3.0.2"
+    eslint: "npm:^8.51.0"
+    eslint-plugin-cypress: "npm:^2.15.1"
+    eslint-plugin-jest: "npm:^27.2.1"
+    eslint-plugin-react: "npm:^7.32.2"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
+    graphql: "npm:^15.5.0"
+    graphql-tag: "npm:^2.11.0"
+    mocha-junit-reporter: "npm:^2.0.2"
+    mochawesome: "npm:^6.3.1"
+    mochawesome-merge: "npm:^4.2.0"
+    mochawesome-report-generator: "npm:^5.2.0"
+    typescript: "npm:^5.0.4"
+  languageName: unknown
+  linkType: soft
+
 "@jahia/eslint-config@npm:^2.1.2":
   version: 2.2.0
   resolution: "@jahia/eslint-config@npm:2.2.0"
@@ -5055,37 +5086,6 @@ __metadata:
   checksum: 10c0/f7a262808e1b41049ab55f1e9c29af7ec1025a000d243b83edf34ce2416eedd56079b117fa59376bb4a724110690f13aa8427f2ee29a09eec63a7e72367626d0
   languageName: node
   linkType: hard
-
-"jahia-cypress-tests@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "jahia-cypress-tests@workspace:."
-  dependencies:
-    "@apollo/client": "npm:^3.4.9"
-    "@faker-js/faker": "npm:^10.0.0"
-    "@jahia/eslint-config": "npm:^2.1.2"
-    "@jahia/jahia-reporter": "npm:^1.1.10"
-    "@types/node": "npm:^20.11.0"
-    "@typescript-eslint/eslint-plugin": "npm:^5.2.0"
-    "@typescript-eslint/parser": "npm:^5.2.0"
-    cross-fetch: "npm:^3.1.5"
-    cypress: "npm:15.7.0"
-    cypress-multi-reporters: "npm:^2.0.5"
-    cypress-real-events: "npm:^1.14.0"
-    cypress-wait-until: "npm:^3.0.2"
-    eslint: "npm:^8.51.0"
-    eslint-plugin-cypress: "npm:^2.15.1"
-    eslint-plugin-jest: "npm:^27.2.1"
-    eslint-plugin-react: "npm:^7.32.2"
-    eslint-plugin-react-hooks: "npm:^4.6.0"
-    graphql: "npm:^15.5.0"
-    graphql-tag: "npm:^2.11.0"
-    mocha-junit-reporter: "npm:^2.0.2"
-    mochawesome: "npm:^6.3.1"
-    mochawesome-merge: "npm:^4.2.0"
-    mochawesome-report-generator: "npm:^5.2.0"
-    typescript: "npm:^5.0.4"
-  languageName: unknown
-  linkType: soft
 
 "js-base64@npm:^3.6.0":
   version: 3.7.8
