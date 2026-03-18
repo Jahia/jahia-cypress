@@ -100,6 +100,18 @@ module.exports = (on, config) => {
     return config;
 };
 ```
+
+## Internal Auxiliary Libraries
+
+### Extended Logger Module
+Helper utility designed to enhance Cypress test logging capabilities by providing structured log levels and decorating log messages with appropriate severity indicators. It enables developers to create more organized and filterable test output by categorizing log messages into different levels. Read more [here](./docs/extended-logger.md).
+
+### JavaScript Errors Logger
+Comprehensive monitoring and reporting module for JavaScript errors and warnings in Cypress tests. It provides automated detection, collection, and reporting of console errors and warnings that occur during test execution, helping maintain code quality and identify issues early in the development process. Read more [here](./docs/js-errors-logger.md).
+
+### jFaker - Fake Data Generation Module
+Flexible fake data generation utility for Cypress testing that combines the power of Faker.js with security-focused injection payload generation. It provides a unified API to generate both realistic test data and security testing payloads (XSS, SQL injection, etc.) through a dynamic proxy-based interface. Read more [here](./docs/jfaker.md).
+
 ## Open-Source
 
 This is an Open-Source codebase, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source)
