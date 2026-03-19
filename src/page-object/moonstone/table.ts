@@ -3,7 +3,7 @@ import {Menu} from './menu';
 import {getComponent, getComponentByContent, getComponentByIndex, getComponentBySelector} from '../utils';
 
 export class Table extends BaseComponent {
-    static defaultSelector = '.moonstone-Table'
+    static defaultSelector = '.moonstone-Table';
 
     getRows(assertion?: (s: JQuery) => void): TableRow {
         return getComponent(TableRow, this, assertion);
@@ -19,7 +19,7 @@ export class Table extends BaseComponent {
 }
 
 export class TableRow extends BaseComponent {
-    static defaultSelector = '.moonstone-TableBody .moonstone-TableRow'
+    static defaultSelector = '.moonstone-TableBody .moonstone-TableRow';
 
     contextMenu(): Menu {
         this.get().rightclick();
