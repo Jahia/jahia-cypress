@@ -3,7 +3,7 @@ import {getComponentByRole} from '../utils';
 import Chainable = Cypress.Chainable;
 
 export class Menu extends BaseComponent {
-    static defaultSelector = '.moonstone-menu:not(.moonstone-hidden)'
+    static defaultSelector = '.moonstone-menu:not(.moonstone-hidden)';
     static overlaySelector = '.moonstone-menu_overlay';
 
     submenu(item: string, menu: string): Menu {

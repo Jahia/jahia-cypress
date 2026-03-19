@@ -1,7 +1,7 @@
 import {BaseComponent} from '../baseComponent';
 
 export class Collapsible extends BaseComponent {
-    static defaultSelector = '.moonstone-collapsible'
+    static defaultSelector = '.moonstone-collapsible';
 
     collapse(): Collapsible {
         this.get().children('div').then($child => {
