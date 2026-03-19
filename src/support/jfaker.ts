@@ -1,5 +1,4 @@
 /* eslint-disable no-else-return */
-/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * jfaker - A flexible data generator for Cypress tests, supporting both faker.js generated data and custom injection payloads.
