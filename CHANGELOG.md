@@ -1,5 +1,9 @@
 # @jahia/cypress Changelog
 
+## 8.1.0
+
+* Add jfaker library for generating test strings containing human-readable or injections data (#202)
+
 ## 8.0.0
 
 ### Breaking Changes
