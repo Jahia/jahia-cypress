@@ -5,3 +5,4 @@ export * from './logout';
 export * from './repeatUntil';
 export * from './testStep';
 export * from './jsErrorsLogger';
+export * from './jfaker';
