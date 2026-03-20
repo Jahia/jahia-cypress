@@ -1408,8 +1408,8 @@ __metadata:
   resolution: "@jahia/cypress@workspace:."
   dependencies:
     "@apollo/client": "npm:^3.4.9"
-    "@faker-js/faker": "npm:^10.3.0"
     "@chachalog/types": "npm:^0.5.0"
+    "@faker-js/faker": "npm:^10.3.0"
     "@jahia/eslint-config": "npm:^2.2.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.57.1"
     "@typescript-eslint/parser": "npm:^8.57.1"
