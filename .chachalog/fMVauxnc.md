@@ -1,6 +1,6 @@
 ---
 # Allowed version bumps: patch, minor, major
-jahia-cypress: minor
+'@jahia/cypress': minor
 ---
 
 Leverage Buildx cache when building Docker test image (#191)
