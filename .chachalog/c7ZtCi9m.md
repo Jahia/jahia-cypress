@@ -1,6 +1,6 @@
 ---
 # Allowed version bumps: patch, minor, major
-jahia-cypress: patch
+'@jahia/cypress': patch
 ---
 
 Fix broken copyNode helper
