@@ -152,7 +152,7 @@ describe('FakeData (jfaker) Module Tests', () => {
             expect(jfaker.getDataType()).to.equal('sql');
         });
 
-        it.only('should allow switching between different injection types', () => {
+        it('should allow switching between different injection types', () => {
             jfaker.setDataType('xss');
             const xssData = jfaker.person.firstName();
 
