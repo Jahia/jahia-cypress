@@ -5,11 +5,11 @@
  * - Faker.js integration
  * - Injection data generation
  * - Global type management
- * - Overridable option
+ * - Persistent option
  * - Edge cases and error handling
  */
 
-import {jfaker} from '../../../src/support/jfaker';
+import {jfaker} from '../../../src';
 
 describe('FakeData (jfaker) Module Tests', () => {
     beforeEach(() => {
@@ -46,9 +46,10 @@ describe('FakeData (jfaker) Module Tests', () => {
         });
 
         it('should generate different faker entities', () => {
+            jfaker.setDataType('htmlentities');
             const firstName = jfaker.person.firstName();
             const lastName = jfaker.person.lastName();
-            const email = jfaker.internet.email();
+            const email = jfaker.internet.email({persistent: true});
             const city = jfaker.location.city();
 
             expect(firstName).to.be.a('string');
@@ -167,34 +168,34 @@ describe('FakeData (jfaker) Module Tests', () => {
         });
     });
 
-    describe('Overridable Option', () => {
-        it('should force faker generation when overridable is false and global type is injection', () => {
+    describe('Persistent Option', () => {
+        it('should force faker generation when persistent is true and global type is injection', () => {
             jfaker.setDataType('xss');
 
             const injectionData = jfaker.person.firstName();
-            const fakerData = jfaker.person.firstName({overridable: false});
+            const fakerData = jfaker.person.firstName({persistent: true});
 
             expect(injectionData).to.be.a('string');
             expect(fakerData).to.be.a('string');
             // Both should be strings but faker data should look more realistic
         });
 
-        it('should not pass overridable option to faker methods', () => {
-            // This test ensures overridable doesn't cause errors in faker
-            const data = jfaker.lorem.sentence({overridable: false});
+        it('should not pass persistent option to faker methods', () => {
+            // This test ensures persistent doesn't cause errors in faker
+            const data = jfaker.lorem.sentence({persistent: false});
             expect(data).to.be.a('string');
             expect(data.length).to.be.greaterThan(0);
         });
 
-        it('should work with overridable and other options combined', () => {
+        it('should work with persistent and other options combined', () => {
             jfaker.setDataType('xss');
-            const email = jfaker.internet.email({provider: 'test.com', overridable: false});
+            const email = jfaker.internet.email({provider: 'test.com', persistent: true});
             expect(email).to.include('@test.com');
         });
 
-        it('should work with overridable and length option for faker', () => {
+        it('should work with persistent and length option for faker', () => {
             jfaker.setDataType('sql');
-            const alpha = jfaker.string.alpha({length: 15, overridable: false});
+            const alpha = jfaker.string.alpha({length: 15, persistent: true});
             expect(alpha).to.have.lengthOf(15);
         });
     });
@@ -296,7 +297,7 @@ describe('FakeData (jfaker) Module Tests', () => {
             expect(xssName).to.be.a('string');
 
             // Force faker for specific field even though global is XSS
-            const email = jfaker.internet.email({provider: 'example.com', overridable: false});
+            const email = jfaker.internet.email({provider: 'example.com', persistent: true});
             expect(email).to.include('@example.com');
 
             // Use direct injection

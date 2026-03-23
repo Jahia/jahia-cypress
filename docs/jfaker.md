@@ -91,7 +91,7 @@ Sets the global data type for all subsequent jfaker calls. When set to an inject
 // Set to generate XSS payloads by default
 jfaker.setDataType('xss');
 
-// Now all calls return XSS data (unless overridable: false is used)
+// Now all calls return XSS data (unless persistent: true is used)
 jfaker.person.firstName();        // Returns: XSS payload, not a real name
 jfaker.internet.email();          // Returns: XSS payload, not a real email
 
@@ -142,9 +142,9 @@ jfaker.escape('Tab\there');         // Returns: 'Tab\\there'
 
 ## Advanced Usage
 
-### Overridable Option
+### Persistent Option
 
-When a global injection type is set, you can force specific calls to use faker data by setting `overridable: false`.
+When a global injection type is set, you can force specific calls to use faker data by setting `persistent: true`.
 
 ```typescript
 // Set global type to XSS
@@ -154,22 +154,22 @@ jfaker.setDataType('xss');
 jfaker.person.firstName();
 
 // This forces faker data generation (overrides global setting)
-jfaker.person.firstName({overridable: false});  // Returns: "John"
+jfaker.person.firstName({persistent: true});  // Returns: "John"
 
 // Combining with other options
 jfaker.internet.email({
     provider: 'example.com',
-    overridable: false
+   persistent: true
 });  // Returns: "user@example.com" (faker data with provider option)
 ```
 
 ### Options Summary
 
-| Option | Type | Injection Methods | Faker Methods | Description |
-|--------|------|-------------------|---------------|-------------|
-| `length` | `number` | ✅ | ✅* | For injections: exact character length (-1 = all payloads). For faker: passed to the faker method. |
-| `overridable` | `boolean` | ❌ | ✅ | When `false`, forces faker data even when global type is set to injection. |
-| *any faker option* | various | ❌ | ✅ | Any option supported by the specific Faker.js method (e.g., `provider`, `min`, `max`). |
+| Option             | Type | Injection Methods | Faker Methods | Description                                                                                        |
+|--------------------|------|-------------------|---------------|----------------------------------------------------------------------------------------------------|
+| `length`           | `number` | ✅ | ✅* | For injections: exact character length (-1 = all payloads). For faker: passed to the faker method. |
+| `persistent`       | `boolean` | ❌ | ✅ | When `true`, forces faker data even when global type is set to injection.                          |
+| *any faker option* | various | ❌ | ✅ | Any option supported by the specific Faker.js method (e.g., `provider`, `min`, `max`).             |
 
 \* Many Faker.js methods accept a `length` option, such as `jfaker.string.alpha({length: 10})`.
 
@@ -247,7 +247,7 @@ describe('Security Test Suite - SQL Injection', () => {
         cy.visit('/search');
         
         // Force faker data for this specific call
-        const normalSearch = jfaker.lorem.word({overridable: false});
+        const normalSearch = jfaker.lorem.word({persistent: true});
         
         cy.get('#search').type(normalSearch);
         cy.get('#search-btn').click();
@@ -341,7 +341,7 @@ The global data type is stored in Cypress environment variables (`JAHIA_CYPRESS_
    const xssPayload = jfaker.xss({length: 100});
    ```
 
-3. **Security Testing using existing tests codebase**: Use jfaker within your tests instead of hardcoded strings or Faker.js. In this case, the same codebase can be used for e2e as well as for injections testing by means of passing specific injections type from CI/CD or runtime (when injections type is not explicitely set, Faker.js is used by default). Use `overridable: false` for values which should always return Faker.js entities.
+3. **Security Testing using existing tests codebase**: Use jfaker within your tests instead of hardcoded strings or Faker.js. In this case, the same codebase can be used for e2e as well as for injections testing by means of passing specific injections type from CI/CD or runtime (when injections type is not explicitly set, Faker.js is used by default). Use `persistent: true` for values which should always return Faker.js entities.
 
 4. **CI/CD Integration**: Use environment variables to run the same test suite with different data types:
    ```bash   
