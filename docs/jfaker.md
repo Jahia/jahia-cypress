@@ -6,7 +6,7 @@ The `jfaker` module is a flexible fake data generation utility for Cypress testi
 
 ## Key Features
 
-- **Faker.js Integration**: Full access to all Faker.js methods for generating realistic test data
+- **Faker.js Integration**: Full access to all `Faker.js` methods for generating realistic test data
 - **Security Injection Payloads**: Built-in support for common injection attack vectors (XSS, SQL, Bash, etc.)
 - **Global Type Management**: Set a global data type that automatically overrides faker calls with injection data
 - **Flexible Configuration**: Control generation behavior with options like length, provider, and overridability
@@ -27,7 +27,7 @@ import {jfaker} from '@jahia/cypress';
 
 #### Faker.js Methods
 
-All Faker.js methods are available through the dynamic proxy. See [Faker.js API documentation](https://fakerjs.dev/api/) for the complete list.
+All `Faker.js` methods are available through the dynamic proxy. See [Faker.js API documentation](https://fakerjs.dev/api/) for the complete list.
 
 **Basic Usage:**
 ```typescript
@@ -91,7 +91,7 @@ Sets the global data type for all subsequent jfaker calls. When set to an inject
 // Set to generate XSS payloads by default
 jfaker.setDataType('xss');
 
-// Now all calls return XSS data (unless overridable: false is used)
+// Now all calls return XSS data (unless safe: true is used)
 jfaker.person.firstName();        // Returns: XSS payload, not a real name
 jfaker.internet.email();          // Returns: XSS payload, not a real email
 
@@ -142,9 +142,9 @@ jfaker.escape('Tab\there');         // Returns: 'Tab\\there'
 
 ## Advanced Usage
 
-### Overridable Option
+### Safe Option
 
-When a global injection type is set, you can force specific calls to use faker data by setting `overridable: false`.
+When a global injection type is overridden, you can force specific calls to keep using `Faker.js` data by setting `safe: true`.
 
 ```typescript
 // Set global type to XSS
@@ -153,23 +153,26 @@ jfaker.setDataType('xss');
 // This returns XSS payload
 jfaker.person.firstName();
 
-// This forces faker data generation (overrides global setting)
-jfaker.person.firstName({overridable: false});  // Returns: "John"
+// This forces Faker.js data generation (overrides global setting)
+// Call down below always returns human-readable first name, e.g.: "John"
+jfaker.person.firstName({safe: true});
 
 // Combining with other options
+// Call down below always returns human-readable email,
+// e.g. "user@example.com" (faker data with provider option)
 jfaker.internet.email({
     provider: 'example.com',
-    overridable: false
-});  // Returns: "user@example.com" (faker data with provider option)
+    safe: true
+});
 ```
 
 ### Options Summary
 
-| Option | Type | Injection Methods | Faker Methods | Description |
-|--------|------|-------------------|---------------|-------------|
-| `length` | `number` | ✅ | ✅* | For injections: exact character length (-1 = all payloads). For faker: passed to the faker method. |
-| `overridable` | `boolean` | ❌ | ✅ | When `false`, forces faker data even when global type is set to injection. |
-| *any faker option* | various | ❌ | ✅ | Any option supported by the specific Faker.js method (e.g., `provider`, `min`, `max`). |
+| Option             | Type | Injection Methods | Faker Methods | Description                                                                                        |
+|--------------------|------|-------------------|---------------|----------------------------------------------------------------------------------------------------|
+| `length`           | `number` | ✅ | ✅* | For injections: exact character length (-1 = all payloads). For faker: passed to the faker method. |
+| `safe`             | `boolean` | ❌ | ✅ | When `true`, forces to use `Faker.js` data even when global type is overridden (set to injection). |
+| *any faker option* | various | ❌ | ✅ | Any option supported by the specific Faker.js method (e.g., `provider`, `min`, `max`).             |
 
 \* Many Faker.js methods accept a `length` option, such as `jfaker.string.alpha({length: 10})`.
 
@@ -246,8 +249,8 @@ describe('Security Test Suite - SQL Injection', () => {
     it('should use faker data when explicitly needed', () => {
         cy.visit('/search');
         
-        // Force faker data for this specific call
-        const normalSearch = jfaker.lorem.word({overridable: false});
+        // Force to use Faker.js data for this specific call
+        const normalSearch = jfaker.lorem.word({safe: true});
         
         cy.get('#search').type(normalSearch);
         cy.get('#search-btn').click();
@@ -341,7 +344,7 @@ The global data type is stored in Cypress environment variables (`JAHIA_CYPRESS_
    const xssPayload = jfaker.xss({length: 100});
    ```
 
-3. **Security Testing using existing tests codebase**: Use jfaker within your tests instead of hardcoded strings or Faker.js. In this case, the same codebase can be used for e2e as well as for injections testing by means of passing specific injections type from CI/CD or runtime (when injections type is not explicitely set, Faker.js is used by default). Use `overridable: false` for values which should always return Faker.js entities.
+3. **Security Testing using existing tests codebase**: Use `jfaker` within your tests instead of hardcoded strings or direct `Faker.js` calls. In this case, the same codebase can be used for e2e as well as for injections testing by means of passing specific injections type from CI/CD or runtime (when injections type is not explicitly set, `Faker.js` is used by default). Use `safe: true` for values which should always return `Faker.js` entities.
 
 4. **CI/CD Integration**: Use environment variables to run the same test suite with different data types:
    ```bash   
