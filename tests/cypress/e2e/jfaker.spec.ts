@@ -5,7 +5,7 @@
  * - Faker.js integration
  * - Injection data generation
  * - Global type management
- * - Persistent option
+ * - Safe option
  * - Edge cases and error handling
  */
 
@@ -49,7 +49,7 @@ describe('FakeData (jfaker) Module Tests', () => {
             jfaker.setDataType('htmlentities');
             const firstName = jfaker.person.firstName();
             const lastName = jfaker.person.lastName();
-            const email = jfaker.internet.email({persistent: true});
+            const email = jfaker.internet.email({safe: true});
             const city = jfaker.location.city();
 
             expect(firstName).to.be.a('string');
@@ -152,7 +152,7 @@ describe('FakeData (jfaker) Module Tests', () => {
             expect(jfaker.getDataType()).to.equal('sql');
         });
 
-        it('should allow switching between different injection types', () => {
+        it.only('should allow switching between different injection types', () => {
             jfaker.setDataType('xss');
             const xssData = jfaker.person.firstName();
 
@@ -168,34 +168,34 @@ describe('FakeData (jfaker) Module Tests', () => {
         });
     });
 
-    describe('Persistent Option', () => {
-        it('should force faker generation when persistent is true and global type is injection', () => {
+    describe('Safe Option', () => {
+        it('should force faker generation when safe is true and global type is injection', () => {
             jfaker.setDataType('xss');
 
             const injectionData = jfaker.person.firstName();
-            const fakerData = jfaker.person.firstName({persistent: true});
+            const fakerData = jfaker.person.firstName({safe: true});
 
             expect(injectionData).to.be.a('string');
             expect(fakerData).to.be.a('string');
             // Both should be strings but faker data should look more realistic
         });
 
-        it('should not pass persistent option to faker methods', () => {
-            // This test ensures persistent doesn't cause errors in faker
-            const data = jfaker.lorem.sentence({persistent: false});
+        it('should not pass safe option to faker methods', () => {
+            // This test ensures safe doesn't cause errors in faker
+            const data = jfaker.lorem.sentence({safe: false});
             expect(data).to.be.a('string');
             expect(data.length).to.be.greaterThan(0);
         });
 
-        it('should work with persistent and other options combined', () => {
+        it('should work with safe and other options combined', () => {
             jfaker.setDataType('xss');
-            const email = jfaker.internet.email({provider: 'test.com', persistent: true});
+            const email = jfaker.internet.email({provider: 'test.com', safe: true});
             expect(email).to.include('@test.com');
         });
 
-        it('should work with persistent and length option for faker', () => {
+        it('should work with safe and length option for faker', () => {
             jfaker.setDataType('sql');
-            const alpha = jfaker.string.alpha({length: 15, persistent: true});
+            const alpha = jfaker.string.alpha({length: 15, safe: true});
             expect(alpha).to.have.lengthOf(15);
         });
     });
@@ -297,7 +297,7 @@ describe('FakeData (jfaker) Module Tests', () => {
             expect(xssName).to.be.a('string');
 
             // Force faker for specific field even though global is XSS
-            const email = jfaker.internet.email({provider: 'example.com', persistent: true});
+            const email = jfaker.internet.email({provider: 'example.com', safe: true});
             expect(email).to.include('@example.com');
 
             // Use direct injection

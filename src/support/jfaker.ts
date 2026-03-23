@@ -165,10 +165,10 @@ class DeepApi {
 
 /**
  * Interface to Fake Data generator (using DeepApi proxy to handle dynamic method calls)
- * @param {Record<string, unknown>} options Options for data generation (length for injections, faker options, persistent flag), \
+ * @param {Record<string, unknown>} options Options for data generation (length for injections, faker options, safe flag), \
  *                                          e.g.: `{length: 100}` for injections to specify desired length of the generated string, \
  *                                          or `{provider: 'example.com'}` for faker to pass options to the faker method. \
- *                                          For faker data generation, an additional option `persistent` can be set to `true` \
+ *                                          For faker data generation, an additional option `safe` can be set to `true` \
  *                                          to force faker generation regardless of global type settings \
  *                                          (useful for specific cases where faker data is needed even when global type is set to injection).
  * @remarks
@@ -190,8 +190,8 @@ class DeepApi {
  * // Generate faker data with entity.
  * const name = jfaker.person.firstName();
  *
- * // Entity will always be generated using faker (persistent: true)
- * const name = jfaker.person.firstName({persistent: true});
+ * // Entity will always be generated using faker (safe: true)
+ * const name = jfaker.person.firstName({safe: true});
  *
  * // Generate faker data with options.
  * const email = jfaker.internet.email({provider: 'example.com'});
@@ -221,19 +221,19 @@ const jfaker = new DeepApi((path, args) => {
         case Object.prototype.hasOwnProperty.call(injectionData, path) ? path : 'default':
             // If the path corresponds to a valid injection type, generate data using that type,
             // or fallback to default case which treats the path as a faker entity.
-            // Keep (persistent === true) logic in "default" case for a readability.
+            // Keep (safe === true) logic in "default" case for a readability.
             return generateInjection(path, args[0]?.length);
         default: {
             // For faker data generation, check if the generation should be persistent based on global settings and options passed.
-            const persistent = args[0]?.persistent === true;
-            // Delete the 'persistent' property from options to avoid passing it to faker methods
-            delete args[0]?.persistent;
+            const safe = args[0]?.safe === true;
+            // Delete the 'safe' property from options to avoid passing it to faker methods
+            delete args[0]?.safe;
 
             // Here path represents a faker entity.
-            // Check desired data type and 'persistent' option to determine whether to generate faker data or injection data.
-            // If global type is set to injection (to override faker data) but persistent is explicitly set to true in options -
+            // Check desired data type and 'safe' option to determine whether to generate faker data or injection data.
+            // If global type is set to injection (to override faker data) but safe is explicitly set to true in options -
             // generate faker data for this specific call regardless of global settings.
-            if (getDataType() === 'faker' || persistent) {
+            if (getDataType() === 'faker' || safe) {
                 return generateFake(path, args[0]);
             } else {
                 return generateInjection(getDataType(), args[0]?.length);
