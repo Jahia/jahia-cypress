@@ -25,6 +25,24 @@ const serverDefaults = {
 };
 
 export const executeGroovy = function (scriptFile: string, replacements?: { [key: string]: string }, jahiaServer: JahiaServer = serverDefaults): void {
+    let result: any;
+    let duration: number;
+    const startTime = Date.now();
+
+    const logger = Cypress.log({
+        autoEnd: false,
+        name: 'executeGroovy',
+        displayName: 'groovy',
+        message: scriptFile,
+        consoleProps: () => ({
+            Script: scriptFile,
+            Replacements: replacements ?? {},
+            Server: jahiaServer.url,
+            Duration: duration === undefined ? 'pending' : `${duration}ms`,
+            Result: result
+        })
+    });
+
     cy.runProvisioningScript({
         script: {
             fileContent: '- executeScript: "' + scriptFile + '"',
@@ -36,6 +54,12 @@ export const executeGroovy = function (scriptFile: string, replacements?: { [key
             type: 'text/plain',
             encoding: 'utf-8'
         }],
-        jahiaServer
-    }).then(r => r[0]);
+        jahiaServer,
+        options: {log: false}
+    }).then(r => {
+        result = (r as any)?.[0];
+        duration = Date.now() - startTime;
+        logger?.end();
+        return result;
+    });
 };

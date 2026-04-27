@@ -85,6 +85,42 @@ function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
     return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
 }
 
+function getScriptSummary(script: FormFile | StringDictionary[]): string {
+    if (isFormFile(script)) {
+        if (script.fileName) {
+            return script.fileName;
+        }
+
+        if (script.fileContent) {
+            // Parse first operation name from YAML list: "- operationName: ..."
+            const yamlMatch = script.fileContent.match(/^\s*-\s+(\w+)\s*:/m);
+            if (yamlMatch) {
+                return yamlMatch[1];
+            }
+
+            // Parse first operation name from JSON array: [{"operationName": ...}]
+            try {
+                const parsed = JSON.parse(script.fileContent);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const ops = parsed.map((op: Record<string, string>) => Object.keys(op)[0] ?? 'unknown');
+                    return ops.length === 1 ? ops[0] : `[${ops.join(', ')}]`;
+                }
+            } catch {
+                // Not valid JSON, fall through
+            }
+        }
+
+        return 'inline script';
+    }
+
+    if (script.length === 0) {
+        return 'empty script';
+    }
+
+    const ops = script.map(op => Object.keys(op)[0] ?? 'unknown');
+    return ops.length === 1 ? ops[0] : `[${ops.join(', ')}]`;
+}
+
 export const runProvisioningScript = ({
     script,
     files,
@@ -120,13 +156,19 @@ export const runProvisioningScript = ({
             autoEnd: false,
             name: 'runProvisioningScript',
             displayName: 'provScript',
-            message: `Run ${isFormFile(script) && script.fileName ? script.fileName : 'inline script'} towards server: ${jahiaServer.url}`,
+            message: `${getScriptSummary(script)} @ ${jahiaServer.url}`,
             consoleProps: () => {
                 return {
                     Script: script,
-                    Files: files,
-                    Response: response,
-                    Yielded: result
+                    Operations: isFormFile(script) ?
+                        undefined :
+                        script.map(op => `${Object.keys(op)[0]}: ${Object.values(op)[0]}`),
+                    Files: files?.map(f => f.fileName ?? 'inline file') ?? [],
+                    Server: jahiaServer.url,
+                    'HTTP Status': response ? `${response.status} ${response.statusText}` : 'pending',
+                    Duration: response ? `${response.duration}ms` : 'pending',
+                    Result: result,
+                    Response: response
                 };
             }
         });

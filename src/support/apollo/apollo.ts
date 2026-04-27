@@ -4,7 +4,9 @@
 /// <reference types="cypress" />
 
 import {ApolloClient, ApolloQueryResult, FetchResult, MutationOptions, QueryOptions} from '@apollo/client/core';
+import {DocumentNode} from '@apollo/client/core';
 import gql from 'graphql-tag';
+import {FieldNode, getOperationAST, print} from 'graphql';
 
 declare global {
     namespace Cypress {
@@ -31,10 +33,36 @@ function isMutationFile(options: ApolloOptions): options is FileMutationOptions 
     return (<FileMutationOptions>options).mutationFile !== undefined;
 }
 
+function getOperationLabel(doc: DocumentNode, opType: 'Query' | 'Mutation'): string {
+    const opDef = getOperationAST(doc);
+    if (opDef?.name?.value) {
+        return `[${opType}] ${opDef.name.value}`;
+    }
+
+    // Anonymous operation: traverse up to 2 selection levels for a meaningful label
+    const firstSel = opDef?.selectionSet?.selections?.[0];
+    if (firstSel?.kind === 'Field') {
+        const firstName = (firstSel as FieldNode).name.value;
+        const secondSel = (firstSel as FieldNode).selectionSet?.selections?.[0];
+        if (secondSel?.kind === 'Field') {
+            return `[${opType}] ${firstName} › ${(secondSel as FieldNode).name.value}`;
+        }
+
+        return `[${opType}] ${firstName}`;
+    }
+
+    return `[${opType}]`;
+}
+
+function getQueryBody(doc: DocumentNode): string {
+    return doc?.loc?.source?.body ?? print(doc);
+}
+
 // eslint-disable-next-line default-param-last, @typescript-eslint/no-shadow
 export const apollo = function (apollo: ApolloClient<any> = this.currentApolloClient, options: ApolloOptions): void {
     let result : ApolloQueryResult<any> | FetchResult;
     let logger : Cypress.Log;
+    let duration: number;
     const optionsWithDefaultCache: ApolloOptions = {fetchPolicy: 'no-cache', ...options};
 
     if (!apollo) {
@@ -51,31 +79,53 @@ export const apollo = function (apollo: ApolloClient<any> = this.currentApolloCl
         });
     } else {
         const {log = true, ...apolloOptions} = optionsWithDefaultCache;
+
+        const doc = isQuery(apolloOptions) ?
+            (apolloOptions as QueryOptions).query :
+            (apolloOptions as MutationOptions).mutation;
+        const opType = isQuery(apolloOptions) ? 'Query' : 'Mutation';
+        const operationLabel = getOperationLabel(doc, opType);
+        const queryBody = getQueryBody(doc);
+        const variables = (apolloOptions as any).variables;
+
         if (log) {
             logger = Cypress.log({
                 autoEnd: false,
                 name: 'apollo',
                 displayName: 'apollo',
-                message: isQuery(apolloOptions) ? `Execute Graphql Query: ${apolloOptions.query.loc.source.body}` : `Execute Graphql Mutation: ${apolloOptions.mutation.loc.source.body}`,
+                message: operationLabel,
                 consoleProps: () => {
+                    const errors = (result as any)?.errors ?? (result as any)?.graphQLErrors ?? null;
+                    const isCaughtError = result instanceof Error;
+                    const hasErrors = (errors?.length > 0) || isCaughtError;
                     return {
-                        Options: apolloOptions,
+                        Operation: operationLabel,
+                        Variables: variables ?? {},
+                        [`${opType} Body`]: queryBody,
+                        Duration: duration === undefined ? 'pending' : `${duration}ms`,
+                        Status: hasErrors ?
+                            `error${isCaughtError ? `: ${(result as unknown as Error).message}` : ''}` :
+                            'success',
+                        Data: (result as any)?.data ?? null,
+                        Errors: errors,
                         Yielded: result
                     };
                 }
             });
         }
 
-        cy.wrap({}, {log: true})
+        const startTime = Date.now();
+        cy.wrap({}, {log: false})
             .then(() => (isQuery(optionsWithDefaultCache) ? apollo.query(optionsWithDefaultCache).catch(error => {
-                cy.log(`Caught Graphql Query Error: ${JSON.stringify(error)}`);
+                cy.log(`Caught GraphQL query error: ${(error as any)?.message ?? JSON.stringify(error)}`);
                 return error;
             }) : apollo.mutate(optionsWithDefaultCache).catch(error => {
-                cy.log(`Caught Graphql Mutation Error: ${JSON.stringify(error)}`);
+                cy.log(`Caught GraphQL mutation error: ${(error as any)?.message ?? JSON.stringify(error)}`);
                 return error;
             }))
                 .then(r => {
                     result = r;
+                    duration = Date.now() - startTime;
                     logger?.end();
                     return r;
                 })
