@@ -17,8 +17,8 @@ declare global {
     }
 }
 
-export type FileQueryOptions = Partial<QueryOptions> & { queryFile?: string }
-export type FileMutationOptions = Partial<MutationOptions> & { mutationFile?: string }
+export type FileQueryOptions = Partial<QueryOptions> & { queryFile?: string; sourcePackage?: string }
+export type FileMutationOptions = Partial<MutationOptions> & { mutationFile?: string; sourcePackage?: string }
 export type ApolloOptions = (QueryOptions | MutationOptions | FileQueryOptions | FileMutationOptions) & Partial<Cypress.Loggable>;
 
 function isQuery(options: ApolloOptions): options is QueryOptions {
@@ -68,14 +68,16 @@ export const apollo = function (apollo: ApolloClient<any> = this.currentApolloCl
     if (!apollo) {
         cy.apolloClient().apollo(optionsWithDefaultCache);
     } else if (isQueryFile(optionsWithDefaultCache)) {
-        const {queryFile, ...apolloOptions} = optionsWithDefaultCache;
+        const {queryFile, sourcePackage, ...apolloOptions} = optionsWithDefaultCache as FileQueryOptions & Partial<Cypress.Loggable>;
         cy.fixture(queryFile).then(content => {
-            cy.apollo({query: gql(content), ...apolloOptions, _sourceFile: queryFile} as ApolloOptions);
+            const fileLabel = sourcePackage ? `${queryFile} @ ${sourcePackage}` : queryFile;
+            cy.apollo({query: gql(content), ...apolloOptions, _sourceFile: fileLabel} as ApolloOptions);
         });
     } else if (isMutationFile(optionsWithDefaultCache)) {
-        const {mutationFile, ...apolloOptions} = optionsWithDefaultCache;
+        const {mutationFile, sourcePackage, ...apolloOptions} = optionsWithDefaultCache as FileMutationOptions & Partial<Cypress.Loggable>;
         cy.fixture(mutationFile).then(content => {
-            cy.apollo({mutation: gql(content), ...apolloOptions, _sourceFile: mutationFile} as ApolloOptions);
+            const fileLabel = sourcePackage ? `${mutationFile} @ ${sourcePackage}` : mutationFile;
+            cy.apollo({mutation: gql(content), ...apolloOptions, _sourceFile: fileLabel} as ApolloOptions);
         });
     } else {
         const {log = true, ...apolloOptions} = optionsWithDefaultCache;

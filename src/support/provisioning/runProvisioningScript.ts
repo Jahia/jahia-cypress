@@ -82,7 +82,7 @@ const serverDefaults: JahiaServer = {
 };
 
 function isFormFile(script: FormFile | StringDictionary[]): script is FormFile {
-    return Boolean((script as FormFile).fileContent || (script as FormFile).fileName);
+    return Boolean((script as FormFile)?.fileContent || (script as FormFile)?.fileName);
 }
 
 function getScriptSummary(script: FormFile | StringDictionary[]): string {
@@ -92,10 +92,10 @@ function getScriptSummary(script: FormFile | StringDictionary[]): string {
         }
 
         if (script.fileContent) {
-            // Parse first operation name from YAML list: "- operationName: ..."
-            const yamlMatch = script.fileContent.match(/^\s*-\s+(\w+)\s*:/m);
+            // Parse first operation and its value from YAML list: "- operationName: value"
+            const yamlMatch = script.fileContent.match(/^\s*-\s+(\w+)\s*:\s*"?([^"\n]+)"?/m);
             if (yamlMatch) {
-                return yamlMatch[1];
+                return `${yamlMatch[1]}: ${yamlMatch[2].trim()}`;
             }
 
             // Parse first operation name from JSON array: [{"operationName": ...}]
@@ -113,7 +113,7 @@ function getScriptSummary(script: FormFile | StringDictionary[]): string {
         return 'inline script';
     }
 
-    if (script.length === 0) {
+    if (!script || script.length === 0) {
         return 'empty script';
     }
 
@@ -121,13 +121,35 @@ function getScriptSummary(script: FormFile | StringDictionary[]): string {
     return ops.length === 1 ? ops[0] : `[${ops.join(', ')}]`;
 }
 
-export const runProvisioningScript = ({
-    script,
-    files,
-    jahiaServer = serverDefaults,
-    options = {log: true},
-    requestOptions = {}
-}: RunProvisioningScriptParams): void => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const runProvisioningScript = (paramsOrScript: RunProvisioningScriptParams | FormFile | StringDictionary[], ...rest: any[]): void => {
+    // Backward-compatible: support old positional signature
+    // runProvisioningScript(script, files, jahiaServer, options, timeout)
+    let script: FormFile | StringDictionary[];
+    let files: FormFile[];
+    let jahiaServer: JahiaServer;
+    let options: Cypress.Loggable;
+    let requestOptions: Partial<Cypress.RequestOptions>;
+
+    const isLegacyCall = Array.isArray(paramsOrScript) ||
+        (paramsOrScript as FormFile).fileContent !== undefined ||
+        (paramsOrScript as FormFile).fileName !== undefined;
+
+    if (isLegacyCall) {
+        script = paramsOrScript as FormFile | StringDictionary[];
+        files = rest[0];
+        jahiaServer = rest[1] ?? serverDefaults;
+        options = rest[2] ?? {log: true};
+        requestOptions = {};
+    } else {
+        const params = paramsOrScript as RunProvisioningScriptParams;
+        script = params.script;
+        files = params.files;
+        jahiaServer = params.jahiaServer ?? serverDefaults;
+        options = params.options ?? {log: true};
+        requestOptions = params.requestOptions ?? {};
+    }
+
     const formData = new FormData();
 
     if (isFormFile(script)) {
@@ -151,19 +173,25 @@ export const runProvisioningScript = ({
     let result: any;
     let logger: Cypress.Log;
 
+    const scriptSummary = getScriptSummary(script);
+    const replacementsFromFiles = files
+        ?.filter(f => f.replacements && Object.keys(f.replacements).length > 0)
+        .map(f => `${f.fileName}: ${JSON.stringify(f.replacements)}`);
+
     if (options.log) {
         logger = Cypress.log({
             autoEnd: false,
             name: 'runProvisioningScript',
             displayName: 'provScript',
-            message: `${getScriptSummary(script)} @ ${jahiaServer.url}`,
+            message: `${scriptSummary} @ ${jahiaServer.url}`,
             consoleProps: () => {
                 return {
                     Script: script,
                     Operations: isFormFile(script) ?
                         undefined :
-                        script.map(op => `${Object.keys(op)[0]}: ${Object.values(op)[0]}`),
+                        script?.map(op => `${Object.keys(op)[0]}: ${Object.values(op)[0]}`),
                     Files: files?.map(f => f.fileName ?? 'inline file') ?? [],
+                    Replacements: replacementsFromFiles?.length > 0 ? replacementsFromFiles : undefined,
                     Server: jahiaServer.url,
                     'HTTP Status': response ? `${response.status} ${response.statusText}` : 'pending',
                     Duration: response ? `${response.duration}ms` : 'pending',
@@ -203,6 +231,13 @@ export const runProvisioningScript = ({
         }
 
         logger?.end();
+        if (logger) {
+            const hasFailed = res.status !== 200 ||
+                (Array.isArray(result) && result.some((r: any) => typeof r === 'string' && r.includes('.failed')));
+            const prefix = hasFailed ? '❌ ' : '✅ ';
+            logger.set('message', `${prefix}${scriptSummary} @ ${jahiaServer.url}`);
+        }
+
         return result;
     });
 };
