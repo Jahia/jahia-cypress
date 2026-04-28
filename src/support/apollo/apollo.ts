@@ -87,13 +87,17 @@ export const apollo = function (apollo: ApolloClient<any> = this.currentApolloCl
         const operationLabel = getOperationLabel(doc, opType);
         const queryBody = getQueryBody(doc);
         const variables = (apolloOptions as any).variables;
+        const sourceLabel = (optionsWithDefaultCache as any)._sourceFile ? ` (${(optionsWithDefaultCache as any)._sourceFile})` : '';
+        const variablesLabel = variables && Object.keys(variables).length > 0 ?
+            ` — ${JSON.stringify(variables)}` :
+            '';
 
         if (log) {
             logger = Cypress.log({
                 autoEnd: false,
                 name: 'apollo',
                 displayName: 'apollo',
-                message: operationLabel,
+                message: `${operationLabel}${sourceLabel}${variablesLabel}`,
                 consoleProps: () => {
                     const errors = (result as any)?.errors ?? (result as any)?.graphQLErrors ?? null;
                     const isCaughtError = result instanceof Error;
@@ -126,6 +130,13 @@ export const apollo = function (apollo: ApolloClient<any> = this.currentApolloCl
                 .then(r => {
                     result = r;
                     duration = Date.now() - startTime;
+                    if (logger) {
+                        const errors = (r as any)?.errors ?? (r as any)?.graphQLErrors;
+                        const hasErrors = (r instanceof Error) || (errors?.length > 0);
+                        const prefix = hasErrors ? '❌ ' : '✅ ';
+                        logger.set('message', `${prefix}${operationLabel}${sourceLabel}${variablesLabel}`);
+                    }
+
                     logger?.end();
                     return r;
                 })
