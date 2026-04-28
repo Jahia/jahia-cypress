@@ -70,12 +70,12 @@ export const apollo = function (apollo: ApolloClient<any> = this.currentApolloCl
     } else if (isQueryFile(optionsWithDefaultCache)) {
         const {queryFile, ...apolloOptions} = optionsWithDefaultCache;
         cy.fixture(queryFile).then(content => {
-            cy.apollo({query: gql(content), ...apolloOptions});
+            cy.apollo({query: gql(content), ...apolloOptions, _sourceFile: queryFile} as ApolloOptions);
         });
     } else if (isMutationFile(optionsWithDefaultCache)) {
         const {mutationFile, ...apolloOptions} = optionsWithDefaultCache;
         cy.fixture(mutationFile).then(content => {
-            cy.apollo({mutation: gql(content), ...apolloOptions});
+            cy.apollo({mutation: gql(content), ...apolloOptions, _sourceFile: mutationFile} as ApolloOptions);
         });
     } else {
         const {log = true, ...apolloOptions} = optionsWithDefaultCache;
