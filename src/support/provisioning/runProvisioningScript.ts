@@ -233,7 +233,7 @@ export const runProvisioningScript = (paramsOrScript: RunProvisioningScriptParam
         logger?.end();
         if (logger) {
             const hasFailed = res.status !== 200 ||
-                (Array.isArray(result) && result.some((r: any) => typeof r === 'string' && r.includes('.failed')));
+                (Array.isArray(result) && result.some((r: any) => typeof r === 'string' && r.includes('.failed'))); // eslint-disable-line @typescript-eslint/no-explicit-any
             const prefix = hasFailed ? '❌ ' : '✅ ';
             logger.set('message', `${prefix}${scriptSummary} @ ${jahiaServer.url}`);
         }
