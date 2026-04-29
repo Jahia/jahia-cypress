@@ -51,4 +51,10 @@ cy.executeGroovy("script.groovy").then(result => { console.log(result) })
 
 ## Command Log
 
-No log
+When clicking on `groovy` within the command log, the console outputs the following:
+
+- **Script**: The name of the Groovy script file executed.
+- **Replacements**: The replacement map applied to the script, if any.
+- **Server**: The Jahia server URL targeted.
+- **Duration**: Elapsed time from invocation to completion.
+- **Result**: The first operation result returned by the provisioning API.
