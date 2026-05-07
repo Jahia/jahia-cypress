@@ -308,20 +308,6 @@ describe('User Creation', () => {
 });
 ```
 
-## Important Notes
-
-### Cypress `.type()` Command
-
-When using injection payloads with Cypress's `.type()` command, **always** use `parseSpecialCharSequences: false` to prevent Cypress from interpreting special characters as commands:
-
-```typescript
-// ❌ WRONG - Cypress will interpret {, }, [, ] as special commands
-cy.get('#input').type(jfaker.xss());
-
-// ✅ CORRECT - Cypress treats the string literally
-cy.get('#input').type(jfaker.xss(), {parseSpecialCharSequences: false});
-```
-
 ### Data Persistence
 
 The global data type is stored in Cypress environment variables (`JAHIA_CYPRESS_INJECTION_TYPE`), which means:
@@ -379,6 +365,20 @@ Injection payloads are imported from TypeScript files in the `src/injections/` d
 - **Undefined length**: Picks 2-5 random items from the payload array and joins them
 - **Positive length**: Concatenates random items until reaching the specified character count, then trims to exact length
 - **Length = -1**: Returns all available payloads for that type joined together
+
+### Cypress `.type()` Command
+
+When using `jfaker`, Cypress `type()` command is being automatically overridden in the following way:
+- when using injection payloads, `parseSpecialCharSequences: false` is used to prevent Cypress from interpreting injection's special characters as commands (e.g., `{`, `}`, `[`, `]`), which would break the payload and not test the intended injection properly.
+- for `faker` data type or when using `safe: true`, the default Cypress behavior is preserved, allowing special character sequences to be interpreted as commands if present in the data, used with `type()` command.
+
+```typescript
+// ❌ WRONG - Cypress will interpret {, }, [, ] as special commands
+cy.get('#input').type(jfaker.xss());
+
+// ✅ CORRECT - Cypress treats the string literally
+cy.get('#input').type(jfaker.xss(), {parseSpecialCharSequences: false});
+```
 
 ## See Also
 

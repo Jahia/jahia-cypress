@@ -210,6 +210,17 @@ class DeepApi {
  * ```
  */
 const jfaker = new DeepApi((path, args) => {
+    // Override Cypress `type()` command to properly interpret injection's special characters as commands
+    // (e.g., {, }, etc.), which would break the payload and not test the intended injection properly.
+    Cypress.Commands.overwrite('type', (originalFn, element, text, options = {}) => {
+        // Do not override if data type is `faker` or if `safe: true`
+        const parseSpecialCharSequences = jfaker.getDataType() === 'faker' || args[0]?.safe === true;
+        // Merge with defaults
+        const newOptions = {parseSpecialCharSequences: parseSpecialCharSequences, ...options};
+        // @ts-expect-error - Avoiding linter errors while overriding cypress `type()` command
+        return originalFn(element, text, newOptions);
+    });
+
     // Handle non-faker methods first (escape, setFakeDataType, getFakeDataType)
     switch (path) {
         case 'escape':
