@@ -5,15 +5,6 @@ import {logout} from './logout';
 import {fixture} from './fixture';
 import {repeatUntil} from './repeatUntil';
 import {step} from './testStep';
-import {
-    clearCookiesByType,
-    logAllCookies,
-    logCookie,
-    logLocalStorage,
-    logSessionStorage,
-    resetBrowserState,
-    simulateBrowserClose
-} from './browserStorage';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -33,12 +24,4 @@ export const registerSupport = (): void => {
     Cypress.Commands.overwrite('fixture', fixture);
 
     Cypress.Commands.add('step', step);
-
-    Cypress.Commands.add('logAllCookies', logAllCookies);
-    Cypress.Commands.add('logCookie', logCookie);
-    Cypress.Commands.add('clearCookiesByType', clearCookiesByType);
-    Cypress.Commands.add('simulateBrowserClose', simulateBrowserClose);
-    Cypress.Commands.add('resetBrowserState', resetBrowserState);
-    Cypress.Commands.add('logSessionStorage', logSessionStorage);
-    Cypress.Commands.add('logLocalStorage', logLocalStorage);
 };
