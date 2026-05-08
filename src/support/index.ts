@@ -6,4 +6,4 @@ export * from './repeatUntil';
 export * from './testStep';
 export * from './jsErrorsLogger';
 export * from './jfaker';
-export * from './itSince';
+export * from './modSince';

@@ -3,7 +3,7 @@ import {compare} from 'compare-versions';
 import {getJahiaVersion} from '../utils/JahiaPlatformHelper';
 
 /** Cypress environment variable key used to store the current Jahia version. */
-export const JAHIA_VERSION_ENV_VAR = 'JAHIA_VERSION';
+export const JAHIA_VERSION_ENV_VAR = 'CYPRESS_JAHIA_VERSION';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -16,6 +16,14 @@ declare global {
         interface ExclusiveTestFunction {
             since(requiredVersion: string, title: string, fn?: Func): Test;
             since(requiredVersion: string, title: string, config: Cypress.TestConfigOverrides, fn?: Func): Test;
+        }
+
+        interface SuiteFunction {
+            since(requiredVersion: string, title: string, fn: (this: Suite) => void): Suite;
+        }
+
+        interface ExclusiveSuiteFunction {
+            since(requiredVersion: string, title: string, fn: (this: Suite) => void): Suite;
         }
     }
 }
@@ -37,6 +45,19 @@ type ItWithSince = Mocha.TestFunction & {
     since?: SinceFunction;
     only: Mocha.ExclusiveTestFunction & {
         since?: SinceFunction;
+    };
+};
+
+/** Overloaded call signature for describe.since helper. */
+type DescribeSinceFunction = {
+    (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void): Mocha.Suite;
+};
+
+/** Augmented Mocha describe function with optional since helper. */
+type DescribeWithSince = Mocha.SuiteFunction & {
+    since?: DescribeSinceFunction;
+    only: Mocha.ExclusiveSuiteFunction & {
+        since?: DescribeSinceFunction;
     };
 };
 
@@ -82,6 +103,20 @@ const getSkipMessage = (title: string, requiredVersion: string, currentVersion: 
 };
 
 /**
+ * Builds a human-readable message explaining why a suite was skipped.
+ * @param title - Original suite title.
+ * @param requiredVersion - Minimum version the suite needs.
+ * @param currentVersion - The running Jahia version (from `Cypress.env`).
+ */
+const getDescribeSkipMessage = (title: string, requiredVersion: string, currentVersion: string | number | undefined): string => {
+    if (!isValidString(currentVersion)) {
+        return `[describe.since] Skipping "${title}" because ${JAHIA_VERSION_ENV_VAR} is empty or undefined. Required version: ${requiredVersion}.`;
+    }
+
+    return `[describe.since] Skipping "${title}" because ${JAHIA_VERSION_ENV_VAR}="${String(currentVersion)}" does not satisfy required version ${requiredVersion}.`;
+};
+
+/**
  * Fetches the Jahia version from the GraphQL API, strips the `-SNAPSHOT` suffix when
  * present, and caches the result in `Cypress.env(JAHIA_VERSION_ENV_VAR)`.
  *
@@ -106,9 +141,14 @@ export const initializeVersionSupport = (): Cypress.Chainable => {
  */
 export const registerVersionSupport = (): void => {
     const mochaIt = globalThis.it as ItWithSince | undefined;
+    const mochaDescribe = globalThis.describe as DescribeWithSince | undefined;
 
     if (!mochaIt) {
         throw new Error('Unable to register version support because Mocha `it` is not available.');
+    }
+
+    if (!mochaDescribe) {
+        throw new Error('Unable to register version support because Mocha `describe` is not available.');
     }
 
     const attachSince = (target: (Mocha.TestFunction | Mocha.ExclusiveTestFunction) & {since?: SinceFunction}): void => {
@@ -138,8 +178,31 @@ export const registerVersionSupport = (): void => {
         }) as SinceFunction;
     };
 
+    const attachDescribeSince = (target: (Mocha.SuiteFunction | Mocha.ExclusiveSuiteFunction) & {since?: DescribeSinceFunction}): void => {
+        if (typeof target.since === 'function') {
+            return;
+        }
+
+        target.since = ((requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void): Mocha.Suite => {
+            return target(title, function (this: Mocha.Suite) {
+                // Suite-level runtime check: executes after global before() version fetch.
+                before(function (this: Mocha.Context) {
+                    const currentVersion = Cypress.env(JAHIA_VERSION_ENV_VAR);
+                    if (!isVersionSupported(currentVersion, requiredVersion)) {
+                        console.warn(getDescribeSkipMessage(title, requiredVersion, currentVersion));
+                        this.skip();
+                    }
+                });
+
+                return fn.call(this);
+            });
+        }) as DescribeSinceFunction;
+    };
+
     attachSince(mochaIt);
     attachSince(mochaIt.only);
+    attachDescribeSince(mochaDescribe);
+    attachDescribeSince(mochaDescribe.only);
 };
 
 /**
@@ -164,6 +227,6 @@ function enable(): void {
 /**
  * Public API for Jahia version-gated testing.
  */
-export const itSince = {
+export const modSince = {
     enable
 };

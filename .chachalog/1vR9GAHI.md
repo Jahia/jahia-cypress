@@ -2,4 +2,4 @@
 "@jahia/cypress": minor
 ---
 
-Add `it.since()` modifier to gate a test by Jahia version (#216)
+Add `it.since()` and `describe.since()` modifiers to gate tests by Jahia version (#216)
