@@ -22,6 +22,8 @@
 
 [`.repeatUntil()`](./src/support/repeatUntil.md)
 
+[`it.since()`](#version-gated-tests)
+
 ## Page / component objects
 
 In Page Object Model, a set of object is provided to handle known and reused web elements. 
@@ -100,6 +102,33 @@ module.exports = (on, config) => {
     return config;
 };
 ```
+
+## Version-gated tests
+
+When `itSince.enable()` is loaded, you can gate a test by Jahia version with `it.since(requiredVersion, title, testFn)`.
+The test runs only when current Jahia version is greater than or equal to `requiredVersion`; otherwise it is marked as skipped.
+Since Jahia version fetching requires additional GraphQL call, this functionality is not provided out of the box to avoid addition calls when `it.since()` is not needed.
+
+To enable it, you can import `itSince` from `@jahia/cypress` and call `itSince.enable()` in your test setup code (e.g. in `cypress/support/e2e.js`):
+
+```typescript
+import { itSince } from '@jahia/cypress';
+itSince.enable();
+```
+
+Then you can use `it.since()` in your tests to conditionally run them based on Jahia version:
+```typescript
+it.since('8.2.0', 'shows the new dashboard widget', () => {
+    // test body
+});
+
+// `only` modifier is also supported
+it.only.since('8.2.0', 'shows the new dashboard widget', () => {
+    // test body
+});
+```
+
+Jahia version is fetched 
 
 ## Internal Auxiliary Libraries
 
