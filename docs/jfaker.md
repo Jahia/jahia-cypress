@@ -161,8 +161,8 @@ jfaker.person.firstName({safe: true});
 // Call down below always returns human-readable email,
 // e.g. "user@example.com" (faker data with provider option)
 jfaker.internet.email({
-    provider: 'example.com',
-    safe: true
+   provider: 'example.com',
+   safe: true
 });
 ```
 
@@ -182,19 +182,19 @@ jfaker.internet.email({
 
 ```typescript
 describe('User Registration Form', () => {
-    it('should register a new user', () => {
-        cy.visit('/register');
-        
-        cy.get('#firstName').type(jfaker.person.firstName());
-        cy.get('#lastName').type(jfaker.person.lastName());
-        cy.get('#email').type(jfaker.internet.email({provider: 'testdomain.com'}));
-        cy.get('#phone').type(jfaker.phone.number());
-        cy.get('#company').type(jfaker.company.name());
-        cy.get('#city').type(jfaker.location.city());
-        
-        cy.get('#submit').click();
-        cy.contains('Registration successful').should('be.visible');
-    });
+   it('should register a new user', () => {
+      cy.visit('/register');
+
+      cy.get('#firstName').type(jfaker.person.firstName());
+      cy.get('#lastName').type(jfaker.person.lastName());
+      cy.get('#email').type(jfaker.internet.email({provider: 'testdomain.com'}));
+      cy.get('#phone').type(jfaker.phone.number());
+      cy.get('#company').type(jfaker.company.name());
+      cy.get('#city').type(jfaker.location.city());
+
+      cy.get('#submit').click();
+      cy.contains('Registration successful').should('be.visible');
+   });
 });
 ```
 
@@ -202,22 +202,22 @@ describe('User Registration Form', () => {
 
 ```typescript
 describe('Input Validation - XSS Protection', () => {
-    it('should sanitize XSS payloads in username field', () => {
-        cy.visit('/profile');
-        
-        const xssPayload = jfaker.xss({length: 50});
-        
-        cy.get('#username').type(xssPayload, {
-            parseSpecialCharSequences: false  // Important!
-        });
-        
-        cy.get('#save').click();
-        
-        // Verify the payload is escaped/sanitized
-        cy.get('#username-display').invoke('text').then(text => {
-            expect(text).not.to.include('<script>');
-        });
-    });
+   it('should sanitize XSS payloads in username field', () => {
+      cy.visit('/profile');
+
+      const xssPayload = jfaker.xss({length: 50});
+
+      cy.get('#username').type(xssPayload, {
+         parseSpecialCharSequences: false  // Important!
+      });
+
+      cy.get('#save').click();
+
+      // Verify the payload is escaped/sanitized
+      cy.get('#username-display').invoke('text').then(text => {
+         expect(text).not.to.include('<script>');
+      });
+   });
 });
 ```
 
@@ -225,37 +225,37 @@ describe('Input Validation - XSS Protection', () => {
 
 ```typescript
 describe('Security Test Suite - SQL Injection', () => {
-    before(() => {
-        // Set global type to SQL injection for the entire suite
-        jfaker.setDataType('sql');
-    });
-    
-    after(() => {
-        // Reset to faker after tests
-        jfaker.setDataType('faker');
-    });
-    
-    it('should protect search from SQL injection', () => {
-        cy.visit('/search');
-        
-        // This returns SQL injection payload due to global setting
-        const searchTerm = jfaker.lorem.word();
-        
-        cy.get('#search').type(searchTerm, {parseSpecialCharSequences: false});
-        cy.get('#search-btn').click();
-        cy.contains('No results found').should('be.visible');
-    });
-    
-    it('should use faker data when explicitly needed', () => {
-        cy.visit('/search');
-        
-        // Force to use Faker.js data for this specific call
-        const normalSearch = jfaker.lorem.word({safe: true});
-        
-        cy.get('#search').type(normalSearch);
-        cy.get('#search-btn').click();
-        // Test with normal search term...
-    });
+   before(() => {
+      // Set global type to SQL injection for the entire suite
+      jfaker.setDataType('sql');
+   });
+
+   after(() => {
+      // Reset to faker after tests
+      jfaker.setDataType('faker');
+   });
+
+   it('should protect search from SQL injection', () => {
+      cy.visit('/search');
+
+      // This returns SQL injection payload due to global setting
+      const searchTerm = jfaker.lorem.word();
+
+      cy.get('#search').type(searchTerm, {parseSpecialCharSequences: false});
+      cy.get('#search-btn').click();
+      cy.contains('No results found').should('be.visible');
+   });
+
+   it('should use faker data when explicitly needed', () => {
+      cy.visit('/search');
+
+      // Force to use Faker.js data for this specific call
+      const normalSearch = jfaker.lorem.word({safe: true});
+
+      cy.get('#search').type(normalSearch);
+      cy.get('#search-btn').click();
+      // Test with normal search term...
+   });
 });
 ```
 
@@ -263,24 +263,24 @@ describe('Security Test Suite - SQL Injection', () => {
 
 ```typescript
 describe('Input Field Robustness', () => {
-    const injectionTypes = ['xss', 'sql', 'bash', 'chars', 'htmlentities', 'numbers'];
-    
-    injectionTypes.forEach(type => {
-        it(`should handle ${type} injection payloads`, () => {
-            cy.visit('/form');
-            
-            const payload = jfaker[type]();
-            
-            cy.get('#input-field').type(payload, {
-                parseSpecialCharSequences: false
-            });
-            
-            cy.get('#submit').click();
-            
-            // Verify no errors or security issues
-            cy.get('.error-message').should('not.exist');
-        });
-    });
+   const injectionTypes = ['xss', 'sql', 'bash', 'chars', 'htmlentities', 'numbers'];
+
+   injectionTypes.forEach(type => {
+      it(`should handle ${type} injection payloads`, () => {
+         cy.visit('/form');
+
+         const payload = jfaker[type]();
+
+         cy.get('#input-field').type(payload, {
+            parseSpecialCharSequences: false
+         });
+
+         cy.get('#submit').click();
+
+         // Verify no errors or security issues
+         cy.get('.error-message').should('not.exist');
+      });
+   });
 });
 ```
 
@@ -288,38 +288,24 @@ describe('Input Field Robustness', () => {
 
 ```typescript
 describe('User Creation', () => {
-    it('should create multiple users with unique data', () => {
-        for (let i = 0; i < 5; i++) {
-            const user = {
-                firstName: jfaker.person.firstName(),
-                lastName: jfaker.person.lastName(),
-                email: jfaker.internet.email(),
-                username: jfaker.internet.userName(),
-                password: jfaker.internet.password({length: 12}),
-                bio: jfaker.lorem.paragraph(),
-                age: jfaker.number.int({min: 18, max: 80})
-            };
-            
-            cy.request('POST', '/api/users', user).then(response => {
-                expect(response.status).to.eq(201);
-            });
-        }
-    });
+   it('should create multiple users with unique data', () => {
+      for (let i = 0; i < 5; i++) {
+         const user = {
+            firstName: jfaker.person.firstName(),
+            lastName: jfaker.person.lastName(),
+            email: jfaker.internet.email(),
+            username: jfaker.internet.userName(),
+            password: jfaker.internet.password({length: 12}),
+            bio: jfaker.lorem.paragraph(),
+            age: jfaker.number.int({min: 18, max: 80})
+         };
+
+         cy.request('POST', '/api/users', user).then(response => {
+            expect(response.status).to.eq(201);
+         });
+      }
+   });
 });
-```
-
-## Important Notes
-
-### Cypress `.type()` Command
-
-When using injection payloads with Cypress's `.type()` command, **always** use `parseSpecialCharSequences: false` to prevent Cypress from interpreting special characters as commands:
-
-```typescript
-// ❌ WRONG - Cypress will interpret {, }, [, ] as special commands
-cy.get('#input').type(jfaker.xss());
-
-// ✅ CORRECT - Cypress treats the string literally
-cy.get('#input').type(jfaker.xss(), {parseSpecialCharSequences: false});
 ```
 
 ### Data Persistence
@@ -379,6 +365,75 @@ Injection payloads are imported from TypeScript files in the `src/injections/` d
 - **Undefined length**: Picks 2-5 random items from the payload array and joins them
 - **Positive length**: Concatenates random items until reaching the specified character count, then trims to exact length
 - **Length = -1**: Returns all available payloads for that type joined together
+
+## IMPORTANT: Cypress `.type()` Command
+
+When using `injection` payloads with Cypress's `.type()` command, it is **required** to use `parseSpecialCharSequences: false` to prevent Cypress from interpreting special characters as commands, e.g.:
+```typescript
+// Cypress will interpret {, }, [, ] from the injection's payload as special commands
+cy.get('#input').type(jfaker.xss());
+
+// Cypress treats the string literally
+cy.get('#input').type(jfaker.xss(), {parseSpecialCharSequences: false});
+````
+
+In order to minimize `parseSpecialCharSequences` usage, Cypress `type()` command is overwritten in `jahia-cypress` in the following way:
+- at the moment of `<element>.type()` call, if `jfaker.getDataType() !== 'faker'`, `parseSpecialCharSequences: false` is used to prevent Cypress from interpreting injection's special characters as commands (e.g., `{`, `}`, `[`, `]`), which would break the payload and not test the intended injection properly.
+- otherwise, the default Cypress behavior is preserved, allowing special character sequences to be interpreted as commands if present in the data.
+
+Such approach will work in the majority of usual cases.
+
+However, there might be edge cases where you want to use `jfaker` to generate faker.js or injection payloads but still use special character sequences as commands for specific field(s). In such cases, you have to explicitly set `parseSpecialCharSequences: true` for that specific call to ensure the special characters in the payload are treated as commands, while still benefiting from the global data type management for other calls.
+
+**Example:** test uses `jfaker` for generating both XSS payload and faker.js data, and need to use `{enter}` as a command for some field(s).
+```typescript
+// Env variable: JAHIA_CYPRESS_INJECTION_TYPE=xss
+
+// This will return an XSS payload instead of a real name
+let firstName = jfaker.person.firstName();
+
+// This will always return valid Last email from Faker.js, ignoring the global XSS setting
+let email = jfaker.internet.email({safe: true});
+
+// This will use the XSS payload for the firstName field.
+// Special characters will be treated leterally (no command parsing),
+// because at the moment of `type()` call `jfaker.getDataType` will return `xss`
+// thus, {enter} here will be processed as a regular text)
+cy.findById('firstName').type(`${firstName}{enter}`);
+
+// This will use the valid email from Faker.js since we set `safe: true` for that call, 
+// which overrides the global XSS setting for this specific call.
+// Along with typing the valid email, we also want to use {enter} as a command to trigger a new line or form submitting, etc.
+// However, since the global type is still set to XSS at the moment of `type()` call, 
+// Cypress will treat special characters as literal text (no command parsing).
+// To ensure that {enter} is treated as a command, we need to explicitly set `parseSpecialCharSequences: true` for this specific call.
+cy.findById('email').type(`${email}{enter}`, {parseSpecialCharSequences: true});
+```
+
+**Example:** test uses `jfaker` for generating both XSS payload and faker.js data, and need to always use `xss` for some field(s).
+```typescript
+// Env variable: JAHIA_CYPRESS_INJECTION_TYPE=faker or JAHIA_CYPRESS_INJECTION_TYPE is empty/undefined
+
+// This will return valid name
+let firstName = jfaker.person.firstName();
+
+// This will always return xss payload, ignoring the global faker setting
+let email = jfaker.xss();
+
+// This will use the valid name for the firstName field.
+cy.findById('firstName').type(`${firstName}`);
+
+// This will use xss for email field (which can contain special characters, like {, }, [, ], etc.)
+// However, since the global type is set to `faker` at the moment of `type()` call, 
+// Cypress will treat such special characters as `commands` so thus expected xss validation might be broken.
+// To ensure that they are treated literaly (not as a commands), we need to explicitly set `parseSpecialCharSequences: false` for this specific call.
+cy.findById('email').type(`${email}`, {parseSpecialCharSequences: false});
+```
+
+### Rule of Thumb
+- If you use special characters in your test data and want them to be treated as `commands` - equip such `type()` call with explicit `parseSpecialCharSequences: true` to ensure the special characters are always processed as commands, while still benefiting from the global data type management for other calls.
+- If you use direct injection calls (e.g., `jfaker.xss()`, `jfaker.sql()`, etc.) for data generation and want to ensure that special characters are treated as literal text (not commands), equip corresponding `type()` call with implicit `parseSpecialCharSequences: false` to prevent Cypress from interpreting special characters as commands, which would break the payload and not test the intended injection properly.
+- If your test _doesn't use direct injection calls_ and _doesn't include special command characters_ in the generated data, you can rely on the default behavior of `type()` command without needing to set `parseSpecialCharSequences` explicitly.
 
 ## See Also
 
