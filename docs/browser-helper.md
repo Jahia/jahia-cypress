@@ -106,7 +106,11 @@ it('validates behavior after browser close', () => {
   cy.login();
   BrowserHelper.logCookies();
 
+  // Simulate browser close (clears session cookies and session storage)
   BrowserHelper.simulateClose();
+
+  // Visit the app again to see the effect of reset
+  cy.visit(url);
 
   BrowserHelper.logCookies();
   BrowserHelper.logSessionStorage();
@@ -122,7 +126,11 @@ it('validates behavior after full browser reset', () => {
     cy.login();
     BrowserHelper.logCookies();
 
+    // Reset all browser state
     BrowserHelper.resetState();
+
+    // Visit the app again to see the effect of reset
+    cy.visit(url); 
 
     BrowserHelper.logCookies();
     BrowserHelper.logSessionStorage();
