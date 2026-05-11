@@ -113,21 +113,19 @@ it('validates behavior after browser close', () => {
 });
 ```
 
-### Full State Reset for Isolation
+### Simulate Browser Reset (clear all cookies and storages)
 
 ```typescript
 import {BrowserHelper} from '@jahia/cypress';
 
-describe('Shopping Cart', () => {
-  beforeEach(() => {
-    BrowserHelper.resetState();
-    cy.visit('/shop');
-  });
+it('validates behavior after full browser reset', () => {
+    cy.login();
+    BrowserHelper.logCookies();
 
-  it('starts with empty browser state', () => {
-    BrowserHelper.logLocalStorage();
-    cy.get('[data-testid="cart-badge"]').should('have.text', '0');
-  });
+    BrowserHelper.resetState();
+
+    BrowserHelper.logCookies();
+    BrowserHelper.logSessionStorage();
 });
 ```
 
