@@ -45,7 +45,7 @@ describe('itSince support', () => {
                         // no-op
                     }
                 );
-            }).to.throw('[it.since] Invalid arguments');
+            }).to.throw('[it.since] Invalid version: "my test title" (arguments appear swapped).');
         });
 
         it('throws clear error when describe.since args are swapped', () => {
@@ -57,7 +57,7 @@ describe('itSince support', () => {
                         // no-op
                     }
                 );
-            }).to.throw('[describe.since] Invalid arguments');
+            }).to.throw('[describe.since] Invalid version: "my suite title" (arguments appear swapped).');
         });
     });
 
