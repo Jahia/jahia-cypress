@@ -22,6 +22,10 @@
 
 [`.repeatUntil()`](./src/support/repeatUntil.md)
 
+[`it.since()`](#version-gated-tests)
+
+[`describe.since()`](#version-gated-tests)
+
 ## Page / component objects
 
 In Page Object Model, a set of object is provided to handle known and reused web elements. 
@@ -99,6 +103,55 @@ module.exports = (on, config) => {
     
     return config;
 };
+```
+
+## Version-gated tests
+
+After enabling `modSince` via `registerSupport`, you can gate tests and suites by Jahia version with:
+- `it.since(requiredVersion, title, testFn)`
+- `describe.since(requiredVersion, title, suiteFn)`
+
+Modifiers are supported as well:
+- `it.only.since(...)`, `describe.only.since(...)`
+- `it.skip.since(...)`, `describe.skip.since(...)`
+
+`it.since(...)` and `describe.since(...)` run only when current Jahia version is greater than or equal to `requiredVersion`; otherwise they are skipped.
+
+`it.skip.since(...)` and `describe.skip.since(...)` are always skipped (same behavior as Cypress `skip`, with a version argument for consistency).
+
+Jahia version is fetched in a root `before()` hook and stored in environment variable `CYPRESS_JAHIA_VERSION`.
+```typescript
+it.since('8.2.0', 'shows the new dashboard widget', () => {
+    // test body
+});
+
+describe.since('8.2.0', 'dashboard suite available since 8.2', () => {
+    it('renders the widget list', () => {
+        // suite test body
+    });
+});
+
+// `only` modifiers are also supported
+it.only.since('8.2.0', 'focused version-gated test', () => {
+    // test body
+});
+
+describe.only.since('8.2.0', 'focused version-gated suite', () => {
+    it('runs suite tests', () => {
+        // suite test body
+    });
+});
+
+// `skip` modifiers are also supported
+it.skip.since('8.2.0', 'always skipped version-gated test', () => {
+    // skipped
+});
+
+describe.skip.since('8.2.0', 'always skipped version-gated suite', () => {
+    it('is skipped', () => {
+        // skipped
+    });
+});
 ```
 
 ## Internal Auxiliary Libraries
