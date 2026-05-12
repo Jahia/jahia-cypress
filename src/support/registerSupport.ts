@@ -6,6 +6,7 @@ import {fixture} from './fixture';
 import {repeatUntil} from './repeatUntil';
 import {step} from './testStep';
 import {jfaker} from './jfaker';
+import {modSince} from './modSince';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -25,6 +26,9 @@ export const registerSupport = (): void => {
     Cypress.Commands.overwrite('fixture', fixture);
 
     Cypress.Commands.add('step', step);
+
+    // Register it.since()/describe.since()
+    modSince.enable();
 
     /**
      * Override Cypress `type()` command to interpret special characters (e.g., {, }, etc.) either literally or as commands.
