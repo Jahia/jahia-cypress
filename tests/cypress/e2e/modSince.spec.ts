@@ -61,7 +61,7 @@ describe('itSince support', () => {
         });
     });
 
-    describe('skip.since title regression', () => {
+    describe('skip.since proper title usage', () => {
         const skippedItTitle = 'keeps it.skip.since description as title';
         const skippedSuiteTitle = 'keeps describe.skip.since description as title';
         let skippedItRan = false;
@@ -94,7 +94,7 @@ describe('itSince support', () => {
         });
     });
 
-    describe('skip compatibility regression', () => {
+    describe('skip backward compatibility', () => {
         const compatItTitle = 'uses title for accidental it.skip(version, title, fn)';
         const compatDescribeTitle = 'uses title for accidental describe.skip(version, title, fn)';
         let compatItRan = false;
