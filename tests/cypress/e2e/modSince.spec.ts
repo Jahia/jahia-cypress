@@ -30,6 +30,109 @@ describe('itSince support', () => {
             expect(describe.since).to.be.a('function');
             expect(describe.only.since).to.be.a('function');
         });
+
+        it('attaches the since helper to it.skip and describe.skip', () => {
+            expect(it.skip.since).to.be.a('function');
+            expect(describe.skip.since).to.be.a('function');
+        });
+
+        it('throws clear error when it.since args are swapped', () => {
+            expect(() => {
+                (it.since as unknown as (requiredVersion: string, title: string, fn?: Mocha.Func) => Mocha.Test)(
+                    'my test title',
+                    '8.2.0',
+                    () => {
+                        // no-op
+                    }
+                );
+            }).to.throw('[it.since] Invalid arguments');
+        });
+
+        it('throws clear error when describe.since args are swapped', () => {
+            expect(() => {
+                (describe.since as unknown as (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void) => Mocha.Suite)(
+                    'my suite title',
+                    '8.2.0',
+                    () => {
+                        // no-op
+                    }
+                );
+            }).to.throw('[describe.since] Invalid arguments');
+        });
+    });
+
+    describe('skip.since title regression', () => {
+        const skippedItTitle = 'keeps it.skip.since description as title';
+        const skippedSuiteTitle = 'keeps describe.skip.since description as title';
+        let skippedItRan = false;
+        let skippedDescribeRan = false;
+
+        const skippedIt = it.skip.since('8.2.0', skippedItTitle, () => {
+            skippedItRan = true;
+        });
+
+        const skippedSuite = describe.skip.since('8.2.0', skippedSuiteTitle, () => {
+            it('never runs in skipped describe.since suite', () => {
+                skippedDescribeRan = true;
+            });
+        });
+
+        it('keeps user-provided title for it.skip.since', () => {
+            expect(skippedIt.title).to.equal(skippedItTitle);
+        });
+
+        it('keeps user-provided title for describe.skip.since', () => {
+            expect(skippedSuite.title).to.equal(skippedSuiteTitle);
+        });
+
+        it('does not execute callback for it.skip.since', () => {
+            expect(skippedItRan).to.equal(false);
+        });
+
+        it('does not execute tests inside describe.skip.since', () => {
+            expect(skippedDescribeRan).to.equal(false);
+        });
+    });
+
+    describe('skip compatibility regression', () => {
+        const compatItTitle = 'uses title for accidental it.skip(version, title, fn)';
+        const compatDescribeTitle = 'uses title for accidental describe.skip(version, title, fn)';
+        let compatItRan = false;
+        let compatDescribeRan = false;
+
+        const compatIt = (it.skip as unknown as (requiredVersion: string, title: string, fn?: Mocha.Func) => Mocha.Test)(
+            '8.3.5.0',
+            compatItTitle,
+            () => {
+                compatItRan = true;
+            }
+        );
+
+        const compatDescribe = (describe.skip as unknown as (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void) => Mocha.Suite)(
+            '8.3.5.0',
+            compatDescribeTitle,
+            () => {
+                it('must not run inside compat skipped describe', () => {
+                    compatDescribeRan = true;
+                });
+            }
+        );
+
+        it('keeps title for accidental it.skip(version, title, fn)', () => {
+            expect(compatIt.title).to.equal(compatItTitle);
+        });
+
+        it('keeps title for accidental describe.skip(version, title, fn)', () => {
+            expect(compatDescribe.title).to.equal(compatDescribeTitle);
+        });
+
+        it('does not execute callback for accidental it.skip(version, title, fn)', () => {
+            expect(compatItRan).to.equal(false);
+        });
+
+        it('does not execute tests for accidental describe.skip(version, title, fn)', () => {
+            expect(compatDescribeRan).to.equal(false);
+        });
     });
 
     describe('version initialization', () => {
@@ -42,6 +145,41 @@ describe('itSince support', () => {
     });
 
     describe('runtime gating', () => {
+        describe('it.since title handling', () => {
+            const supportedTitle = 'keeps title for supported it.since test';
+            const skippedTitle = 'keeps title for skipped it.since test';
+            let supportedRan = false;
+            let skippedRan = false;
+
+            beforeEach(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.1.0');
+            });
+
+            const supportedTest = it.since('8.1.0', supportedTitle, () => {
+                supportedRan = true;
+            });
+
+            const skippedTest = it.since('8.2.0', skippedTitle, () => {
+                skippedRan = true;
+            });
+
+            it('keeps user-provided title for supported it.since', () => {
+                expect(supportedTest.title).to.equal(supportedTitle);
+            });
+
+            it('keeps user-provided title for skipped it.since', () => {
+                expect(skippedTest.title).to.equal(skippedTitle);
+            });
+
+            it('executes callback for supported it.since', () => {
+                expect(supportedRan).to.equal(true);
+            });
+
+            it('does not execute callback for skipped it.since', () => {
+                expect(skippedRan).to.equal(false);
+            });
+        });
+
         describe('supported version', () => {
             let ran = false;
 

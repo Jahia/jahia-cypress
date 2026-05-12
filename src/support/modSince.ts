@@ -1,4 +1,4 @@
-import {compare} from 'compare-versions';
+import {compare, validate} from 'compare-versions';
 // Intentionally keep explicit path to avoid edge case errors in runtime
 import {getJahiaVersion} from '../utils/JahiaPlatformHelper';
 
@@ -18,6 +18,11 @@ declare global {
             since(requiredVersion: string, title: string, config: Cypress.TestConfigOverrides, fn?: Func): Test;
         }
 
+        interface PendingTestFunction {
+            since(requiredVersion: string, title: string, fn?: Func): Test;
+            since(requiredVersion: string, title: string, config: Cypress.TestConfigOverrides, fn?: Func): Test;
+        }
+
         interface SuiteFunction {
             since(requiredVersion: string, title: string, fn: (this: Suite) => void): Suite;
         }
@@ -25,123 +30,82 @@ declare global {
         interface ExclusiveSuiteFunction {
             since(requiredVersion: string, title: string, fn: (this: Suite) => void): Suite;
         }
+
+        interface PendingSuiteFunction {
+            since(requiredVersion: string, title: string, fn: (this: Suite) => void): Suite;
+        }
     }
 }
 
-/**
- * Overloaded call signature for the `it.since` helper.
- * Mirrors Mocha's own `TestFunction` overloads but adds `requiredVersion` as the first argument.
- */
-type SinceFunction = {
-    (requiredVersion: string, title: string, fn?: Mocha.Func): Mocha.Test;
-    (requiredVersion: string, title: string, config: Cypress.TestConfigOverrides, fn?: Mocha.Func): Mocha.Test;
-};
+// ─── Internal helpers ────────────────────────────────────────────────────────
 
 /**
- * Augmented Mocha `TestFunction` that carries the optional `since` property
- * after `registerVersionSupport()` has been called.
+ * Returns `true` when `current` satisfies `>= required`.
+ * Treats missing, empty, or unparseable versions as unsupported.
+ * @param current - The running Jahia version read from `Cypress.env`.
+ * @param required - Minimum version the test or suite needs.
  */
-type ItWithSince = Mocha.TestFunction & {
-    since?: SinceFunction;
-    only: Mocha.ExclusiveTestFunction & {
-        since?: SinceFunction;
-    };
-};
-
-/** Overloaded call signature for describe.since helper. */
-type DescribeSinceFunction = {
-    (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void): Mocha.Suite;
-};
-
-/** Augmented Mocha describe function with optional since helper. */
-type DescribeWithSince = Mocha.SuiteFunction & {
-    since?: DescribeSinceFunction;
-    only: Mocha.ExclusiveSuiteFunction & {
-        since?: DescribeSinceFunction;
-    };
-};
-
-/**
- * Returns `true` when `version` is a non-empty, non-null value.
- * @param version - Value to test.
- */
-const isValidString = (version: string | number | undefined): boolean => {
-    return typeof version !== 'undefined' && version !== null && String(version).trim() !== '';
-};
-
-/**
- * Returns `true` when `currentVersion` satisfies `>= requiredVersion`.
- * Invalid or missing versions are treated as unsupported.
- * @param currentVersion - The running Jahia version (from `Cypress.env`).
- * @param requiredVersion - Minimum version the test needs.
- */
-const isVersionSupported = (currentVersion: string | number | undefined, requiredVersion: string): boolean => {
-    if (!isValidString(currentVersion)) {
+const isSupported = (current: string | undefined, required: string): boolean => {
+    if (!current?.trim()) {
         return false;
     }
 
     try {
-        return compare(String(currentVersion), requiredVersion, '>=');
+        return compare(String(current), required, '>=');
     } catch {
         return false;
     }
 };
 
 /**
- * Builds a human-readable message explaining why a test was skipped.
- * The message differs depending on whether the version is missing or simply too low.
- * @param title - Original test title.
- * @param requiredVersion - Minimum version the test needs.
- * @param currentVersion - The running Jahia version (from `Cypress.env`).
+ * Validates `since(...)` arguments and throws a descriptive error on misuse.
+ * Detects the common mistake of swapping `requiredVersion` and `title`.
+ * @param version - Version string passed as the first argument.
+ * @param title - Title string passed as the second argument.
+ * @param scope - Label used in the error message (e.g. `"it.since"`).
  */
-const getSkipMessage = (title: string, requiredVersion: string, currentVersion: string | number | undefined): string => {
-    if (!isValidString(currentVersion)) {
-        return `[it.since] Skipping "${title}" because ${JAHIA_VERSION_ENV_VAR} is empty or undefined. Required version: ${requiredVersion}.`;
+const assertArgs = (version: string, title: string, scope: string): void => {
+    if (!validate(version)) {
+        const hint = validate(title) ? ' (arguments appear swapped)' : '';
+        throw new Error(`[${scope}] Invalid version: "${version}"${hint}.`);
     }
-
-    return `[it.since] Skipping "${title}" because ${JAHIA_VERSION_ENV_VAR}="${String(currentVersion)}" does not satisfy required version ${requiredVersion}.`;
 };
 
 /**
- * Builds a human-readable message explaining why a suite was skipped.
- * @param title - Original suite title.
- * @param requiredVersion - Minimum version the suite needs.
- * @param currentVersion - The running Jahia version (from `Cypress.env`).
+ * Builds a human-readable message explaining why a test or suite was skipped.
+ * @param scope - Label for the helper (e.g. `"it.since"` or `"describe.since"`).
+ * @param title - Original test or suite title.
+ * @param required - Minimum version the test or suite needs.
+ * @param current - The running Jahia version; `undefined` when not yet fetched.
  */
-const getDescribeSkipMessage = (title: string, requiredVersion: string, currentVersion: string | number | undefined): string => {
-    if (!isValidString(currentVersion)) {
-        return `[describe.since] Skipping "${title}" because ${JAHIA_VERSION_ENV_VAR} is empty or undefined. Required version: ${requiredVersion}.`;
-    }
+const skipReason = (scope: string, title: string, required: string, current?: string): string =>
+    current ?
+        `[${scope}] Skipping "${title}" — ${JAHIA_VERSION_ENV_VAR}="${current}" < required ${required}.` :
+        `[${scope}] Skipping "${title}" — ${JAHIA_VERSION_ENV_VAR} is not set. Required: ${required}.`;
 
-    return `[describe.since] Skipping "${title}" because ${JAHIA_VERSION_ENV_VAR}="${String(currentVersion)}" does not satisfy required version ${requiredVersion}.`;
-};
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Fetches the Jahia version from the GraphQL API, strips the `-SNAPSHOT` suffix when
- * present, and caches the result in `Cypress.env(JAHIA_VERSION_ENV_VAR)`.
- *
- * @returns A Cypress chainable that resolves to the normalized version string (e.g. `"8.2.0"`).
+ * Fetches the Jahia version from the GraphQL API, strips the `-SNAPSHOT` suffix,
+ * and caches the result in `Cypress.env(JAHIA_VERSION_ENV_VAR)`.
  */
-export const initializeVersionSupport = (): Cypress.Chainable => {
-    return getJahiaVersion().then(jahiaVersion => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const initializeVersionSupport = (): Cypress.Chainable<any> =>
+    getJahiaVersion().then(jahiaVersion => {
         const version = jahiaVersion.release.replace('-SNAPSHOT', '');
         Cypress.env(JAHIA_VERSION_ENV_VAR, version);
         return version;
     });
-};
 
 /**
- * Attaches the `since` helper to Mocha's global `it` function.
- * Safe to call multiple times — subsequent calls are no-ops when `it.since` already exists.
- *
- * The version check is evaluated at test runtime in the wrapped `it.since` body.
- * This allows logging skip reasons immediately before a test is marked pending.
- *
- * @throws {Error} If Mocha's `it` is not available in the current context.
+ * Attaches `.since()` to `it`, `it.only`, `it.skip`, `describe`, `describe.only`,
+ * and `describe.skip`. Safe to call multiple times — subsequent calls are no-ops.
  */
 export const registerVersionSupport = (): void => {
-    const mochaIt = globalThis.it as ItWithSince | undefined;
-    const mochaDescribe = globalThis.describe as DescribeWithSince | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mochaIt = globalThis.it as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mochaDescribe = globalThis.describe as any;
 
     if (!mochaIt) {
         throw new Error('Unable to register version support because Mocha `it` is not available.');
@@ -151,82 +115,108 @@ export const registerVersionSupport = (): void => {
         throw new Error('Unable to register version support because Mocha `describe` is not available.');
     }
 
-    const attachSince = (target: (Mocha.TestFunction | Mocha.ExclusiveTestFunction) & {since?: SinceFunction}): void => {
+    // Attach .since() to it / it.only / it.skip
+    for (const target of [mochaIt, mochaIt.only, mochaIt.skip]) {
         if (typeof target.since === 'function') {
-            return;
+            continue;
         }
 
-        target.since = ((requiredVersion: string, title: string, configOrFn?: Cypress.TestConfigOverrides | Mocha.Func, maybeFn?: Mocha.Func): Mocha.Test => {
-            const originalFn = (typeof configOrFn === 'function' || typeof configOrFn === 'undefined') ?
-                configOrFn as Mocha.Func | undefined : maybeFn;
+        const isSkip = target === mochaIt.skip;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        target.since = (version: string, title: string, configOrFn?: any, maybeFn?: any) => {
+            assertArgs(version, title, 'it.since');
 
-            const wrappedFn: Mocha.Func = function (this: Mocha.Context) {
-                const currentVersion = Cypress.env(JAHIA_VERSION_ENV_VAR);
-                if (!isVersionSupported(currentVersion, requiredVersion)) {
-                    console.warn(getSkipMessage(title, requiredVersion, currentVersion));
+            if (isSkip) {
+                // It.skip.since: always skip unconditionally, preserve the title
+                return typeof configOrFn === 'function' || configOrFn === undefined ?
+                    target(title, configOrFn) :
+                    target(title, configOrFn, maybeFn);
+            }
+
+            const userFn = typeof configOrFn === 'function' ? configOrFn : maybeFn;
+            const wrappedFn = function (this: Mocha.Context) {
+                const current = Cypress.env(JAHIA_VERSION_ENV_VAR);
+                if (!isSupported(current, version)) {
+                    console.warn(skipReason('it.since', title, version, current));
                     this.skip();
-                } else if (typeof originalFn === 'function') {
-                    return originalFn.call(this);
+                } else if (typeof userFn === 'function') {
+                    return userFn.call(this);
                 }
             };
 
-            if (typeof configOrFn === 'function' || typeof configOrFn === 'undefined') {
-                return target(title, wrappedFn);
-            }
+            return typeof configOrFn === 'object' && configOrFn !== null ?
+                target(title, configOrFn, wrappedFn) :
+                target(title, wrappedFn);
+        };
+    }
 
-            return target(title, configOrFn, wrappedFn);
-        }) as SinceFunction;
-    };
-
-    const attachDescribeSince = (target: (Mocha.SuiteFunction | Mocha.ExclusiveSuiteFunction) & {since?: DescribeSinceFunction}): void => {
+    // Attach .since() to describe / describe.only / describe.skip
+    for (const target of [mochaDescribe, mochaDescribe.only, mochaDescribe.skip]) {
         if (typeof target.since === 'function') {
-            return;
+            continue;
         }
 
-        target.since = ((requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void): Mocha.Suite => {
+        const isSkip = target === mochaDescribe.skip;
+        target.since = (version: string, title: string, fn: (this: Mocha.Suite) => void) => {
+            assertArgs(version, title, 'describe.since');
+
+            if (isSkip) {
+                // Describe.skip.since: always skip unconditionally, preserve the title
+                return target(title, fn);
+            }
+
             return target(title, function (this: Mocha.Suite) {
-                // Suite-level runtime check: executes after global before() version fetch.
+                // Suite-level runtime check runs after the global before() has fetched the version
                 before(function (this: Mocha.Context) {
-                    const currentVersion = Cypress.env(JAHIA_VERSION_ENV_VAR);
-                    if (!isVersionSupported(currentVersion, requiredVersion)) {
-                        console.warn(getDescribeSkipMessage(title, requiredVersion, currentVersion));
+                    const current = Cypress.env(JAHIA_VERSION_ENV_VAR);
+                    if (!isSupported(current, version)) {
+                        console.warn(skipReason('describe.since', title, version, current));
                         this.skip();
                     }
                 });
 
-                return fn.call(this);
+                fn.call(this);
             });
-        }) as DescribeSinceFunction;
-    };
+        };
+    }
 
-    attachSince(mochaIt);
-    attachSince(mochaIt.only);
-    attachDescribeSince(mochaDescribe);
-    attachDescribeSince(mochaDescribe.only);
+    // Compatibility shim: redirect accidental it.skip(version, title, fn) → it.skip.since(...)
+    const origItSkip = mochaIt.skip;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mochaIt.skip = Object.assign((title: string, configOrTitle?: any, maybeFn?: any) => {
+        if (validate(title) && typeof configOrTitle === 'string' && typeof maybeFn === 'function') {
+            return origItSkip.since(title, configOrTitle, maybeFn);
+        }
+
+        return typeof configOrTitle === 'function' || configOrTitle === undefined ?
+            origItSkip(title, configOrTitle) :
+            origItSkip(title, configOrTitle, maybeFn);
+    }, {since: origItSkip.since});
+
+    const origDescribeSkip = mochaDescribe.skip;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mochaDescribe.skip = Object.assign((title: string, fnOrTitle?: any, maybeFn?: any) => {
+        if (validate(title) && typeof fnOrTitle === 'string' && typeof maybeFn === 'function') {
+            return origDescribeSkip.since(title, fnOrTitle, maybeFn);
+        }
+
+        return origDescribeSkip(title, fnOrTitle);
+    }, {since: origDescribeSkip.since});
 };
 
 /**
- * Enables version-gated testing support for a Cypress suite.
- *
- * Version is fetched in a root `before()` hook.
- * `it.since(...)` evaluates support at runtime and logs the skip reason immediately
- * before marking the test pending.
+ * Enables version-gated testing for the Cypress suite.
+ * Registers `it.since`, `describe.since` (and their `.only`/`.skip` variants),
+ * then fetches the running Jahia version in a root `before()` hook.
  *
  * @example
- * // any spec file — no import needed
- * it.since('8.2.0', 'feature added in 8.2', () => { ... });
+ * it.since('8.2.0', 'works on 8.2+', () => { ... });
+ * describe.since('8.2.0', 'suite for 8.2+', () => { ... });
  */
 function enable(): void {
     registerVersionSupport();
-
-    before(() => {
-        return initializeVersionSupport();
-    });
+    before(() => initializeVersionSupport());
 }
 
-/**
- * Public API for Jahia version-gated testing.
- */
-export const modSince = {
-    enable
-};
+/** Public API for Jahia version-gated testing. */
+export const modSince = {enable};
