@@ -6,4 +6,5 @@ export * from './repeatUntil';
 export * from './testStep';
 export * from './jsErrorsLogger';
 export * from './jfaker';
+export * from './browserHelper';
 export * from './modSince';
