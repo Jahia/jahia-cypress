@@ -2,4 +2,4 @@
 "@jahia/cypress": patch
 ---
 
-Add browser helpers for printing out aux information for debugging purposes (#215)
+Add browser helpers for printing out auxiliary information about cookies and storages for debugging purposes (#215)
