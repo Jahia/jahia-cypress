@@ -1,5 +1,19 @@
 # @jahia/cypress Changelog
 
+## 8.1.0
+
+### New Features
+
+* Add `it.since()` and `describe.since()` modifiers to gate tests by Jahia version (#216)
+
+* Add jfaker library for generating test strings containing human-readable or injections data (#202)
+
+* Improve cypress logs of script execution, now groovy / provisioning and graphql calls provides more information (#214)
+
+### Bug Fixes
+
+* Add browser helpers for printing out auxiliary information about cookies and storages for debugging purposes (#215)
+
 ## 8.0.0
 
 ### Breaking Changes
