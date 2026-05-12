@@ -368,72 +368,76 @@ Injection payloads are imported from TypeScript files in the `src/injections/` d
 
 ## IMPORTANT: Cypress `.type()` Command
 
-When using `injection` payloads with Cypress's `.type()` command, it is **required** to use `parseSpecialCharSequences: false` to prevent Cypress from interpreting special characters as commands, e.g.:
-```typescript
-// Cypress will interpret {, }, [, ] from the injection's payload as special commands
-cy.get('#input').type(jfaker.xss());
+### Why this matters
 
-// Cypress treats the string literally
-cy.get('#input').type(jfaker.xss(), {parseSpecialCharSequences: false});
-````
+Cypress `type()` treats sequences such as `{enter}` and characters such as `{` or `}` as special commands.
+That is a problem for injection payloads, because many payloads contain those same characters and should be typed literally.
 
-In order to minimize `parseSpecialCharSequences` usage, Cypress `type()` command is overwritten in `jahia-cypress` in the following way:
-- at the moment of `<element>.type()` call, if `jfaker.getDataType() !== 'faker'`, `parseSpecialCharSequences: false` is used to prevent Cypress from interpreting injection's special characters as commands (e.g., `{`, `}`, `[`, `]`), which would break the payload and not test the intended injection properly.
-- otherwise, the default Cypress behavior is preserved, allowing special character sequences to be interpreted as commands if present in the data.
+### What `jahia-cypress` does automatically
 
-Such approach will work in the majority of usual cases.
+To reduce the need to set `parseSpecialCharSequences` everywhere, `jahia-cypress` overwrites Cypress `type()` with this rule:
 
-However, there might be edge cases where you want to use `jfaker` to generate faker.js or injection payloads but still use special character sequences as commands for specific field(s). In such cases, you have to explicitly set `parseSpecialCharSequences: true` for that specific call to ensure the special characters in the payload are treated as commands, while still benefiting from the global data type management for other calls.
+- If `jfaker.getDataType() !== 'faker'` at the time of the `type()` call, `parseSpecialCharSequences` is automatically set to `false`.
+- If `jfaker.getDataType() === 'faker'`, Cypress keeps its default behavior.
 
-**Example:** test uses `jfaker` for generating both XSS payload and faker.js data, and need to use `{enter}` as a command for some field(s).
+This covers most common cases.
+
+### When you still need to set it explicitly
+
+You should still pass `parseSpecialCharSequences` yourself in these edge cases:
+
+1. **You want Cypress command sequences to work even though the global `jfaker` type is an injection type.**
+   Use `parseSpecialCharSequences: true`.
+2. **You use a direct injection call such as `jfaker.xss()` while the global `jfaker` type is still `faker`.**
+   Use `parseSpecialCharSequences: false`.
+
+In short, the automatic behavior depends on the **global `jfaker` type when `type()` runs**, not on how the value was generated.
+
+### Example 1: Global injection mode, but one field still needs `{enter}` as a command
+
 ```typescript
 // Env variable: JAHIA_CYPRESS_INJECTION_TYPE=xss
 
-// This will return an XSS payload instead of a real name
-let firstName = jfaker.person.firstName();
+// Returns an XSS payload because the global type is xss
+const firstName = jfaker.person.firstName();
 
-// This will always return valid Last email from Faker.js, ignoring the global XSS setting
-let email = jfaker.internet.email({safe: true});
+// Returns a normal Faker.js email because safe: true overrides the global type for this value only
+const email = jfaker.internet.email({safe: true});
 
-// This will use the XSS payload for the firstName field.
-// Special characters will be treated leterally (no command parsing),
-// because at the moment of `type()` call `jfaker.getDataType` will return `xss`
-// thus, {enter} here will be processed as a regular text)
+// Because the global type is still xss at type() time,
+// special sequences are treated literally.
 cy.findById('firstName').type(`${firstName}{enter}`);
 
-// This will use the valid email from Faker.js since we set `safe: true` for that call, 
-// which overrides the global XSS setting for this specific call.
-// Along with typing the valid email, we also want to use {enter} as a command to trigger a new line or form submitting, etc.
-// However, since the global type is still set to XSS at the moment of `type()` call, 
-// Cypress will treat special characters as literal text (no command parsing).
-// To ensure that {enter} is treated as a command, we need to explicitly set `parseSpecialCharSequences: true` for this specific call.
+// We want {enter} to act as a Cypress command for this field,
+// so we must override the automatic behavior explicitly.
 cy.findById('email').type(`${email}{enter}`, {parseSpecialCharSequences: true});
 ```
 
-**Example:** test uses `jfaker` for generating both XSS payload and faker.js data, and need to always use `xss` for some field(s).
+### Example 2: Global Faker mode, but one field must always receive an injection payload
+
 ```typescript
-// Env variable: JAHIA_CYPRESS_INJECTION_TYPE=faker or JAHIA_CYPRESS_INJECTION_TYPE is empty/undefined
+// Env variable: JAHIA_CYPRESS_INJECTION_TYPE=faker
 
-// This will return valid name
-let firstName = jfaker.person.firstName();
+// Returns normal Faker.js data
+const firstName = jfaker.person.firstName();
 
-// This will always return xss payload, ignoring the global faker setting
-let email = jfaker.xss();
+// Returns an XSS payload directly, regardless of the global faker setting
+const email = jfaker.xss();
 
-// This will use the valid name for the firstName field.
-cy.findById('firstName').type(`${firstName}`);
+// Default Cypress behavior is fine here
+cy.findById('firstName').type(firstName);
 
-// This will use xss for email field (which can contain special characters, like {, }, [, ], etc.)
-// However, since the global type is set to `faker` at the moment of `type()` call, 
-// Cypress will treat such special characters as `commands` so thus expected xss validation might be broken.
-// To ensure that they are treated literaly (not as a commands), we need to explicitly set `parseSpecialCharSequences: false` for this specific call.
-cy.findById('email').type(`${email}`, {parseSpecialCharSequences: false});
+// Because the global type is faker at type() time,
+// Cypress would still try to interpret special characters as commands.
+// Force literal typing for the payload.
+cy.findById('email').type(email, {parseSpecialCharSequences: false});
 ```
 
-### Rule of Thumb
-- If you use special characters in your test data and want them to be treated as `commands` - equip such `type()` call with explicit `parseSpecialCharSequences: true` to ensure the special characters are always processed as commands, while still benefiting from the global data type management for other calls.
-- If you use direct injection calls (e.g., `jfaker.xss()`, `jfaker.sql()`, etc.) for data generation and want to ensure that special characters are treated as literal text (not commands), equip corresponding `type()` call with implicit `parseSpecialCharSequences: false` to prevent Cypress from interpreting special characters as commands, which would break the payload and not test the intended injection properly.
-- If your test _doesn't use direct injection calls_ and _doesn't include special command characters_ in the generated data, you can rely on the default behavior of `type()` command without needing to set `parseSpecialCharSequences` explicitly.
+### Rule of thumb
+
+- Want Cypress sequences such as `{enter}` to act as commands? Set `parseSpecialCharSequences: true`.
+- Want an explicitly generated injection payload to be typed literally? Set `parseSpecialCharSequences: false`.
+- Otherwise, omit the option and use the default `jahia-cypress` behavior.
 
 ## See Also
 
