@@ -107,21 +107,19 @@ module.exports = (on, config) => {
 
 ## Version-gated tests
 
-When `modSince.enable()` is loaded, you can gate tests and suites by Jahia version with:
+After enabling `modSince` via `registerSupport`, you can gate tests and suites by Jahia version with:
 - `it.since(requiredVersion, title, testFn)`
 - `describe.since(requiredVersion, title, suiteFn)`
 
-Both run only when current Jahia version is greater than or equal to `requiredVersion`; otherwise they are skipped.
-Since Jahia version fetching requires an additional GraphQL call, this functionality is not enabled by default.
+Modifiers are supported as well:
+- `it.only.since(...)`, `describe.only.since(...)`
+- `it.skip.since(...)`, `describe.skip.since(...)`
 
-To enable it, import `modSince` from `@jahia/cypress` and call `modSince.enable()` in your test setup code (for example in `cypress/support/e2e.js`):
+`it.since(...)` and `describe.since(...)` run only when current Jahia version is greater than or equal to `requiredVersion`; otherwise they are skipped.
 
-```typescript
-import {modSince} from '@jahia/cypress';
-modSince.enable();
-```
+`it.skip.since(...)` and `describe.skip.since(...)` are always skipped (same behavior as Cypress `skip`, with a version argument for consistency).
 
-Then you can use `it.since()` and `describe.since()` in your tests:
+Jahia version is fetched in a root `before()` hook and stored in environment variable `CYPRESS_JAHIA_VERSION`.
 ```typescript
 it.since('8.2.0', 'shows the new dashboard widget', () => {
     // test body
@@ -133,7 +131,7 @@ describe.since('8.2.0', 'dashboard suite available since 8.2', () => {
     });
 });
 
-// `only` modifier is also supported
+// `only` modifiers are also supported
 it.only.since('8.2.0', 'focused version-gated test', () => {
     // test body
 });
@@ -143,9 +141,18 @@ describe.only.since('8.2.0', 'focused version-gated suite', () => {
         // suite test body
     });
 });
-```
 
-Jahia version is fetched in a root `before()` hook and stored in `Cypress.env('CYPRESS_JAHIA_VERSION')`.
+// `skip` modifiers are also supported
+it.skip.since('8.2.0', 'always skipped version-gated test', () => {
+    // skipped
+});
+
+describe.skip.since('8.2.0', 'always skipped version-gated suite', () => {
+    it('is skipped', () => {
+        // skipped
+    });
+});
+```
 
 ## Internal Auxiliary Libraries
 
