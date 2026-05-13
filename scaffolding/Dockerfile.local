@@ -1,0 +1,8 @@
+ARG BASE_IMAGE="jahia/jahia-cypress:latest"
+FROM ${BASE_IMAGE}
+
+COPY --chown=jahians:jahians . /home/jahians
+
+RUN CI=true yarn install ; \
+    /home/jahians/node_modules/.bin/cypress install
+
