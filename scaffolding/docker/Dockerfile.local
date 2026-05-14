@@ -3,6 +3,5 @@ FROM ${BASE_IMAGE}
 
 COPY --chown=jahians:jahians . /home/jahians
 
-RUN CI=true yarn install ; \
-    /home/jahians/node_modules/.bin/cypress install
+CMD /bin/bash -c /home/jahians/env.run.sh
 
