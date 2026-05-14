@@ -1,0 +1,27 @@
+workflows:
+  provision:
+    steps:
+      - name: Wait for Jahia to be stareted and healthy
+        uses: environment:alive
+        with:
+          timeout: "300"
+      - name: Execute provisioning script
+        uses: jahia:provision
+        with:
+          manifest: "${MANIFEST}"
+          assets: ./assets
+      - name: Install Java Modules (if present)
+        uses: jahia:provision
+        with:
+          manifest: "${MANIFEST}"
+          modules: ./artifacts
+      - name: Install Javascript Modules (if present)
+        uses: jahia:provision
+        with:
+          manifest: "${MANIFEST}"
+          modules: ./artifacts
+      - name: Install Scripts (if present)
+        uses: jahia:provision
+        with:
+          manifest: "${MANIFEST}"
+          scripts: ./scripts
