@@ -1,5 +1,6 @@
-ARG BASE_IMAGE="jahia/jahia-cypress:latest"
-FROM ${BASE_IMAGE}
+ARG BASE_IMAGE="jahia/jahia-cypress"
+ARG BASE_VERSION="latest"
+FROM ${BASE_IMAGE}:${BASE_VERSION}
 
 COPY --chown=jahians:jahians . /home/jahians
 
