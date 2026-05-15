@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 source set-env.sh
 
 # Display various system details for debugging purposes
@@ -43,14 +44,14 @@ echo "$(date +'%d %B %Y - %k:%M') TIMEZONE: ${TIMEZONE}"
 
 # Provision the environment
 # This will execute a set of steps defined in a "provision" workflow named
-echo "$(date +'%d %B %Y - %k:%M') == entrypoint.sh == Executing Jahia CLI provision command =="
+echo "$(date +'%d %B %Y - %k:%M') == entrypoint.sh == Executing Jahia CLI provision workflow =="
 jahia-cli workflow:run -c ${JAHIACLI_CONFIG} --name provision
 
 # Before running the tests, make sure there are no errors in the logs
 # In Server Availability Manager (SAM), a probe with LOW severity called JahiaErrorsProbe checks for errors in the logs.
 # Using it we can ensure there were no errors during the provisioning phase and that the environment is in a healthy state before running the tests.
 # If there are errors, print the logs and exit with failure to avoid running tests in a broken environment
-jahia-cli jahia:alive --timeout 300 --severity LOW
+jahia-cli jahia:alive --timeout 300 --severity LOW --url ${JAHIA_URL}
 if [[ $? -ne 0 ]]; then
   echo "$(date +'%d %B %Y - %k:%M') == Errors detected in logs before running tests =="
   echo "Printing the last 100 lines of the Jahia logs for debugging purposes:"
