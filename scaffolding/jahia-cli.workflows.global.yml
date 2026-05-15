@@ -18,7 +18,7 @@ workflows:
   provision:
     steps:
       - name: Wait for Jahia to be stareted and healthy
-        uses: environment:alive
+        uses: jahia:alive
         with:
           timeout: "300"
       - name: Execute provisioning script
