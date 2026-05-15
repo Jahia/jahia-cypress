@@ -29,15 +29,12 @@ workflows:
       - name: Install Java Modules (if present)
         uses: jahia:provision
         with:
-          manifest: "${MANIFEST}"
           modules: ./artifacts
       - name: Install Javascript Modules (if present)
         uses: jahia:provision
         with:
-          manifest: "${MANIFEST}"
           modules: ./artifacts
       - name: Install Scripts (if present)
         uses: jahia:provision
         with:
-          manifest: "${MANIFEST}"
           scripts: ./scripts
