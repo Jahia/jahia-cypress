@@ -7,7 +7,7 @@ if [ -f .env ]; then
   echo "[INFO] Found .env file, sourcing it as primary source of truth"
   source .env
   export $(grep -v '^\s*#' .env | grep -v '^\s*$' | sed 's/=.*//g' | xargs)
-  while IFS= read -r line; do
+  while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in \#*|"") continue ;; esac
     var_name="${line%%=*}"
     echo "[LOADED] $var_name (from .env)"
@@ -20,7 +20,7 @@ fi
 for example_file in .env.example*; do
   [ -f "$example_file" ] || continue
   echo "[INFO] Processing $example_file for missing variables"
-  while IFS= read -r line; do
+  while IFS= read -r line || [ -n "$line" ]; do
     # Skip comments and empty lines
     case "$line" in \#*|"") continue ;; esac
     # Extract variable name
