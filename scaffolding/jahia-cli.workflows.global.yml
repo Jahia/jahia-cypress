@@ -1,0 +1,40 @@
+# Global Workflows File (jahia-cli)
+#
+# Shared workflow definitions usable across multiple projects.
+# Workflows defined here are merged with those in the local config file.
+# If a workflow name exists in both, the local config always takes precedence.
+#
+# Reference this file via:
+#   - Config key:  workflowsFile: jahia-cli.workflows.global.yml
+#   - CLI flag:    --workflows-file (-w) path/to/file.yml
+#
+# The config key resolves relative to the config file directory.
+# The CLI flag resolves relative to the current working directory.
+# Environment variables are supported: workflowsFile: ${WORKFLOWS_FILE}
+#
+# Set "default: true" on one workflow to make it the fallback
+# when no workflow name is specified on the command line.
+workflows:
+  provision:
+    steps:
+      - name: Wait for Jahia to be stareted and healthy
+        uses: jahia:alive
+        with:
+          timeout: "300"
+      - name: Execute provisioning script
+        uses: jahia:provision
+        with:
+          manifest: "${MANIFEST}"
+          assets: ./assets
+      - name: Install Java Modules (if present)
+        uses: jahia:provision
+        with:
+          modules: ./artifacts
+      - name: Install Javascript Modules (if present)
+        uses: jahia:provision
+        with:
+          modules: ./artifacts
+      - name: Install Scripts (if present)
+        uses: jahia:provision
+        with:
+          scripts: ./scripts

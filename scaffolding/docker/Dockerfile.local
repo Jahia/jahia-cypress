@@ -1,0 +1,7 @@
+ARG BASE_IMAGE="jahia/jahia-cypress"
+ARG BASE_VERSION="latest"
+FROM ${BASE_IMAGE}:${BASE_VERSION}
+
+COPY --chown=jahians:jahians . /home/jahians
+
+CMD /bin/bash -c /home/jahians/docker/entrypoint.sh
