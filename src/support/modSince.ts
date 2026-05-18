@@ -90,12 +90,19 @@ const skipReason = (scope: string, title: string, required: string, current?: st
  * and caches the result in `Cypress.env(JAHIA_VERSION_ENV_VAR)`.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const initializeVersionSupport = (): Cypress.Chainable<any> =>
-    getJahiaVersion().then(jahiaVersion => {
-        const version = jahiaVersion.release.replace('-SNAPSHOT', '');
+export const initializeVersionSupport = (): Cypress.Chainable<any> => {
+    const cachedVersion = Cypress.env(JAHIA_VERSION_ENV_VAR);
+
+    if (typeof cachedVersion === 'string' && cachedVersion.trim() !== '') {
+        return cy.wrap(cachedVersion, {log: false});
+    }
+
+    return getJahiaVersion().then(jahiaVersion => {
+        const version = jahiaVersion?.release?.replace('-SNAPSHOT', '') || '0.0.0.1';
         Cypress.env(JAHIA_VERSION_ENV_VAR, version);
         return version;
     });
+};
 
 /**
  * Attaches `.since()` to `it`, `it.only`, `it.skip`, `describe`, `describe.only`,
