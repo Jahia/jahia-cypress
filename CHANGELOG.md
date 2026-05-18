@@ -1,5 +1,9 @@
 # @jahia/cypress Changelog
 
+## 8.1.1
+
+* Use default Jahia ref. while fetching version; fail safe when version can't be fetched.
+
 ## 8.1.0
 
 ### New Features
