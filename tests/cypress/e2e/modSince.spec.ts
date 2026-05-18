@@ -1,11 +1,19 @@
 import '../../../src/support/apollo/apollo';
+import '../../../src/support/apollo/apolloClient';
 import {modSince, initializeVersionSupport, JAHIA_VERSION_ENV_VAR} from '../../../src/support/modSince';
+
+type ItSinceCall = (requiredVersion: string, title: string, fn?: (...args: unknown[]) => unknown) => Mocha.Test;
+type DescribeSinceCall = (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void) => Mocha.Suite;
 
 // Enable version gating
 modSince.enable();
 
 // Stub apollo command
-Cypress.Commands.add('apollo', {prevSubject: 'optional'}, () => {
+Cypress.Commands.add('apolloClient', (() => {
+    return cy.wrap({} as unknown);
+}) as Cypress.CommandFn<'apolloClient'>);
+
+Cypress.Commands.add('apollo', (() => {
     return cy.wrap({
         data: {
             admin: {
@@ -17,7 +25,7 @@ Cypress.Commands.add('apollo', {prevSubject: 'optional'}, () => {
             }
         }
     });
-});
+}) as Cypress.CommandFn<'apollo'>);
 
 describe('itSince support', () => {
     describe('registration', () => {
@@ -38,7 +46,7 @@ describe('itSince support', () => {
 
         it('throws clear error when it.since args are swapped', () => {
             expect(() => {
-                (it.since as unknown as (requiredVersion: string, title: string, fn?: Mocha.Func) => Mocha.Test)(
+                (it.since as unknown as ItSinceCall)(
                     'my test title',
                     '8.2.0',
                     () => {
@@ -100,7 +108,7 @@ describe('itSince support', () => {
         let compatItRan = false;
         let compatDescribeRan = false;
 
-        const compatIt = (it.skip as unknown as (requiredVersion: string, title: string, fn?: Mocha.Func) => Mocha.Test)(
+        const compatIt = (it.skip as unknown as ItSinceCall)(
             '8.3.5.0',
             compatItTitle,
             () => {
@@ -108,7 +116,7 @@ describe('itSince support', () => {
             }
         );
 
-        const compatDescribe = (describe.skip as unknown as (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void) => Mocha.Suite)(
+        const compatDescribe = (describe.skip as unknown as DescribeSinceCall)(
             '8.3.5.0',
             compatDescribeTitle,
             () => {
@@ -136,6 +144,26 @@ describe('itSince support', () => {
     });
 
     describe('version initialization', () => {
+        beforeEach(() => {
+            Cypress.env(JAHIA_VERSION_ENV_VAR, '');
+        });
+
+        it('returns cached env version without fetching from GraphQL', () => {
+            Cypress.env(JAHIA_VERSION_ENV_VAR, '9.9.9');
+            // Use `any` here because custom commands are not part of Cypress's typed EventEmitter keys.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cyAny = cy as any;
+            const apolloClientSpy = cy.spy(cyAny, 'apolloClient').as('apolloClientSpy');
+            const apolloSpy = cy.spy(cyAny, 'apollo').as('apolloSpy');
+
+            return initializeVersionSupport().then(version => {
+                expect(version).to.equal('9.9.9');
+                expect(Cypress.env(JAHIA_VERSION_ENV_VAR)).to.equal('9.9.9');
+                expect(apolloClientSpy).to.not.have.been.called;
+                expect(apolloSpy).to.not.have.been.called;
+            });
+        });
+
         it('stores normalized Jahia version in Cypress.env', () => {
             return initializeVersionSupport().then(version => {
                 expect(version).to.equal('8.2.0');
