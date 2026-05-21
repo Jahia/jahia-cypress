@@ -1,0 +1,17 @@
+x-metadata:
+  name: "PostgreSQL 16"
+  description: "PostgreSQL 16 database server for Jahia content storage."
+  group: "database"
+  requires: []
+
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: database
+    hostname: database
+    networks:
+      - stack
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-jahia}
+      POSTGRES_USER: ${POSTGRES_USER:-jahia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jahia}

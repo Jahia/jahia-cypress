@@ -1,0 +1,29 @@
+x-metadata:
+  name: "Cypress Test Runner"
+  description: "Cypress end-to-end test runner container. Executes test suites against the Jahia instance."
+  group: "testing"
+  requires:
+    - service: "jahia"
+
+services:
+  cypress:
+    image: "${TESTS_IMAGE:-jahia/jahia-modules-tests:latest}"
+    # https://github.com/cypress-io/cypress/issues/350
+    ipc: host
+    container_name: cypress
+    hostname: cypress
+    deploy:
+      resources:
+        limits:
+          memory: 4gb
+    environment:
+      MANIFEST: ${MANIFEST:-provisioning-manifest-snapshot.yml}
+      JAHIA_URL: ${JAHIA_URL:-http://jahia:8080}
+      JAHIA_USERNAME: ${JAHIA_USERNAME:-root}
+      JAHIA_PASSWORD: ${JAHIA_PASSWORD:-}
+      SUPER_USER_PASSWORD: ${SUPER_USER_PASSWORD}
+      NEXUS_USERNAME: ${NEXUS_USERNAME:-}
+      NEXUS_PASSWORD: ${NEXUS_PASSWORD:-}
+      TESTS_PROFILE: ${TESTS_PROFILE:-}
+    networks:
+      - stack

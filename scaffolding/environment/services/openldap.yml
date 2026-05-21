@@ -1,0 +1,31 @@
+x-metadata:
+  name: "OpenLDAP"
+  description: "OpenLDAP directory server for testing LDAP authentication and user synchronization."
+  group: "directory"
+  requires: []
+
+services:
+  openldap:
+    image: "ghcr.io/jahia/docker-openldap:${LDAP_TAG:-latest}"
+    container_name: openldap
+    hostname: ldap-server
+    domainname: "jahia.com"
+    tty: true
+    stdin_open: true
+    networks:
+      - stack
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - /var/lib/ldap
+      - /etc/ldap/slapd.d
+      - /container/service/slapd/assets/certs/
+    environment:
+      LDAP_LOG_LEVEL: "256"
+      LDAP_ORGANISATION: "Jahia Inc."
+      LDAP_DOMAIN: "jahia.com"
+      LDAP_BASE_DN: "cn=admin,dc=jahia,dc=com"
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+      LDAP_READONLY_USER: "false"

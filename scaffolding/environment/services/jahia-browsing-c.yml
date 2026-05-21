@@ -1,0 +1,37 @@
+x-metadata:
+  name: "Jahia Browsing Node C"
+  description: "Third Jahia browsing/cluster node for read-only content delivery."
+  group: "cluster"
+  requires:
+    - service: "jahia"
+    - group: "database"
+
+services:
+  jahia-browsing-c:
+    image: "${JAHIA_IMAGE:-jahia/jahia-ee:latest}"
+    container_name: jahia-browsing-c
+    hostname: jahia-browsing-c
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 4gb
+    networks:
+      - stack
+    ports:
+      - "8083:8080"
+      - "8104:8101"
+    environment:
+      jahia_cfg_karaf_remoteShellHost: 0.0.0.0
+      DB_VENDOR: ${DB_VENDOR:-postgresql}
+      DB_HOST: ${DB_HOST:-database}
+      DB_NAME: ${DB_NAME:-jahia}
+      DB_USER: ${DB_USER:-jahia}
+      DB_PASS: ${DB_PASS:-jahia}
+      JAHIA_LICENSE: ${JAHIA_LICENSE}
+      SUPER_USER_PASSWORD: ${SUPER_USER_PASSWORD}
+      CLUSTER_ENABLED: "true"
+      PROCESSING_SERVER: "false"
+      PROCESSING_HOST: jahia
+      MAX_RAM_PERCENTAGE: ${MAX_RAM_PERCENTAGE:-95}
+      RESTORE_MODULE_STATES: "false"

@@ -1,0 +1,29 @@
+x-metadata:
+  name: "Elasticsearch"
+  description: "Elasticsearch single-node cluster with security enabled. Used for Augmented Search and content indexing."
+  group: "search"
+  requires: []
+
+services:
+  elasticsearch:
+    image: "${ELASTICSEARCH_IMAGE:-docker.elastic.co/elasticsearch/elasticsearch:8.14.0}"
+    container_name: elasticsearch
+    hostname: elasticsearch
+    deploy:
+      resources:
+        limits:
+          memory: 3gb
+    ports:
+      - "9200:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - stack
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "true"
+      ELASTIC_PASSWORD: ${SUPER_USER_PASSWORD}
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS:--Xms2g -Xmx2g}

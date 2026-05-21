@@ -1,0 +1,23 @@
+x-metadata:
+  name: "MariaDB 10"
+  description: "MariaDB 10 database server for Jahia content storage. Includes optimized settings for Jahia workloads."
+  group: "database"
+  requires: []
+
+services:
+  mariadb:
+    image: library/mariadb:10-jammy
+    container_name: mariadb
+    hostname: mariadb
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+    networks:
+      - stack
+    command: --max_allowed_packet=1073741824 --transaction-isolation=READ-UNCOMMITTED --innodb-lock-wait-timeout=10
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root1234}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-jahia}
+      MYSQL_USER: ${MYSQL_USER:-jahia}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-jahia}

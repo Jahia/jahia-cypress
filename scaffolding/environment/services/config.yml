@@ -1,0 +1,54 @@
+# Service Library Configuration
+#
+# This file defines the groups and their selection rules for the composition tool.
+# The tool reads this file to understand how to prompt users and enforce constraints.
+# Service files reference groups by their ID.
+
+groups:
+  core:
+    label: "Jahia Core"
+    description: "Primary Jahia application server"
+    selection: "always_included"
+    order: 10
+
+  database:
+    label: "Database"
+    description: "Database backend for Jahia (skip for embedded Derby)"
+    selection: "at_most_one"
+    order: 20
+
+  cluster:
+    label: "Cluster Nodes"
+    description: "Jahia browsing nodes for cluster testing"
+    selection: "zero_or_more"
+    order: 30
+
+  search:
+    label: "Search Engine"
+    description: "Search and indexing services"
+    selection: "zero_or_more"
+    order: 40
+
+  directory:
+    label: "Directory Services"
+    description: "LDAP and directory services for authentication testing"
+    selection: "zero_or_more"
+    order: 50
+
+  messaging:
+    label: "Messaging"
+    description: "Email and messaging services"
+    selection: "zero_or_more"
+    order: 60
+
+  infrastructure:
+    label: "Infrastructure"
+    description: "Load balancers and network infrastructure"
+    selection: "zero_or_more"
+    order: 70
+
+  testing:
+    label: "Testing"
+    description: "Test runners and test infrastructure"
+    selection: "zero_or_more"
+    order: 80

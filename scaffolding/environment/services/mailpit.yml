@@ -1,0 +1,16 @@
+x-metadata:
+  name: "Mailpit (SMTP Server)"
+  description: "Lightweight SMTP test server with web UI for inspecting captured emails."
+  group: "messaging"
+  requires: []
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    hostname: mailpit
+    networks:
+      - stack
+    ports:
+      - "1025:1025"
+      - "8025:8025"
