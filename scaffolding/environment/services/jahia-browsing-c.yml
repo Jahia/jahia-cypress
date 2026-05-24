@@ -8,13 +8,15 @@ x-metadata:
 
 services:
   jahia-browsing-c:
-    image: "${JAHIA_IMAGE:-jahia/jahia-ee:latest}"
+    image: "${JCLI_JAHIA_IMAGE:-jahia/jahia-ee:8}"
     container_name: jahia-browsing-c
     hostname: jahia-browsing-c
     restart: "no"
     deploy:
       resources:
         limits:
+          memory: 6gb
+        reservations:
           memory: 4gb
     networks:
       - stack
@@ -23,15 +25,15 @@ services:
       - "8104:8101"
     environment:
       jahia_cfg_karaf_remoteShellHost: 0.0.0.0
-      DB_VENDOR: ${DB_VENDOR:-postgresql}
-      DB_HOST: ${DB_HOST:-database}
-      DB_NAME: ${DB_NAME:-jahia}
-      DB_USER: ${DB_USER:-jahia}
-      DB_PASS: ${DB_PASS:-jahia}
-      JAHIA_LICENSE: ${JAHIA_LICENSE}
-      SUPER_USER_PASSWORD: ${SUPER_USER_PASSWORD}
+      DB_VENDOR: ${JCLI_JAHIA_DB_VENDOR:-postgresql}
+      DB_HOST: ${JCLI_JAHIA_DB_HOST:-database}
+      DB_NAME: ${JCLI_JAHIA_DB_NAME:-jahia}
+      DB_USER: ${JCLI_JAHIA_DB_USER:-jahia}
+      DB_PASS: ${JCLI_JAHIA_DB_PASS:-jahia}
+      JAHIA_LICENSE: ${JCLI_JAHIA_LICENSE:-}
+      SUPER_USER_PASSWORD: ${JCLI_SECRET_JAHIA_SUPER_USER_PASSWORD:-root1234}
       CLUSTER_ENABLED: "true"
       PROCESSING_SERVER: "false"
-      PROCESSING_HOST: jahia
-      MAX_RAM_PERCENTAGE: ${MAX_RAM_PERCENTAGE:-95}
+      PROCESSING_HOST: "jahia"
+      MAX_RAM_PERCENTAGE: 80
       RESTORE_MODULE_STATES: "false"
