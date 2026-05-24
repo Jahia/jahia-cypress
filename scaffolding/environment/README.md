@@ -46,6 +46,7 @@ The `docker-compose.yml` defines shared infrastructure (the `stack` network) tha
 ### 2. Service Files
 
 Each file in `services/` contains:
+
 - An `x-metadata` extension field (structured metadata for tooling)
 - A `services:` section with the service definition
 - Services reference the shared `stack` network (defined in the master)
@@ -83,17 +84,12 @@ x-metadata:
 
   # Dependencies: what this service needs to function
   requires:
-    - service: "service-name"     # Specific service must be selected
-    - group: "group-id"           # At least one service from this group must be selected
+    - service: "service-name" # Specific service must be selected
+    - group: "group-id" # At least one service from this group must be selected
 
   # (Optional) Free-form notes for developers or the tool
   notes: |
     Additional context about usage or configuration.
-
-  # (Optional) Environment variables that should be promptable in jahia-cli.
-  # Values must reference variables actually used in this service file.
-  prompt_env:
-    - JCLI_POSTGRES_IMAGE
 ```
 
 ## config.yml — Group Definitions
@@ -103,32 +99,32 @@ The `services/config.yml` file defines all groups with their selection rules and
 ```yaml
 groups:
   database:
-    label: "Database"                           # Section header in prompts
-    description: "Database backend for Jahia"   # Help text shown to user
-    selection: "at_most_one"                    # Selection rule
-    order: 20                                   # Sort order in prompt flow
+    label: "Database" # Section header in prompts
+    description: "Database backend for Jahia" # Help text shown to user
+    selection: "at_most_one" # Selection rule
+    order: 20 # Sort order in prompt flow
 ```
 
 ### Selection Rules
 
-| Rule | Meaning | Example |
-|------|---------|---------|
-| `always_included` | Auto-selected, no prompt needed | Jahia processing node |
-| `at_most_one` | Optional, but only one allowed from this group | Database (or skip for Derby) |
-| `zero_or_more` | Optional, pick any combination | Search, messaging, testing |
+| Rule              | Meaning                                        | Example                      |
+| ----------------- | ---------------------------------------------- | ---------------------------- |
+| `always_included` | Auto-selected, no prompt needed                | Jahia processing node        |
+| `at_most_one`     | Optional, but only one allowed from this group | Database (or skip for Derby) |
+| `zero_or_more`    | Optional, pick any combination                 | Search, messaging, testing   |
 
 ### Current Groups
 
-| Order | Group ID | Label | Selection | Services |
-|-------|----------|-------|-----------|----------|
-| 10 | `core` | Jahia Core | always_included | jahia |
-| 20 | `database` | Database | at_most_one | postgres-16, -17, -18, mariadb-10 |
-| 30 | `cluster` | Cluster Nodes | zero_or_more | jahia-browsing-a, -b, -c |
-| 40 | `search` | Search Engine | zero_or_more | elasticsearch, kibana |
-| 50 | `directory` | Directory Services | zero_or_more | openldap |
-| 60 | `messaging` | Messaging | zero_or_more | mailpit |
-| 70 | `infrastructure` | Infrastructure | zero_or_more | haproxy |
-| 80 | `testing` | Testing | zero_or_more | cypress |
+| Order | Group ID         | Label              | Selection       | Services                          |
+| ----- | ---------------- | ------------------ | --------------- | --------------------------------- |
+| 10    | `core`           | Jahia Core         | always_included | jahia                             |
+| 20    | `database`       | Database           | at_most_one     | postgres-16, -17, -18, mariadb-10 |
+| 30    | `cluster`        | Cluster Nodes      | zero_or_more    | jahia-browsing-a, -b, -c          |
+| 40    | `search`         | Search Engine      | zero_or_more    | elasticsearch, kibana             |
+| 50    | `directory`      | Directory Services | zero_or_more    | openldap                          |
+| 60    | `messaging`      | Messaging          | zero_or_more    | mailpit                           |
+| 70    | `infrastructure` | Infrastructure     | zero_or_more    | haproxy                           |
+| 80    | `testing`        | Testing            | zero_or_more    | cypress                           |
 
 ### Dependencies (`requires`)
 
@@ -143,9 +139,8 @@ If a user selects a service whose requirements aren't met, the tool should eithe
 
 1. Create a new `.yml` file in `services/`
 2. Add the `x-metadata` extension field with `group` referencing a group ID from `config.yml`
-3. Optionally add `prompt_env` with environment variable names that should be user-promptable
-4. Define the service under `services:` referencing the `stack` network
-5. If this belongs to a new group, add the group definition to `config.yml`
+3. Define the service under `services:` referencing the `stack` network
+4. If this belongs to a new group, add the group definition to `config.yml`
 
 ### Template
 
@@ -156,8 +151,6 @@ x-metadata:
   group: "your-group"
   requires: []
   # Optional: env vars that jahia-cli may prompt the user to override
-  prompt_env:
-    - YOUR_ENV_VAR
 
 services:
   your-service:

@@ -3,8 +3,6 @@ x-metadata:
   description: "Core Jahia CMS processing server. Handles content authoring and background jobs."
   group: "core"
   requires: []
-  prompt_env:
-    - JCLI_JAHIA_IMAGE
 
 services:
   jahia:

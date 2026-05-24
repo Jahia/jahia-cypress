@@ -3,8 +3,6 @@ x-metadata:
   description: "JCustomer Cluster Node C"
   group: "jcustomer"
   requires: []
-  prompt_env:
-    - JCLI_JCUSTOMER_IMAGE
 
 services:
   jcustomer-c:

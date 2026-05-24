@@ -3,8 +3,6 @@ x-metadata:
   description: "MariaDB 10 database server for Jahia content storage. Includes optimized settings for Jahia workloads."
   group: "database"
   requires: []
-  prompt_env:
-    - JCLI_MARIADB_IMAGE
 
 services:
   mariadb:
