@@ -16,7 +16,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256m
+          memory: 512mb
+        reservations:
+          memory: 256mb
     networks:
       - stack
     ports:

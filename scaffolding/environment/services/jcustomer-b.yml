@@ -1,0 +1,43 @@
+x-metadata:
+  name: "JCustomer Node B"
+  description: "JCustomer Cluster Node B"
+  group: "jcustomer"
+  requires: []
+  prompt_env:
+    - JCLI_JCUSTOMER_IMAGE
+
+services:
+  jcustomer-b:
+    image: "${JCLI_JCUSTOMER_IMAGE}"
+    container_name: jcustomer-b
+    hostname: jcustomer-b.jahia.net
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 3gb
+        reservations:
+          memory: 2gb
+    networks:
+      - stack:
+        ipv4_address: 172.24.24.101
+    ports:
+      - 18181:8181
+      - 19443:9443
+      - 15005:5005
+      - 18102:8102
+    environment:
+      UNOMI_ELASTICSEARCH_ADDRESSES: elasticsearch:9200
+      UNOMI_ELASTICSEARCH_CLUSTERNAME: docker-cluster
+      UNOMI_ELASTICSEARCH_USERNAME: ${JCLI_SECRET_ELASTICSEARCH_ELASTIC_USERNAME}
+      UNOMI_ELASTICSEARCH_PASSWORD: ${JCLI_SECRET_ELASTICSEARCH_ELASTIC_PASSWORD}
+      UNOMI_CLUSTER_PUBLIC_ADDRESS: https://jcustomer-b.jahia.net:18181
+      UNOMI_CLUSTER_INTERNAL_ADDRESS: https://jcustomer-b.jahia.net:19443
+      JAVA_MAX_MEM: 2G
+      UNOMI_ROOT_PASSWORD: ${JCLI_SECRET_JCUSTOMER_UNOMI_ROOT_PASSWORD}
+      UNOMI_HAZELCAST_TCPIP_MEMBERS: 172.24.24.100-102
+      UNOMI_THIRDPARTY_PROVIDER1_KEY: 670c26d1cc413346c3b2fd9ce65dab41
+      UNOMI_THIRDPARTY_PROVIDER1_IPADDRESSES: 172.24.24.0/24,::1,127.0.0.1
+      KARAF_OPTS: "-Dunomi.autoStart=true"
+      MAXMIND_KEY: ${JCLI_SECRET_JCUSTOMER_MAXMIND_KEY}
+      JCUSTOMER_DEBUG: true

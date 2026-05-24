@@ -23,23 +23,17 @@ groups:
     selection: "zero_or_more"
     order: 30
 
-  search:
-    label: "Search Engine"
+  elasticsearch:
+    label: "Elasticsearch and Kibana"
     description: "Search and indexing services"
     selection: "zero_or_more"
     order: 40
 
-  directory:
-    label: "Directory Services"
-    description: "LDAP and directory services for authentication testing"
+  others:
+    label: "Other Services"
+    description: "Miscellaneous services for testing and development"
     selection: "zero_or_more"
     order: 50
-
-  messaging:
-    label: "Messaging"
-    description: "Email and messaging services"
-    selection: "zero_or_more"
-    order: 60
 
   infrastructure:
     label: "Infrastructure"

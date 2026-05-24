@@ -1,12 +1,12 @@
 x-metadata:
   name: "Mailpit (SMTP Server)"
   description: "Lightweight SMTP test server with web UI for inspecting captured emails."
-  group: "messaging"
+  group: "others"
   requires: []
 
 services:
   mailpit:
-    image: axllent/mailpit:latest
+    image: ${JCLI_MAILPIT_IMAGE}
     container_name: mailpit
     hostname: mailpit
     networks:

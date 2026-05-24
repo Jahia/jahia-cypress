@@ -3,6 +3,8 @@ x-metadata:
   description: "PostgreSQL database server for Jahia content storage."
   group: "database"
   requires: []
+  prompt_env:
+    - JCLI_POSTGRES_IMAGE
 
 services:
   database:

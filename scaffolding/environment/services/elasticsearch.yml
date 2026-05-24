@@ -1,18 +1,20 @@
 x-metadata:
-  name: "Elasticsearch"
-  description: "Elasticsearch single-node cluster with security enabled. Used for Augmented Search and content indexing."
-  group: "search"
+  name: "Elasticsearch and Kibana"
+  description: "Elasticsearch single-node cluster with security enabled and Kibana."
+  group: "elasticsearch"
   requires: []
 
 services:
   elasticsearch:
-    image: "${ELASTICSEARCH_IMAGE:-docker.elastic.co/elasticsearch/elasticsearch:8.14.0}"
+    image: "${JCLI_ELASTICSEARCH_IMAGE}"
     container_name: elasticsearch
     hostname: elasticsearch
     deploy:
       resources:
         limits:
-          memory: 3gb
+          memory: 8gb
+        reservations:
+          memory: 4gb
     ports:
       - "9200:9200"
     ulimits:
@@ -24,6 +26,30 @@ services:
     environment:
       discovery.type: single-node
       xpack.security.enabled: "true"
-      ELASTIC_PASSWORD: ${SUPER_USER_PASSWORD}
+      ELASTIC_PASSWORD: ${JCLI_SECRET_ELASTICSEARCH_ELASTIC_PASSWORD}
       bootstrap.memory_lock: "true"
-      ES_JAVA_OPTS: ${ES_JAVA_OPTS:--Xms2g -Xmx2g}
+      ES_JAVA_OPTS: ${JCLI_ELASTICSEARCH_JAVA_OPTS}
+
+    kibana:
+      image: "${KIBANA_IMAGE}"
+      deploy:
+        resources:
+          limits:
+            memory: 1gb
+          reservations:
+            memory: 512mb
+      environment:
+        - discovery.type=single-node
+        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+        - ELASTICSEARCH_USERNAME=kibana_system
+        - ELASTICSEARCH_PASSWORD=${JCLI_SECRET_ELASTICSEARCH_ELASTIC_PASSWORD}
+        - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=a7a6311933d3503b89bc2dbc36572c33a6c10925682e591bffcab6911c06786d
+        - XPACK_FLEET_ENABLED=false
+        - XPACK_SYNTHETICS_ENABLED=false
+        - XPACK_FLEET_PACKAGES=[]
+        - CSP_STRICT=false
+      container_name: kibana
+      ports:
+        - 5601:5601
+      networks:
+        - jahia-net

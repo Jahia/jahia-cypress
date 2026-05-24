@@ -89,6 +89,11 @@ x-metadata:
   # (Optional) Free-form notes for developers or the tool
   notes: |
     Additional context about usage or configuration.
+
+  # (Optional) Environment variables that should be promptable in jahia-cli.
+  # Values must reference variables actually used in this service file.
+  prompt_env:
+    - JCLI_POSTGRES_IMAGE
 ```
 
 ## config.yml — Group Definitions
@@ -138,8 +143,9 @@ If a user selects a service whose requirements aren't met, the tool should eithe
 
 1. Create a new `.yml` file in `services/`
 2. Add the `x-metadata` extension field with `group` referencing a group ID from `config.yml`
-3. Define the service under `services:` referencing the `stack` network
-4. If this belongs to a new group, add the group definition to `config.yml`
+3. Optionally add `prompt_env` with environment variable names that should be user-promptable
+4. Define the service under `services:` referencing the `stack` network
+5. If this belongs to a new group, add the group definition to `config.yml`
 
 ### Template
 
@@ -149,6 +155,9 @@ x-metadata:
   description: "What this service provides."
   group: "your-group"
   requires: []
+  # Optional: env vars that jahia-cli may prompt the user to override
+  prompt_env:
+    - YOUR_ENV_VAR
 
 services:
   your-service:
