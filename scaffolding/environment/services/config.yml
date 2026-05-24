@@ -11,14 +11,8 @@ groups:
     selection: "always_included"
     order: 10
 
-  database:
-    label: "Database"
-    description: "Database backend for Jahia (skip for embedded Derby)"
-    selection: "at_most_one"
-    order: 20
-
   cluster:
-    label: "Cluster Nodes"
+    label: "Jahia Cluster"
     description: "Jahia browsing nodes for cluster testing"
     selection: "zero_or_more"
     order: 30
