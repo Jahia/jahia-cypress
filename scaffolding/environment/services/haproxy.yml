@@ -1,8 +1,3 @@
-x-metadata:
-  name: "HAProxy Load Balancer"
-  description: "HAProxy load balancer for distributing traffic across Jahia cluster nodes."
-  optional: true
-
 services:
   haproxy:
     image: haproxy:latest

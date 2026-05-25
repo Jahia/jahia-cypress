@@ -1,7 +1,3 @@
-x-metadata:
-  name: "VictoriaLogs"
-  description: "Centralized log storage with Promtail-based collection from running containers."
-
 services:
   # VictoriaLogs is the centralized backend that stores and serves logs.
   # Promtail pushes container logs to its Loki-compatible ingest endpoint.

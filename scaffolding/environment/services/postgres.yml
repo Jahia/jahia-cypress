@@ -1,7 +1,3 @@
-x-metadata:
-  name: "PostgreSQL"
-  description: "PostgreSQL database server for Jahia content storage."
-
 services:
   database:
     image: "${JCLI_POSTGRES_IMAGE:-postgres:18-alpine}"

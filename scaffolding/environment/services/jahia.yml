@@ -1,7 +1,3 @@
-x-metadata:
-  name: "Jahia Processing Node"
-  description: "Core Jahia CMS processing server. Handles content authoring and background jobs."
-
 services:
   jahia:
     image: "${JCLI_JAHIA_IMAGE}"

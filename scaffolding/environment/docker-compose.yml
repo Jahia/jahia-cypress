@@ -1,28 +1,16 @@
-# Modular Docker Compose Service Library
+# Jahia Test Environment - Master Compose File
 #
-# This is the master docker-compose file for the Jahia test environment.
-# It defines shared infrastructure (networks) that all included services attach to.
+# Base setup: Jahia + PostgreSQL + VictoriaLogs (centralized logging).
+# Customize by adding services from ./services/ to the include list below.
 #
-# USAGE:
-#   Base services are always included below.
-#   `jahia-cli` can append additional optional service fragments from ./services/
-#   based on user selections.
-#
-# REQUIREMENTS:
+# Requirements:
 #   - Docker Compose v2.20+ (for `include` support)
 #   - A .env file with required environment variables (see README.md)
-#
-# EXAMPLE (base + optional services):
-#   include:
-#     - path: ./services/jahia.yml
-#     - path: ./services/postgres.yml
-#     - path: ./services/victorialogs.yml
-#     - path: ./services/cypress.yml
 
 include:
+  - path: ./services/victorialogs.yml
   - path: ./services/jahia.yml
   - path: ./services/postgres.yml
-  - path: ./services/victorialogs.yml
 
 networks:
   stack:

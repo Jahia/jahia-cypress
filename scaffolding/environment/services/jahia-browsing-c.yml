@@ -1,8 +1,3 @@
-x-metadata:
-  name: "Jahia Browsing Node C"
-  description: "Third Jahia browsing/cluster node for read-only content delivery."
-  optional: true
-
 services:
   jahia-browsing-c:
     image: "${JCLI_JAHIA_IMAGE:-jahia/jahia-ee:8}"

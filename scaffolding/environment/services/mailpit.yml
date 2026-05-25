@@ -1,8 +1,3 @@
-x-metadata:
-  name: "Mailpit (SMTP Server)"
-  description: "Lightweight SMTP test server with web UI for inspecting captured emails."
-  optional: true
-
 services:
   mailpit:
     image: ${JCLI_MAILPIT_IMAGE}

@@ -1,8 +1,3 @@
-x-metadata:
-  name: "OpenLDAP"
-  description: "OpenLDAP directory server for testing LDAP authentication and user synchronization."
-  optional: true
-
 services:
   openldap:
     image: "${JCLI_OPENLDAP_IMAGE}"

@@ -1,8 +1,3 @@
-x-metadata:
-  name: "JCustomer Node B"
-  description: "JCustomer Cluster Node B"
-  optional: true
-
 services:
   jcustomer-b:
     image: "${JCLI_JCUSTOMER_IMAGE}"
