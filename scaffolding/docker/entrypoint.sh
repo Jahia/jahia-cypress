@@ -7,7 +7,7 @@ echo "$(date +'%d %B %Y - %k:%M') == entrypoint.sh == Printing system details"
 echo "$(date +'%d %B %Y - %k:%M') Yarn version: $(yarn --version)"
 echo "$(date +'%d %B %Y - %k:%M') Node version: $(node --version)"
 echo "$(date +'%d %B %Y - %k:%M') Jahia CLI version: $(jahia-cli --version)"
-echo "$(date +'%d %B %Y - %k:%M') Debug Logging: ${J_DEBUG}"
+echo "$(date +'%d %B %Y - %k:%M') Debug Logging enabled: ${J_DEBUG}"
 echo "$(date +'%d %B %Y - %k:%M') "
 
 # Provision the environment
