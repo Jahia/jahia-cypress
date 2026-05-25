@@ -1,6 +1,6 @@
 services:
   elasticsearch:
-    image: "${JCLI_ELASTICSEARCH_IMAGE}"
+    image: "${J_ELASTICSEARCH_IMAGE}"
     container_name: elasticsearch
     hostname: elasticsearch
     deploy:
@@ -20,12 +20,12 @@ services:
     environment:
       discovery.type: single-node
       xpack.security.enabled: "true"
-      ELASTIC_PASSWORD: ${JCLI_SECRET_ELASTICSEARCH_ELASTIC_PASSWORD}
+      ELASTIC_PASSWORD: ${J_ELASTICSEARCH_ELASTIC_PASSWORD}
       bootstrap.memory_lock: "true"
-      ES_JAVA_OPTS: ${JCLI_ELASTICSEARCH_JAVA_OPTS}
+      ES_JAVA_OPTS: ${J_ELASTICSEARCH_JAVA_OPTS}
 
   kibana:
-    image: "${JCLI_ELASTICSEARCH_KIBANA_IMAGE}"
+    image: "${J_ELASTICSEARCH_KIBANA_IMAGE}"
     deploy:
       resources:
         limits:
@@ -36,7 +36,7 @@ services:
       - discovery.type=single-node
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=${JCLI_SECRET_ELASTICSEARCH_ELASTIC_PASSWORD}
+      - ELASTICSEARCH_PASSWORD=${J_ELASTICSEARCH_ELASTIC_PASSWORD}
       - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=a7a6311933d3503b89bc2dbc36572c33a6c10925682e591bffcab6911c06786d
       - XPACK_FLEET_ENABLED=false
       - XPACK_SYNTHETICS_ENABLED=false

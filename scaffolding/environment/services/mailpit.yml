@@ -1,6 +1,6 @@
 services:
   mailpit:
-    image: ${JCLI_MAILPIT_IMAGE}
+    image: ${J_MAILPIT_IMAGE}
     container_name: mailpit
     hostname: mailpit
     networks:

@@ -1,6 +1,6 @@
 services:
   jahia-browsing-b:
-    image: "${JCLI_JAHIA_IMAGE:-jahia/jahia-ee:8}"
+    image: "${J_JAHIA_IMAGE:-jahia/jahia-ee:8}"
     container_name: jahia-browsing-b
     hostname: jahia-browsing-b
     restart: "no"
@@ -17,13 +17,13 @@ services:
       - "8103:8101"
     environment:
       jahia_cfg_karaf_remoteShellHost: 0.0.0.0
-      DB_VENDOR: ${JCLI_JAHIA_DB_VENDOR}
-      DB_HOST: ${JCLI_JAHIA_DB_HOST}
-      DB_NAME: ${JCLI_JAHIA_DB_NAME}
-      DB_USER: ${JCLI_SECRET_JAHIA_DB_USER}
-      DB_PASS: ${JCLI_SECRET_JAHIA_DB_PASS}
-      JAHIA_LICENSE: ${JCLI_JAHIA_LICENSE}
-      SUPER_USER_PASSWORD: ${JCLI_SECRET_JAHIA_SUPER_USER_PASSWORD}
+      DB_VENDOR: ${J_JAHIA_DB_VENDOR}
+      DB_HOST: ${J_JAHIA_DB_HOST}
+      DB_NAME: ${J_JAHIA_DB_NAME}
+      DB_USER: ${J_JAHIA_DB_USER}
+      DB_PASS: ${J_JAHIA_DB_PASS}
+      JAHIA_LICENSE: ${J_JAHIA_LICENSE}
+      SUPER_USER_PASSWORD: ${J_JAHIA_SUPER_USER_PASSWORD}
       CLUSTER_ENABLED: "true"
       PROCESSING_SERVER: "false"
       PROCESSING_HOST: "jahia"
