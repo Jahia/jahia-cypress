@@ -30,7 +30,7 @@ services:
       ES_JAVA_OPTS: ${JCLI_ELASTICSEARCH_JAVA_OPTS}
 
     kibana:
-      image: "${KIBANA_IMAGE}"
+      image: "${JCLI_ELASTICSEARCH_KIBANA_IMAGE}"
       deploy:
         resources:
           limits:
@@ -51,4 +51,4 @@ services:
       ports:
         - 5601:5601
       networks:
-        - jahia-net
+        - stack

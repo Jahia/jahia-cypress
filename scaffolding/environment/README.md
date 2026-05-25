@@ -38,7 +38,8 @@ environment/
     ├── jcustomer-c.yml
     ├── mailpit.yml
     ├── openldap.yml
-    └── postgres.yml
+    ├── postgres.yml
+    └── victorialogs.yml
 ```
 
 ## How it works
@@ -53,13 +54,25 @@ Current base includes:
 include:
   - path: ./services/jahia.yml
   - path: ./services/postgres.yml
+  - path: ./services/victorialogs.yml
 ```
 
 ### 2. Optional services
 
 Services with `x-metadata.optional: true` are optional containers that `jahia-cli` can propose during initialization.
 
-### 3. Final composition
+### 3. Base logging services
+
+`victorialogs.yml` is a base include containing:
+
+- `victorialogs` (log storage/query service, port `9428`)
+- `promtail` (collector that ships container logs)
+
+Log flow:
+
+`containers -> promtail -> victorialogs`
+
+### 4. Final composition
 
 `jahia-cli` can build a final include list by keeping base services and appending selected optional services.
 
@@ -69,6 +82,7 @@ Example:
 include:
   - path: ./services/jahia.yml
   - path: ./services/postgres.yml
+  - path: ./services/victorialogs.yml
   - path: ./services/mailpit.yml
   - path: ./services/cypress.yml
 
@@ -92,6 +106,7 @@ Rules:
 - `name` and `description` are always expected.
 - `optional` is omitted for base services.
 - `optional: true` marks user-selectable containers.
+- Base logging endpoint is available at `http://victorialogs:9428`.
 
 ## Adding a new service
 

@@ -16,11 +16,13 @@
 #   include:
 #     - path: ./services/jahia.yml
 #     - path: ./services/postgres.yml
+#     - path: ./services/victorialogs.yml
 #     - path: ./services/cypress.yml
 
 include:
   - path: ./services/jahia.yml
   - path: ./services/postgres.yml
+  - path: ./services/victorialogs.yml
 
 networks:
   stack:
