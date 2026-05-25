@@ -1,6 +1,8 @@
 services:
   cypress:
     image: "${JCLI_CYPRESS_IMAGE}"
+    profiles:
+      - tests
     # https://github.com/cypress-io/cypress/issues/350
     ipc: host
     container_name: cypress

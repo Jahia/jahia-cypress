@@ -8,6 +8,7 @@
 #   - A .env file with required environment variables (see README.md)
 
 include:
+  - path: ./services/cypress.yml
   - path: ./services/victorialogs.yml
   - path: ./services/jahia.yml
   - path: ./services/postgres.yml
