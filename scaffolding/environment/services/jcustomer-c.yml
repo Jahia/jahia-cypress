@@ -16,7 +16,7 @@ services:
         reservations:
           memory: 2gb
     networks:
-      - stack:
+      stack:
         ipv4_address: 172.31.24.102
     ports:
       - 28181:8181
