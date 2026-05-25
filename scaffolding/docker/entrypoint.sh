@@ -7,12 +7,13 @@ echo "$(date +'%d %B %Y - %k:%M') == entrypoint.sh == Printing system details"
 echo "$(date +'%d %B %Y - %k:%M') Yarn version: $(yarn --version)"
 echo "$(date +'%d %B %Y - %k:%M') Node version: $(node --version)"
 echo "$(date +'%d %B %Y - %k:%M') Jahia CLI version: $(jahia-cli --version)"
+echo "$(date +'%d %B %Y - %k:%M') Debug Logging: ${J_DEBUG}"
 echo "$(date +'%d %B %Y - %k:%M') "
 
 # Provision the environment
 # This will execute a set of steps defined in a "provision" workflow named
 echo "$(date +'%d %B %Y - %k:%M') == entrypoint.sh == Executing Jahia CLI provision workflow =="
-jahia-cli workflow:run -c ${JAHIACLI_CONFIG} --name provision --debug=${J_TESTS_DEBUG}
+jahia-cli workflow:run -c ${JAHIACLI_CONFIG} --name provision
 
 # Before running the tests, make sure there are no errors in the logs
 # In Server Availability Manager (SAM), a probe with LOW severity called JahiaErrorsProbe checks for errors in the logs.
