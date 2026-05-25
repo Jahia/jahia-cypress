@@ -1,14 +1,14 @@
 services:
-  cypress:
-    image: "${J_CYPRESS_IMAGE}"
+  tests:
+    image: "${J_TESTS_IMAGE}"
     # With profiles, the container is only started if the "tests" profile is activated.
     # docker compose --profile tests up
     profiles:
       - tests
     # https://github.com/cypress-io/cypress/issues/350
     ipc: host
-    container_name: cypress
-    hostname: cypress
+    container_name: tests
+    hostname: tests
     deploy:
       resources:
         limits:
