@@ -1,8 +1,7 @@
 x-metadata:
   name: "Mailpit (SMTP Server)"
   description: "Lightweight SMTP test server with web UI for inspecting captured emails."
-  group: "others"
-  requires: []
+  optional: true
 
 services:
   mailpit:

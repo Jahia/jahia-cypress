@@ -1,10 +1,7 @@
 x-metadata:
   name: "Jahia Browsing Node A"
   description: "First Jahia browsing/cluster node for read-only content delivery."
-  group: "cluster"
-  requires:
-    - service: "jahia"
-    - group: "database"
+  optional: true
 
 services:
   jahia-browsing-a:

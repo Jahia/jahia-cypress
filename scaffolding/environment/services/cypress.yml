@@ -1,9 +1,7 @@
 x-metadata:
   name: "Cypress Test Runner"
   description: "Cypress end-to-end test runner container. Executes test suites against the Jahia instance."
-  group: "testing"
-  requires:
-    - service: "jahia"
+  optional: true
 
 services:
   cypress:

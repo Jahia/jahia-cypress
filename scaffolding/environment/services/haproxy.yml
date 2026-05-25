@@ -1,12 +1,7 @@
 x-metadata:
   name: "HAProxy Load Balancer"
   description: "HAProxy load balancer for distributing traffic across Jahia cluster nodes."
-  group: "infrastructure"
-  requires:
-    - group: "cluster"
-  notes: |
-    HAProxy requires a configuration file. The composition tool should ensure
-    an haproxy/ directory exists with an appropriate haproxy.cfg file.
+  optional: true
 
 services:
   haproxy:

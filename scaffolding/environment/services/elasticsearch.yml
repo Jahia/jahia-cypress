@@ -1,8 +1,7 @@
 x-metadata:
   name: "Elasticsearch and Kibana"
   description: "Elasticsearch single-node cluster with security enabled and Kibana."
-  group: "elasticsearch"
-  requires: []
+  optional: true
 
 services:
   elasticsearch:

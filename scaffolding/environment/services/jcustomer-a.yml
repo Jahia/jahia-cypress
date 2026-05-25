@@ -1,8 +1,7 @@
 x-metadata:
   name: "JCustomer Node A"
   description: "JCustomer Cluster Node A"
-  group: "jcustomer"
-  requires: []
+  optional: true
 
 services:
   jcustomer:

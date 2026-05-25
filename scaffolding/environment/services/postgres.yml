@@ -1,8 +1,6 @@
 x-metadata:
   name: "PostgreSQL"
   description: "PostgreSQL database server for Jahia content storage."
-  group: "core"
-  requires: []
 
 services:
   database:

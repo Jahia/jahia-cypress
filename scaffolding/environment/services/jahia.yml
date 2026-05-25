@@ -1,8 +1,6 @@
 x-metadata:
   name: "Jahia Processing Node"
   description: "Core Jahia CMS processing server. Handles content authoring and background jobs."
-  group: "core"
-  requires: []
 
 services:
   jahia:

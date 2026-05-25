@@ -1,8 +1,7 @@
 x-metadata:
   name: "OpenLDAP"
   description: "OpenLDAP directory server for testing LDAP authentication and user synchronization."
-  group: "others"
-  requires: []
+  optional: true
 
 services:
   openldap:
