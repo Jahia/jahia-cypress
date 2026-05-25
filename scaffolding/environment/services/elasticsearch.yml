@@ -29,26 +29,26 @@ services:
       bootstrap.memory_lock: "true"
       ES_JAVA_OPTS: ${JCLI_ELASTICSEARCH_JAVA_OPTS}
 
-    kibana:
-      image: "${JCLI_ELASTICSEARCH_KIBANA_IMAGE}"
-      deploy:
-        resources:
-          limits:
-            memory: 1gb
-          reservations:
-            memory: 512mb
-      environment:
-        - discovery.type=single-node
-        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-        - ELASTICSEARCH_USERNAME=kibana_system
-        - ELASTICSEARCH_PASSWORD=${JCLI_SECRET_ELASTICSEARCH_ELASTIC_PASSWORD}
-        - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=a7a6311933d3503b89bc2dbc36572c33a6c10925682e591bffcab6911c06786d
-        - XPACK_FLEET_ENABLED=false
-        - XPACK_SYNTHETICS_ENABLED=false
-        - XPACK_FLEET_PACKAGES=[]
-        - CSP_STRICT=false
-      container_name: kibana
-      ports:
-        - 5601:5601
-      networks:
-        - stack
+  kibana:
+    image: "${JCLI_ELASTICSEARCH_KIBANA_IMAGE}"
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+        reservations:
+          memory: 512mb
+    environment:
+      - discovery.type=single-node
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${JCLI_SECRET_ELASTICSEARCH_ELASTIC_PASSWORD}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=a7a6311933d3503b89bc2dbc36572c33a6c10925682e591bffcab6911c06786d
+      - XPACK_FLEET_ENABLED=false
+      - XPACK_SYNTHETICS_ENABLED=false
+      - XPACK_FLEET_PACKAGES=[]
+      - CSP_STRICT=false
+    container_name: kibana
+    ports:
+      - 5601:5601
+    networks:
+      - stack
