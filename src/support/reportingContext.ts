@@ -34,7 +34,7 @@ type TaggedSuite = Mocha.Suite & {_tags?: string[]};
  *   });
  * });
  *
- * @see docs/tags.md for comprehensive documentation and recommended tag categories
+ * @see docs/reporting-context.md for details
  */
 function tag(...tags: string[]): void {
     if (Cypress.currentTest) {
@@ -54,7 +54,7 @@ function tag(...tags: string[]): void {
 }
 
 /**
- * Internal function to collect all tags upon 'test:after:run' event and prepare them for TestRail sync.
+ * Internal function to collect all tags upon 'test:after:run' event and add them to the mochawesome context.
  *
  * Walks up the suite chain to collect inherited tags and combines them with test-specific tags.
  * The collected tags are added to the test context in the mochawesome report, where jahia-reporter
@@ -93,4 +93,4 @@ export function collect(test: any, runnable: any): void {
 }
 
 /** Public export */
-export const reportingContext = {tag};
+export const context = {tag};
