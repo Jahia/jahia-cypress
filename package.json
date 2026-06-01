@@ -31,6 +31,7 @@
     "eslint-plugin-jest": "^29.15.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "mochawesome": "^6.3.1",
     "typescript": "^5.9.3"
   },
   "dependencies": {

@@ -4,6 +4,7 @@
     "outDir": "./dist",
     "module": "commonjs",
     "declaration": true,
+    "stripInternal": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

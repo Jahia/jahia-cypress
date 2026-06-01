@@ -8,3 +8,4 @@ export * from './jsErrorsLogger';
 export * from './jfaker';
 export * from './browserHelper';
 export * from './modSince';
+export * from './reportingContext';
