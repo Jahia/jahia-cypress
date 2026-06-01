@@ -46,6 +46,8 @@ describe('Authentication', () => {
 ### Example: Multi-Level Tagging
 
 ```typescript
+import {context} from '@jahia/cypress';
+
 describe('Content Management', () => {
   context.tag('regression', 'content');  // Suite-level tags
 
