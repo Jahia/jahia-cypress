@@ -1,5 +1,9 @@
 # @jahia/cypress Changelog
 
+## 8.2.0
+
+* Add `context.tag()` function for adding tags (user-defined labels) that can be attached to test suites and individual tests to provide metadata about test characteristics, scope, and purpose (#221)
+
 ## 8.1.1
 
 * Use default Jahia ref. while fetching version; fail safe when version can't be fetched.
