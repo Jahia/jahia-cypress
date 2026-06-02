@@ -66,13 +66,25 @@ describe('Content Management', () => {
 });
 ```
 
-## Collection & Storage
+## Implementation Details
+- Tags are collected during test execution via Mocha hooks and then added to the test's `context`.
+- Suite tags are inherited by nested describe blocks and tests.
+- All unique tags are deduplicated.
 
-- Tags are collected during test execution via Mocha hooks
-- Suite tags are inherited by nested describe blocks and tests
-- All unique tags are deduplicated
-- Tags are added to the mochawesome test report under the `context` field
-- The report is used by jahia-reporter to sync with TestRail
+Tags are stored as an object (`{title: <title>, value: <value>}`) in order to be properly parsed by mocha html-reporter. 
+Example:
+```json
+{title: 'tags', value: ['tag1', 'tag2', 'tag3']}
+```
+
+Finally, the `context` field in Cypress report will contain a stringified JSON array of tags meta-info along with other context information added by the user.
+
+Example of `context` field in the report (note - array contains both tags meta-info and user-added context info like video path; array is stringified by `mochawesome` reporter):
+```json
+"context": "[\n  {\n    \"title\": \"tags\",\n    \"value\": [\n      \"graphql-api-upa\",\n      \"upa\",\n      \"custom-factor\",\n      \"P1\",\n      \"authentication\"\n    ]\n  },\n  \"videos/graphQL.mfa.customFactor.cy.ts.mp4\"\n]",
+```
+This `context` field will be parsed by `jahia-reporter` afterward to extract the tags and sync them to `TestRail`. If the `context` field doesn't contain tags in expected format, it will be ignored by `jahia-reporter` and labels in `TestRail` won't be updated.
+
 
 ## Best Practices
 
