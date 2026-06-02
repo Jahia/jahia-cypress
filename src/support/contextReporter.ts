@@ -34,7 +34,7 @@ type TaggedSuite = Mocha.Suite & {_tags?: string[]};
  *   });
  * });
  *
- * @see docs/reporting-context.md for details
+ * @see docs/context-reporter.md for details
  */
 function tag(...tags: string[]): void {
     if (Cypress.currentTest) {
