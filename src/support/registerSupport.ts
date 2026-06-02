@@ -7,6 +7,7 @@ import {repeatUntil} from './repeatUntil';
 import {step} from './testStep';
 import {jfaker} from './jfaker';
 import {modSince} from './modSince';
+import {collect as contextCollector} from './contextReporter';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -53,4 +54,11 @@ export const registerSupport = (): void => {
             return originalFn(element, text, newOptions);
         }
     );
+
+    /**
+     * Listen to the 'test:after:run' event to collect tags and other context information after each test execution.
+     */
+    Cypress.on('test:after:run', (test, runnable) => {
+        contextCollector(test, runnable);
+    });
 };
