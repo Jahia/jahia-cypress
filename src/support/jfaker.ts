@@ -11,6 +11,10 @@
  * use `parseSpecialCharSequences: false`, e.g.: `<input>.type(text, {parseSpecialCharSequences: false})`
  * to prevent Cypress from interpreting special characters in the generated strings (e.g., {, }, [, ], etc.) as commands,
  * which is especially important for injection payloads that may contain such characters.
+ *
+ * TODO: Antivirus treats bash-data.ts as potentially harmful and removes it, which causes issues with the tests which use jfaker module.
+ *       Consider implementing a workaround, such as encoding/decoding those payloads (e.g. base64), to prevent antivirus from flagging them
+ *       while still allowing the tests to run successfully.
  */
 
 import {faker} from '@faker-js/faker';
