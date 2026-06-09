@@ -54,7 +54,7 @@ export const createUser = (userName: string, password: string, properties: {name
         return 'properties.setProperty("' + property.name + '", "' + property.value + '")';
     });
     cy.executeGroovy('groovy/admin/createUser.groovy', {
-        USER_NAME: userName,
+        USERNAME: userName,
         PASSWORD: password ? password : 'password',
         USER_PROPERTIES: userProperties ? userProperties.join('\n') : '',
         SITEKEY: siteKey
@@ -87,7 +87,7 @@ export const getUserPath = (username: string, siteKey = ''): Cypress.Chainable =
 export const deleteUser = (userName: string): void => {
     cy.log(`Deleting user ${userName}`);
     cy.executeGroovy('groovy/admin/deleteUser.groovy', {
-        USER_NAME: userName
+        USERNAME: userName
     });
 };
 
@@ -130,11 +130,11 @@ export const deleteGroup = (groupName: string, siteKey = ''): void => {
  * @param {string} siteKey Optional site key for site-scoped group membership.
  * @returns {void}
  */
-export const addUserToGroup = (userName: string, groupName: string, siteKey?: string): void => {
+export const addUserToGroup = (userName: string, groupName: string, siteKey = ''): void => {
     cy.log(`Add user ${userName} to ${siteKey === '' ? 'server-level' : ('site-level:' + siteKey)} group ${groupName}`);
     cy.executeGroovy('groovy/admin/addUserToGroup.groovy', {
-        USER_NAME: userName,
-        GROUP_NAME: groupName,
-        SITE_KEY: siteKey ? `"${siteKey}"` : 'null'
+        USERNAME: userName,
+        GROUPNAME: groupName,
+        SITEKEY: siteKey
     });
 };
