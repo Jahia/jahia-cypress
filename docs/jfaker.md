@@ -7,7 +7,7 @@ The `jfaker` module is a flexible fake data generation utility for Cypress testi
 ## Key Features
 
 - **Faker.js Integration**: Full access to all `Faker.js` methods for generating realistic test data
-- **Security Injection Payloads**: Built-in support for common injection attack vectors (XSS, SQL, Bash, etc.)
+- **Security Injection Payloads**: Built-in support for common injection attack vectors (XSS, SQL, etc.)
 - **Global Type Management**: Set a global data type that automatically overrides faker calls with injection data
 - **Flexible Configuration**: Control generation behavior with options like length, provider, and overridability
 - **Dynamic API**: Chain method calls naturally (e.g., `jfaker.person.firstName()`)
@@ -53,7 +53,6 @@ Generate security testing payloads for various attack vectors:
 
 - **`.xss()`** - Cross-Site Scripting (XSS) payloads
 - **`.sql()`** - SQL injection payloads
-- **`.bash()`** - Bash/shell command injection payloads
 - **`.chars()`** - Random special characters
 - **`.htmlentities()`** - HTML entities
 - **`.numbers()`** - Number-based edge cases and payloads
@@ -63,7 +62,6 @@ Generate security testing payloads for various attack vectors:
 // Default behavior (no length specified): 2-5 random items joined
 jfaker.xss()          // Returns: random XSS payload
 jfaker.sql()          // Returns: random SQL injection payload
-jfaker.bash()         // Returns: random Bash injection payload
 ```
 
 **With Length Control:**
@@ -84,7 +82,7 @@ jfaker.sql({length: -1})          // Returns: all SQL payloads joined together
 Sets the global data type for all subsequent jfaker calls. When set to an injection type, all faker method calls will return injection data instead.
 
 **Parameters:**
-- `type`: One of `'faker'`, `'xss'`, `'sql'`, `'bash'`, `'chars'`, `'htmlentities'`, or `'numbers'`
+- `type`: One of `'faker'`, `'xss'`, `'sql'`, `'chars'`, `'htmlentities'`, or `'numbers'`
 
 **Usage:**
 ```typescript
@@ -263,7 +261,7 @@ describe('Security Test Suite - SQL Injection', () => {
 
 ```typescript
 describe('Input Field Robustness', () => {
-   const injectionTypes = ['xss', 'sql', 'bash', 'chars', 'htmlentities', 'numbers'];
+   const injectionTypes = ['xss', 'sql', 'chars', 'htmlentities', 'numbers'];
 
    injectionTypes.forEach(type => {
       it(`should handle ${type} injection payloads`, () => {
@@ -355,7 +353,6 @@ The module uses a `DeepApi` class that implements a Proxy-based architecture:
 Injection payloads are imported from TypeScript files in the `src/injections/` directory:
 - `xss-data.ts` - XSS attack vectors
 - `sql-data.ts` - SQL injection patterns
-- `bash-data.ts` - Shell command injections
 - `chars-data.ts` - Special characters
 - `htmlentities-data.ts` - HTML entity variations
 - `numbers-data.ts` - Numeric edge cases
