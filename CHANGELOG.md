@@ -1,5 +1,9 @@
 # @jahia/cypress Changelog
 
+## 8.2.1
+
+* Temporary remove bash injections which can be treated by antivirus as a potentially unsafe. They will be reworked and brought back later on. (#224)
+
 ## 8.2.0
 
 * Add `context.tag()` function for adding tags (user-defined labels) that can be attached to test suites and individual tests to provide metadata about test characteristics, scope, and purpose (#221)
