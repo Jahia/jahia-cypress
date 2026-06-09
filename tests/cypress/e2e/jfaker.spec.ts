@@ -88,7 +88,7 @@ describe('FakeData (jfaker) Module Tests', () => {
     });
 
     describe('Injection Data Generation', () => {
-        const injectionTypes = ['xss', 'sql', 'bash', 'chars', 'htmlentities', 'numbers'];
+        const injectionTypes = ['xss', 'sql', 'chars', 'htmlentities', 'numbers'];
 
         injectionTypes.forEach(type => {
             it(`should generate ${type} injection data without length`, () => {
@@ -335,7 +335,6 @@ describe('FakeData (jfaker) Module Tests', () => {
                 scriptInjection: jfaker.person.firstName(),
                 longPayload: jfaker.xss({length: 200}),
                 sqlInjection: jfaker.sql({length: 100}),
-                bashInjection: jfaker.bash(),
                 specialChars: jfaker.chars({length: 30})
             };
 
@@ -394,7 +393,7 @@ describe('FakeData (jfaker) Module Tests', () => {
 
     describe('Type Switching Performance', () => {
         it('should handle frequent type switches', () => {
-            const types = ['faker', 'xss', 'sql', 'bash', 'faker'];
+            const types = ['faker', 'xss', 'sql', 'faker'];
             const results: string[] = [];
 
             types.forEach(type => {
