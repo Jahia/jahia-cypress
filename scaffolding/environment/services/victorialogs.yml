@@ -1,0 +1,37 @@
+services:
+  # VictoriaLogs is the centralized backend that stores and serves logs.
+  # Promtail pushes container logs to its Loki-compatible ingest endpoint.
+  victorialogs:
+    image: victoriametrics/victoria-logs:v1.23.1-victorialogs
+    container_name: victorialogs
+    hostname: victorialogs
+    networks:
+      - stack
+    ports:
+      - "9428:9428"
+    command:
+      - "-storageDataPath=/victoria-logs-data"
+    volumes:
+      - victorialogs-data:/victoria-logs-data
+
+  # Promtail is the log collector/forwarder:
+  # - discovers running Docker containers via the Docker socket
+  # - tails container log files from the host
+  # - ships those logs to VictoriaLogs
+  promtail:
+    image: grafana/promtail:3.1.1
+    container_name: promtail
+    hostname: promtail
+    networks:
+      - stack
+    command: "-config.file=/etc/promtail/promtail.yml"
+    volumes:
+      # Promtail runtime configuration
+      - ./victorialogs/promtail.yml:/etc/promtail/promtail.yml:ro
+      # Docker metadata discovery
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Container log file access
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+
+volumes:
+  victorialogs-data:

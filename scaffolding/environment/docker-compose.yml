@@ -1,0 +1,21 @@
+# Jahia Test Environment - Master Compose File
+#
+# Base setup: Jahia + PostgreSQL + VictoriaLogs (centralized logging).
+# Customize by adding services from ./services/ to the include list below.
+#
+# Requirements:
+#   - Docker Compose v2.20+ (for `include` support)
+#   - A .env file with required environment variables (see README.md)
+
+include:
+  - path: ./services/tests.yml
+  - path: ./services/victorialogs.yml
+  - path: ./services/jahia.yml
+  - path: ./services/postgres.yml
+
+networks:
+  stack:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.24.0/24

@@ -1,0 +1,17 @@
+services:
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    hostname: haproxy
+    deploy:
+      resources:
+        limits:
+          memory: 512mb
+        reservations:
+          memory: 256mb
+    networks:
+      - stack
+    ports:
+      - "8090:80"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
