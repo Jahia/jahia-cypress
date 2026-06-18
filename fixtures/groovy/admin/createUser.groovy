@@ -7,13 +7,15 @@ import javax.jcr.RepositoryException
 JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback() {
     @Override
     Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
-        log.info("Create user : USER_NAME")
+        log.info("Create user : USERNAME")
+
+        String siteKey = "SITEKEY".equals("") ? null : "SITEKEY";
         JahiaUserManagerService userManagerService = JahiaUserManagerService.getInstance()
 
         Properties properties = new Properties()
         USER_PROPERTIES
 
-        userManagerService.createUser("USER_NAME", null, "PASSWORD", properties, session)
+        userManagerService.createUser("USERNAME", siteKey, "PASSWORD", properties, session)
         session.save()
         return null
     }

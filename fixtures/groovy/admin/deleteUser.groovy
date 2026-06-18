@@ -7,15 +7,15 @@ import javax.jcr.RepositoryException
 JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback() {
     @Override
     Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
-        log.info("Delete user : USER_NAME" );
+        log.info("Delete user : USERNAME" );
 
         JahiaUserManagerService userManagerService = JahiaUserManagerService.getInstance();
-        def user = userManagerService.getUserPath("USER_NAME");
+        def user = userManagerService.getUserPath("USERNAME");
         if (user) {
             userManagerService.deleteUser(user, session);
             session.save();
         } else {
-            log.warn("User USER_NAME cannot be deleted. User not found");
+            log.warn("User USERNAME cannot be deleted. User not found");
         }
         return null;
     }
