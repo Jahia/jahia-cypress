@@ -8,8 +8,30 @@ import {step} from './testStep';
 import {jfaker} from './jfaker';
 import {modSince} from './modSince';
 import {collect as contextCollector} from './contextReporter';
+import {registerLogsCollector} from './logsCollector';
+import type {SupportOptions} from 'cypress-terminal-report/src/installLogsCollector.types';
 
-export const registerSupport = (): void => {
+export interface RegisterSupportOptions {
+    /**
+     * Options forwarded to cypress-terminal-report's collector. Only takes effect if the plugins
+     * file also called `registerLogsPrinter` (see `./logsCollector`) — otherwise the collector
+     * stays disabled automatically, since running it without the printer would break every test.
+     */
+    logsCollector?: SupportOptions;
+}
+
+/**
+ * Registers Jahia's shared Cypress commands and support-side setup (apollo, provisioning, login,
+ * fixtures, etc.). Also wires in cypress-terminal-report's log collector (see `./logsCollector`),
+ * which self-activates only when the plugins file enabled the printer.
+ *
+ * @example
+ * registerSupport(); // defaults; log collector activates only if registerLogsPrinter was called
+ * registerSupport({logsCollector: {collectTypes: ['cy:command']}}); // override collector options
+ */
+export const registerSupport = (registerOptions: RegisterSupportOptions = {}): void => {
+    registerLogsCollector(registerOptions.logsCollector);
+
     Cypress.Commands.add('apolloClient', apolloClient);
     Cypress.Commands.add('apollo', {prevSubject: 'optional'}, apollo);
 

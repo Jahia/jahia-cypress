@@ -1,10 +1,8 @@
-
 <a href="https://www.jahia.com/">
     <img src="https://www.jahia.com/modules/jahiacom-templates/images/jahia-3x.png" alt="Jahia logo" title="Jahia" align="right" height="60" />
 </a>
 
-@jahia/cypress
-======================
+# @jahia/cypress
 
 ## Commands
 
@@ -28,9 +26,9 @@
 
 ## Page / component objects
 
-In Page Object Model, a set of object is provided to handle known and reused web elements. 
-These page objects provide method to handle interactions with these web elements. 
-Web elements can be simple HTML elements, more complex UI components or full pages. 
+In Page Object Model, a set of object is provided to handle known and reused web elements.
+These page objects provide method to handle interactions with these web elements.
+Web elements can be simple HTML elements, more complex UI components or full pages.
 
 This framework does not come with predefined page objects, as they should be provided by the modules which define them.
 TODO: Moonstone page object are defined here, but could be moved to moonstone
@@ -39,8 +37,8 @@ TODO: Moonstone page object are defined here, but could be moved to moonstone
 
 #### Components
 
-Page object representing a component extends `baseComponent`. 
-Creating a page object will enqueue a command looking for the corresponding DOM element. 
+Page object representing a component extends `baseComponent`.
+Creating a page object will enqueue a command looking for the corresponding DOM element.
 An alias to this element will be stored in the object.
 
 Page object can provide accessors to other page object, and methods that will enqueue other cypress commands and assertions.
@@ -63,7 +61,6 @@ primaryNav.listItems().expect('...') // Check primary nav content
 primaryNav.select('jcontent')        // Select the corresponding item and click on it
 ```
 
-
 ```typescript
 let jcontent = JContent.visit("digitall", "en", "pages");
 jcontent.select('content-folders')
@@ -75,13 +72,13 @@ m.select('edit')
 
 Add `@jahia/cypress` to your project.
 
-Add cypress commands and support : in support/index.js, adds : 
+Add cypress commands and support : in support/index.js, adds :
 
 ```js
 require('@jahia/cypress/dist/support/registerSupport').registerSupport()
 ```
 
-Add typings in your tsconfig.json : 
+Add typings in your tsconfig.json :
 
 ```json
 {
@@ -108,10 +105,12 @@ module.exports = (on, config) => {
 ## Version-gated tests
 
 After enabling `modSince` via `registerSupport`, you can gate tests and suites by Jahia version with:
+
 - `it.since(requiredVersion, title, testFn)`
 - `describe.since(requiredVersion, title, suiteFn)`
 
 Modifiers are supported as well:
+
 - `it.only.since(...)`, `describe.only.since(...)`
 - `it.skip.since(...)`, `describe.skip.since(...)`
 
@@ -120,6 +119,7 @@ Modifiers are supported as well:
 `it.skip.since(...)` and `describe.skip.since(...)` are always skipped (same behavior as Cypress `skip`, with a version argument for consistency).
 
 Jahia version is fetched in a root `before()` hook and stored in environment variable `CYPRESS_JAHIA_VERSION`.
+
 ```typescript
 it.since('8.2.0', 'shows the new dashboard widget', () => {
     // test body
@@ -157,13 +157,20 @@ describe.skip.since('8.2.0', 'always skipped version-gated suite', () => {
 ## Internal Auxiliary Libraries
 
 ### Extended Logger Module
+
 Helper utility designed to enhance Cypress test logging capabilities by providing structured log levels and decorating log messages with appropriate severity indicators. It enables developers to create more organized and filterable test output by categorizing log messages into different levels. Read more [here](./docs/extended-logger.md).
 
 ### JavaScript Errors Logger
+
 Comprehensive monitoring and reporting module for JavaScript errors and warnings in Cypress tests. It provides automated detection, collection, and reporting of console errors and warnings that occur during test execution, helping maintain code quality and identify issues early in the development process. Read more [here](./docs/js-errors-logger.md).
 
 ### jFaker - Fake Data Generation Module
+
 Flexible fake data generation utility for Cypress testing that combines the power of Faker.js with security-focused injection payload generation. It provides a unified API to generate both realistic test data and security testing payloads (XSS, SQL injection, etc.) through a dynamic proxy-based interface. Read more [here](./docs/jfaker.md).
+
+### Cypress logs
+
+Centralized [cypress-terminal-report](https://github.com/archfz/cypress-terminal-report) setup: writes command/console logs to files (and/or the terminal) so failures can be diagnosed from CI logs. A single `registerLogsPrinter(on, config)` call in the plugins file enables both the printer and the log collector — the collector self-detects whether the printer is enabled, so the two can't drift out of sync. Read more [here](./docs/cypress-logs.md).
 
 ## Open-Source
 
