@@ -4,7 +4,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint src -c .eslintrc.json --ext .ts --max-warnings=0",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "postinstall": "npm run build"
   },
   "bin": {
     "ci.build": "./ci.build.sh",
