@@ -8,6 +8,7 @@ import {step} from './testStep';
 import {jfaker} from './jfaker';
 import {modSince} from './modSince';
 import {collect as contextCollector} from './contextReporter';
+import {jahiaLog} from './jahiaLog';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -30,6 +31,7 @@ export const registerSupport = (): void => {
 
     // Register it.since()/describe.since()
     modSince.enable();
+    jahiaLog.enableSpecsMarker();
 
     /**
      * Override Cypress `type()` command to interpret special characters (e.g., {, }, etc.) either literally or as commands.
