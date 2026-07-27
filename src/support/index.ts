@@ -9,3 +9,4 @@ export * from './jfaker';
 export * from './browserHelper';
 export * from './modSince';
 export * from './contextReporter';
+export * from './logsCollector';

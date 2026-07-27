@@ -1417,6 +1417,7 @@ __metadata:
     cross-fetch: "npm:^3.1.5"
     cypress: "npm:^12.17.4"
     cypress-real-events: "npm:^1.11.0"
+    cypress-terminal-report: "npm:^7.3.3"
     cypress-wait-until: "npm:^3.0.2"
     eslint: "npm:^8.57.1"
     eslint-plugin-cypress: "npm:^2.15.2"
@@ -2592,6 +2593,19 @@ __metadata:
   peerDependencies:
     cypress: ^4.x || ^5.x || ^6.x || ^7.x || ^8.x || ^9.x || ^10.x || ^11.x || ^12.x || ^13.x || ^14.x || ^15.x
   checksum: 10c0/effb064bed46c8f059ff0b4d315e3cf0a23e2d411948431475ef1b939db8cc1624a7ca033a57dd8d8e3a297240deb298423464bf12a441330d449a06060ba423
+  languageName: node
+  linkType: hard
+
+"cypress-terminal-report@npm:^7.3.3":
+  version: 7.3.3
+  resolution: "cypress-terminal-report@npm:7.3.3"
+  dependencies:
+    chalk: "npm:^4.0.0"
+    compare-versions: "npm:^6.1.1"
+    superstruct: "npm:0.14.2"
+  peerDependencies:
+    cypress: ">=10.0.0"
+  checksum: 10c0/afd2976c26e5a92499c3b00b0f223764a9029c4ec57da99a4efa737cf1b9468541281c59252c18fc93e4ad2672d86aa607e046e8ccaddd12c94166444f49aded
   languageName: node
   linkType: hard
 
@@ -5901,6 +5915,13 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 10c0/9681a6257b925a7fa0f285851c0e613cc934a50661fa7bb41ca9cbbff89686bb4a0ee366e6ecedc4daafd01e83eee0720111ab294366fe7c185e935475ebcecd
+  languageName: node
+  linkType: hard
+
+"superstruct@npm:0.14.2":
+  version: 0.14.2
+  resolution: "superstruct@npm:0.14.2"
+  checksum: 10c0/e5518f6701524fb8cbae504a84dc9c304bf3fe01616230a5eb4e14af9bfc4e3518b94bfe457e57a5d1b99a2b54f82881b4a39e0b266caa6053f84aa294613b94
   languageName: node
   linkType: hard
 
