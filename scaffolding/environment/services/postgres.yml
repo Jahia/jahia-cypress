@@ -1,0 +1,11 @@
+services:
+  database:
+    image: "${J_POSTGRES_IMAGE:-postgres:18-alpine}"
+    container_name: database
+    hostname: database
+    networks:
+      - stack
+    environment:
+      POSTGRES_DB: ${J_POSTGRES_DB:-jahia}
+      POSTGRES_USER: ${J_POSTGRES_USER:-jahia}
+      POSTGRES_PASSWORD: ${J_POSTGRES_PASSWORD:-jahia}

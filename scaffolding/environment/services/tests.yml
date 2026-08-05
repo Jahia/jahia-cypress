@@ -1,0 +1,27 @@
+services:
+  tests:
+    image: "${J_TESTS_IMAGE}"
+    # With profiles, the container is only started if the "tests" profile is activated.
+    # docker compose --profile tests up
+    profiles:
+      - tests
+    # https://github.com/cypress-io/cypress/issues/350
+    ipc: host
+    container_name: tests
+    hostname: tests
+    deploy:
+      resources:
+        limits:
+          memory: 4gb
+        reservations:
+          memory: 2gb
+    environment:
+      MANIFEST: ${J_CYPRESS_MANIFEST}
+      JAHIA_URL: ${J_CYPRESS_JAHIA_URL}
+      JAHIA_USERNAME: ${J_CYPRESS_JAHIA_USERNAME}
+      JAHIA_PASSWORD: ${J_CYPRESS_JAHIA_PASSWORD}
+      SUPER_USER_PASSWORD: ${J_CYPRESS_JAHIA_SUPER_USER_PASSWORD}
+      NEXUS_USERNAME: ${J_CYPRESS_NEXUS_USERNAME}
+      NEXUS_PASSWORD: ${J_CYPRESS_NEXUS_PASSWORD}
+      TESTS_PROFILE: ${TESTS_PROFILE}
+      J_DEBUG: ${J_DEBUG}

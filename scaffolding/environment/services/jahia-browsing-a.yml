@@ -1,0 +1,31 @@
+services:
+  jahia-browsing-a:
+    image: "${J_JAHIA_IMAGE}"
+    container_name: jahia-browsing-a
+    hostname: jahia-browsing-a
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 6gb
+        reservations:
+          memory: 4gb
+    networks:
+      - stack
+    ports:
+      - "8081:8080"
+      - "8102:8101"
+    environment:
+      jahia_cfg_karaf_remoteShellHost: 0.0.0.0
+      DB_VENDOR: ${J_JAHIA_DB_VENDOR}
+      DB_HOST: ${J_JAHIA_DB_HOST}
+      DB_NAME: ${J_JAHIA_DB_NAME}
+      DB_USER: ${J_JAHIA_DB_USER}
+      DB_PASS: ${J_JAHIA_DB_PASS}
+      JAHIA_LICENSE: ${J_JAHIA_LICENSE}
+      SUPER_USER_PASSWORD: ${J_JAHIA_SUPER_USER_PASSWORD}
+      CLUSTER_ENABLED: "true"
+      PROCESSING_SERVER: "false"
+      PROCESSING_HOST: "jahia"
+      MAX_RAM_PERCENTAGE: 80
+      RESTORE_MODULE_STATES: "false"

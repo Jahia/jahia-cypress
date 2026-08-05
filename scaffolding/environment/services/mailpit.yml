@@ -1,0 +1,10 @@
+services:
+  mailpit:
+    image: ${J_MAILPIT_IMAGE}
+    container_name: mailpit
+    hostname: mailpit
+    networks:
+      - stack
+    ports:
+      - "1025:1025"
+      - "8025:8025"
