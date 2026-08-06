@@ -1270,10 +1270,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@chachalog/types@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@chachalog/types@npm:0.5.0"
-  checksum: 10c0/c300659372d84d98c12409c40c762f8bbf62baf30582a8bad2a6b9e9e63c4d1ef40ace2f37c4f3c372c7c4ea1986220ae388fa72a5341dc3a7b401e57150fe8c
+"@chachalog/types@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@chachalog/types@npm:0.5.2"
+  checksum: 10c0/a5c971249adcd17db5cbd41710399113c90d0b29ae0b93fa9db57642613faf966d494c7dd24d6f08b68198d4f0642416af90c42032baa30ed6a400edee9d35eb
   languageName: node
   linkType: hard
 
@@ -1408,7 +1408,7 @@ __metadata:
   resolution: "@jahia/cypress@workspace:."
   dependencies:
     "@apollo/client": "npm:^3.4.9"
-    "@chachalog/types": "npm:^0.5.0"
+    "@chachalog/types": "npm:^0.5.2"
     "@faker-js/faker": "npm:^10.3.0"
     "@jahia/eslint-config": "npm:^2.2.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.57.1"
