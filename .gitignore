@@ -1,12 +1,9 @@
 dist/
 ./node_modules
-.yalc/
 node_modules
 .idea
 *.iml
 .DS_Store
 .env
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
+**/.yarn/*
+!**/.yarn/patches

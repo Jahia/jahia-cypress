@@ -13,6 +13,19 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "fixtures",
+    "ci.build.sh",
+    "ci.startup.sh",
+    "env.debug.sh",
+    "env.provision.sh",
+    "env.run.sh",
+    "set-env.sh",
+    "env.Dockerfile",
+    "env.Dockerfile.dockerignore"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
