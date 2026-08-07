@@ -1426,6 +1426,7 @@ __metadata:
     graphql: "npm:^15.5.0"
     graphql-tag: "npm:^2.11.0"
     mochawesome: "npm:^6.3.1"
+    pkg-pr-new: "npm:^0.0.86"
     typescript: "npm:^5.9.3"
   bin:
     ci.build: ./ci.build.sh
@@ -5180,6 +5181,15 @@ __metadata:
   version: 2.3.0
   resolution: "pify@npm:2.3.0"
   checksum: 10c0/551ff8ab830b1052633f59cb8adc9ae8407a436e06b4a9718bcb27dc5844b83d535c3a8512b388b6062af65a98c49bdc0dd523d8b2617b188f7c8fee457158dc
+  languageName: node
+  linkType: hard
+
+"pkg-pr-new@npm:^0.0.86":
+  version: 0.0.86
+  resolution: "pkg-pr-new@npm:0.0.86"
+  bin:
+    pkg-pr-new: bin/cli.js
+  checksum: 10c0/83b5a885f23fd82a29dc4c4729b3c712feed7d206ee5cd640afb6bf38c37be6515e8fc0f0af19da4dda4a37f4eb65f0728e53846da75158e143bbd3b56e9f226
   languageName: node
   linkType: hard
 
