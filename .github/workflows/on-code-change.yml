@@ -26,7 +26,7 @@ jobs:
         run: yarn install
       - name: Install test dependencies
         working-directory: tests
-        run: yarn install
+        run: yarn install && yarn cypress install
       - name: Run Cypress tests
         uses: cypress-io/github-action@fa4a118725a8f001170d49631ea89e5d66fee626 # v7.4.1
         with:
