@@ -13,13 +13,26 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "fixtures",
+    "ci.build.sh",
+    "ci.startup.sh",
+    "env.debug.sh",
+    "env.provision.sh",
+    "env.run.sh",
+    "set-env.sh",
+    "env.Dockerfile",
+    "env.Dockerfile.dockerignore"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jahia/jahia-cypress.git"
   },
   "devDependencies": {
-    "@chachalog/types": "^0.5.0",
+    "@chachalog/types": "^0.5.2",
     "@jahia/eslint-config": "^2.2.0",
     "@typescript-eslint/eslint-plugin": "^8.57.1",
     "@typescript-eslint/parser": "^8.57.1",
@@ -32,6 +45,7 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "mochawesome": "^6.3.1",
+    "pkg-pr-new": "^0.0.86",
     "typescript": "^5.9.3"
   },
   "dependencies": {
@@ -41,6 +55,5 @@
     "cypress-real-events": "^1.11.0",
     "graphql": "^15.5.0",
     "graphql-tag": "^2.11.0"
-  },
-  "packageManager": "yarn@4.12.0"
+  }
 }

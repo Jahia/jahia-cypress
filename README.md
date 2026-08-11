@@ -171,7 +171,4 @@ This is an Open-Source codebase, you can find more details about Open-Source @ J
 
 ## How to release
 
-Releases are now semi-automated using [Chachalog](https://github.com/GauBen/chachalog). To create a new release:
-
-- Merge the `chore: release` PR from `github-actions`.
-- From Github release panel, draft a new release with a tag named `vX.Y.Z` (use the same version as the one set by Chachalog in the `chore: release` PR) and a title `vX.Y.Z`. The release will be published to NPM automatically.
+Releases are now automated using [Chachalog](https://github.com/GauBen/chachalog). To create a new release, merge the `chore: release` PR from `github-actions`: the package is then published to NPM and tagged `@jahia/cypress@X.Y.Z` automatically.
