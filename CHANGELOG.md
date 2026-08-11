@@ -1,5 +1,15 @@
 # @jahia/cypress Changelog
 
+## 8.3.0
+
+### New Features
+
+* Add specs and tests marks to jahia log (#234)
+
+### Bug Fixes
+
+* Update UserHelpers: unify interfaces and internal variables; add logging; extend createUser with site-level operation (#228)
+
 ## 8.2.1
 
 * Temporary remove bash injections which can be treated by antivirus as a potentially unsafe. They will be reworked and brought back later on. (#224)
