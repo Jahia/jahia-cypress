@@ -21,9 +21,9 @@ export const fixture = function (originalCommand: ((...args: any[]) => any), fix
         }
 
         // The project has no fixture of that name, so read the copy shipped with this library.
-        // This read takes the project's defaultCommandTimeout: a private budget of a few hundred
-        // milliseconds made it the first command to fail on a loaded machine, which turned a slow
-        // disk into a failed test. A failure here is not caught on purpose. cy.readFile() queues a
+        // This read takes the project's defaultCommandTimeout: a shorter budget of its own made it
+        // the first command to fail on a loaded machine, which turned a slow disk read into a
+        // failed test. A failure here is not caught on purpose. cy.readFile() queues a
         // command instead of running inline, so a try/catch around it never sees the error, and a
         // fixture the caller cannot read is a failure in every case.
         return cy.readFile(PACKAGED_FIXTURES_PATH + fixtureParam, encoding, {log: false});
