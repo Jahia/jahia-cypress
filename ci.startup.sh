@@ -31,10 +31,19 @@ if [[ "${JAHIA_CLUSTER_ENABLED}" == "true" ||  ${JAHIA_CLUSTER_ENABLED} == true 
     export CLUSTER_PROFILE="--profile cluster"
 fi
 
+# Both docker-compose calls below read from /dev/null on purpose. docker-compose v1 answers an
+# unusable image (wrong name, wrong registry, missing docker login) with an interactive
+# confirmation prompt instead of an error. In CI nothing ever answers it, so the job hangs until
+# it times out. With stdin closed the prompt fails immediately and the real registry error is
+# reported, and the exit code is checked so the startup does not silently continue.
 echo "$(date +'%d %B %Y - %k:%M') == Starting environment =="
-docker-compose ${CLUSTER_PROFILE} up -d --renew-anon-volumes $(docker-compose config --services | grep -v "cypress")
+if ! docker-compose ${CLUSTER_PROFILE} up -d --renew-anon-volumes $(docker-compose config --services | grep -v "cypress") < /dev/null; then
+    echo "$(date +'%d %B %Y - %k:%M') == STARTUP FAILURE, unable to start the environment. Check the image names, the registry and the docker login above =="
+    exit 1
+fi
+
 if [[ "$1" != "notests" ]]; then
     docker ps -a
     docker stats --no-stream
-    docker-compose up --abort-on-container-exit cypress
+    docker-compose up --abort-on-container-exit cypress < /dev/null
 fi
