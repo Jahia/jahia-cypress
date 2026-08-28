@@ -5,8 +5,10 @@
  * Importing this module registers the `cy.mailpit*` commands exposed by cypress-mailpit
  * (https://github.com/pushpak1300/cypress-mailpit).
  *
- * `mailSrv.ready()` is specific to this wrapper: it checks that the Mailpit server
- * (and its underlying storage) is up, using Mailpit's own `/readyz` healthcheck endpoint.
+ * `mailSrv.ready()` and `mailSrv.configure()` are specific to this wrapper:
+ * - `ready()` checks that the Mailpit server (and its underlying storage) is up, using
+ *   Mailpit's own `/readyz` healthcheck endpoint.
+ * - `configure()` configures Mailpit SMTP at the Jahia instance
  *
  * Every other call is delegated to the corresponding `cy.mailpit*` command, with the
  * `mailpit` prefix dropped and the following letter lower-cased,
@@ -19,17 +21,20 @@
  * @example
  * ```typescript
  * mailSrv.ready().should('be.true');
+ * mailSrv.configure();
  * mailSrv.sendMail({subject: 'Hello'});
  * mailSrv.hasEmailsBySubject('Hello');
  * ```
  */
 import 'cypress-mailpit';
+import {jahiaSemVer} from './modSince';
+import {compare} from 'compare-versions';
 
 const ENV_MAILPIT_URL = 'MAILPIT_URL';
 const DEFAULT_MAILPIT_URL = 'http://localhost:8025';
 const MAILPIT_COMMAND_PREFIX = 'mailpit';
 
-// Property names that must never be resolved to a mailpit command, so that the mailService proxy
+// Property names that must never be resolved to a mailpit command, so that the mailSrv proxy
 // is never mistaken for a thenable/iterable/etc. by Cypress or generic JS utilities inspecting it.
 const RESERVED_PROPS = new Set(['then', 'toJSON', 'constructor', 'nodeType']);
 
@@ -55,30 +60,52 @@ function ready(options: Partial<Cypress.RequestOptions> = {}): Cypress.Chainable
             failOnStatusCode: false,
             ...options
         })
-        .then(response => response.status === 200);
+        .then(response => {
+            const result = response.status === 200;
+            if (!result) {
+                cy.log(`[mailSrv] Mailpit not ready: ${response.status} ${response.statusText}. Ensure that Mailpit is running and reachable at ${getMailpitUrl()}.`);
+            }
+
+            return result;
+        });
 }
 
 /**
- * Convert a mailService method name into the corresponding cypress-mailpit command name,
+ * Configure the target Jahia instance's SMTP settings to point to Mailpit, picking the setup
+ * script that matches the running Jahia version (OSGi-based mail-service config from 8.2.4.0
+ * onward, the legacy setup before that).
+ * @returns {Cypress.Chainable<any>} Chainable result of the executed groovy script
+ */
+function configure(): Cypress.Chainable<any> {
+    mailSrv.ready().should('be.true');
+
+    return jahiaSemVer().then(version => {
+        const fixture = compare(String(version), '8.2.4.0', '>=') ? 'groovy/admin/setup-smtp-osgi.groovy' : 'groovy/admin/setup-smtp-legacy.groovy';
+        return cy.executeGroovy(fixture);
+    });
+}
+
+/**
+ * Convert a mailSrv method name into the corresponding cypress-mailpit command name,
  * e.g. "getAllMails" -> "mailpitGetAllMails".
  * @param {string} method mailService method name
  * @returns {string} cypress-mailpit command name
  */
-function toMailpitCommand(method: string): string {
+function toMailpitCmd(method: string): string {
     return `${MAILPIT_COMMAND_PREFIX}${method.charAt(0).toUpperCase()}${method.slice(1)}`;
 }
 
 /**
- * Dynamic Proxy delegating any call other than `ready()` to the corresponding
+ * Dynamic Proxy delegating any call other than `ready()`/`configure()` to the corresponding
  * `cy.mailpit*` command registered by cypress-mailpit.
  */
-const mailSrv = new Proxy({ready} as Record<string, unknown>, {
+const mailSrv = new Proxy({ready, configure} as Record<string, unknown>, {
     get(target, prop) {
         if (typeof prop !== 'string' || RESERVED_PROPS.has(prop) || prop in target) {
             return Reflect.get(target, prop);
         }
 
-        const commandName = toMailpitCommand(prop);
+        const commandName = toMailpitCmd(prop);
         if (typeof (cy as any)[commandName] !== 'function') {
             throw new Error(`[mailSrv EXCEPTION] cypress-mailpit does not provide a "${commandName}" command.`);
         }

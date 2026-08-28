@@ -1,6 +1,6 @@
 import '../../../src/support/apollo/apollo';
 import '../../../src/support/apollo/apolloClient';
-import {modSince, initializeVersionSupport, JAHIA_VERSION_ENV_VAR} from '../../../src/support/modSince';
+import {modSince, jahiaSemVer, JAHIA_VERSION_ENV_VAR} from '../../../src/support/modSince';
 
 type ItSinceCall = (requiredVersion: string, title: string, fn?: (...args: unknown[]) => unknown) => Mocha.Test;
 type DescribeSinceCall = (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void) => Mocha.Suite;
@@ -156,7 +156,7 @@ describe('itSince support', () => {
             const apolloClientSpy = cy.spy(cyAny, 'apolloClient').as('apolloClientSpy');
             const apolloSpy = cy.spy(cyAny, 'apollo').as('apolloSpy');
 
-            return initializeVersionSupport().then(version => {
+            return jahiaSemVer().then(version => {
                 expect(version).to.equal('9.9.9');
                 expect(Cypress.env(JAHIA_VERSION_ENV_VAR)).to.equal('9.9.9');
                 expect(apolloClientSpy).to.not.have.been.called;
@@ -165,7 +165,7 @@ describe('itSince support', () => {
         });
 
         it('stores normalized Jahia version in Cypress.env', () => {
-            return initializeVersionSupport().then(version => {
+            return jahiaSemVer().then(version => {
                 expect(version).to.equal('8.2.0');
                 expect(Cypress.env(JAHIA_VERSION_ENV_VAR)).to.equal('8.2.0');
             });
