@@ -39,6 +39,7 @@
     "@typescript-eslint/parser": "^8.57.1",
     "cross-fetch": "^3.1.5",
     "cypress": "^12.17.4",
+    "cypress-mailpit": "^1.4.0",
     "cypress-wait-until": "^3.0.2",
     "eslint": "^8.57.1",
     "eslint-plugin-cypress": "^2.15.2",
@@ -56,5 +57,6 @@
     "cypress-real-events": "^1.11.0",
     "graphql": "^15.5.0",
     "graphql-tag": "^2.11.0"
-  }
+  },
+  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
 }

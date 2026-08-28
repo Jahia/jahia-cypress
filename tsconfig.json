@@ -11,7 +11,8 @@
     "types": [
       "cypress",
       "node",
-      "cypress-real-events"
+      "cypress-real-events",
+      "cypress-mailpit"
     ]
   },
   "include": [
