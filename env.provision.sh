@@ -100,13 +100,28 @@ if [[ -d artifacts/ ]]; then
   cd ..
 fi
 
-if [[ -d scripts/ ]]; then
-  cd ./scripts
-  for file in $(ls -1 script-* | sort -n)
-  do
-    echo "$(date +'%d %B %Y - %k:%M') [SCRIPT] == Submitting script: $file =="
-    curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_PROCESSING_URL}/modules/api/provisioning --form script='[{"executeScript":"'"$file"'"}]' --form file=@$file
-    echo "$(date +'%d %B %Y - %k:%M') [SCRIPT] == Script executed =="
-  done
-  cd ..
+submit_scripts_from() {
+  local dir="$1"
+  if [[ -d "$dir" ]]; then
+    (
+      cd "$dir"
+      for file in $(ls -1 script-* 2>/dev/null | sort -n)
+      do
+        echo "$(date +'%d %B %Y - %k:%M') [SCRIPT] == Submitting script: $file (from $dir) =="
+        curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_PROCESSING_URL}/modules/api/provisioning --form script='[{"executeScript":"'"$file"'"}]' --form file=@$file
+        echo "$(date +'%d %B %Y - %k:%M') [SCRIPT] == Script executed =="
+      done
+    )
+  fi
+}
+
+# Bundled scripts, shipped with @jahia/cypress itself (e.g. script-setup-smtp.groovy), run
+# first, so a consuming project's own scripts can rely on that baseline already being in place.
+submit_scripts_from "$BASEDIR/scripts"
+
+# Then the consuming project's own scripts/ folder, relative to the current working directory
+# — skipped if it resolves to the same directory as the bundled one above (e.g. when this
+# runs from inside the @jahia/cypress repo's own checkout), so a script isn't submitted twice.
+if [[ "$(cd "$BASEDIR/scripts" 2>/dev/null && pwd)" != "$(cd ./scripts 2>/dev/null && pwd)" ]]; then
+  submit_scripts_from ./scripts
 fi
