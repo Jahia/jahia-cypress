@@ -1,5 +1,9 @@
 # @jahia/cypress Changelog
 
+## 8.4.0
+
+* Added `addPage` to create a page from a test, so each project no longer needs its own copy. It sets the page template and title, and leaves the page content to the caller: areas, content nodes and extra languages are passed in. (#245)
+
 ## 8.3.1
 
 * Fixed CI startup so it fails immediately when an image cannot be pulled, instead of hanging until the job times out. The job log now shows the registry error instead of an unanswered confirmation prompt. (#243)
