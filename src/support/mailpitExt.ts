@@ -33,6 +33,7 @@ declare global {
 
 const ENV_MAILPIT_URL = 'MAILPIT_URL';
 const DEFAULT_MAILPIT_URL = 'http://localhost:8025';
+const ENV_SMTP_CONFIGURED = 'JAHIA_SMTP_CONFIGURED';
 
 /**
  * Resolve the configured Mailpit base URL, falling back to the local default.
@@ -64,4 +65,30 @@ export function mailpitReady(options: Partial<Cypress.RequestOptions> = {}): Cyp
 
             return result;
         });
+}
+
+/**
+ * Registers a root-level `before()` hook that points Jahia's SMTP settings at Mailpit, by
+ * running `groovy/admin/setupSmtp.groovy`, once per run.
+ *
+ * Runs at most once: it skips silently once `JAHIA_SMTP_CONFIGURED` is set, and also skips
+ * (without setting the flag) when Mailpit isn't reachable — e.g. a project that doesn't run a
+ * Mailpit container.
+ */
+export function configureSmtp(): void {
+    before(() => {
+        if (Cypress.env(ENV_SMTP_CONFIGURED) === true) {
+            return;
+        }
+
+        mailpitReady().then(ready => {
+            if (!ready) {
+                cy.log('[configureSmtp] Mailpit not running, skipping SMTP configuration.');
+                return;
+            }
+
+            cy.executeGroovy('groovy/admin/setupSmtp.groovy');
+            Cypress.env(ENV_SMTP_CONFIGURED, true);
+        });
+    });
 }
