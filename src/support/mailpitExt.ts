@@ -33,7 +33,11 @@ declare global {
 
 const ENV_MAILPIT_URL = 'MAILPIT_URL';
 const DEFAULT_MAILPIT_URL = 'http://localhost:8025';
-const ENV_SMTP_CONFIGURED = 'JAHIA_SMTP_CONFIGURED';
+const ENV_SMTP_STATUS = 'JAHIA_SMTP_STATUS'; // 'configured' | 'absent' | undefined (unset)
+
+type SmtpStatus = 'configured' | 'absent';
+const SMTP_STATUS_CONFIGURED: SmtpStatus = 'configured';
+const SMTP_STATUS_ABSENT: SmtpStatus = 'absent';
 
 /**
  * Resolve the configured Mailpit base URL, falling back to the local default.
@@ -71,24 +75,27 @@ export function mailpitReady(options: Partial<Cypress.RequestOptions> = {}): Cyp
  * Registers a root-level `before()` hook that points Jahia's SMTP settings at Mailpit, by
  * running `groovy/admin/setupSmtp.groovy`, once per run.
  *
- * Runs at most once: it skips silently once `JAHIA_SMTP_CONFIGURED` is set, and also skips
- * (without setting the flag) when Mailpit isn't reachable — e.g. a project that doesn't run a
- * Mailpit container.
+ * `JAHIA_SMTP_STATUS` tracks multiple states rather than a plain boolean, so that a repo with
+ * no Mailpit container only pays the `mailpitReady()` check once instead of on every spec:
+ * absent/unset (not checked yet), `'configured'` (script ran), `'absent'` (Mailpit wasn't
+ * reachable on the first check — skip without re-checking).
  */
-export function configureSmtp(): void {
+export function setupSmtp(): void {
     before(() => {
-        if (Cypress.env(ENV_SMTP_CONFIGURED) === true) {
+        const status = Cypress.env(ENV_SMTP_STATUS) as SmtpStatus | undefined;
+        if (status === SMTP_STATUS_CONFIGURED || status === SMTP_STATUS_ABSENT) {
             return;
         }
 
         mailpitReady().then(ready => {
             if (!ready) {
-                cy.log('[configureSmtp] Mailpit not running, skipping SMTP configuration.');
+                cy.log('[setupSmtp] Mailpit not running, skipping SMTP configuration.');
+                Cypress.env(ENV_SMTP_STATUS, SMTP_STATUS_ABSENT);
                 return;
             }
 
             cy.executeGroovy('groovy/admin/setupSmtp.groovy');
-            Cypress.env(ENV_SMTP_CONFIGURED, true);
+            Cypress.env(ENV_SMTP_STATUS, SMTP_STATUS_CONFIGURED);
         });
     });
 }
