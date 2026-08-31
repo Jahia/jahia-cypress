@@ -100,7 +100,8 @@ if [[ -d artifacts/ ]]; then
   cd ..
 fi
 
-submit_scripts_from() {
+# Submits provisioning scripts from a given directory
+submit_provisioning_scripts() {
   local dir="$1"
   if [[ -d "$dir" ]]; then
     (
@@ -117,11 +118,11 @@ submit_scripts_from() {
 
 # Bundled scripts, shipped with @jahia/cypress itself (e.g. script-setup-smtp.groovy), run
 # first, so a consuming project's own scripts can rely on that baseline already being in place.
-submit_scripts_from "$BASEDIR/scripts"
+submit_provisioning_scripts "$BASEDIR/scripts"
 
 # Then the consuming project's own scripts/ folder, relative to the current working directory
 # — skipped if it resolves to the same directory as the bundled one above (e.g. when this
 # runs from inside the @jahia/cypress repo's own checkout), so a script isn't submitted twice.
 if [[ "$(cd "$BASEDIR/scripts" 2>/dev/null && pwd)" != "$(cd ./scripts 2>/dev/null && pwd)" ]]; then
-  submit_scripts_from ./scripts
+  submit_provisioning_scripts ./scripts
 fi

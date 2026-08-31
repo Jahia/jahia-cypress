@@ -1,3 +1,8 @@
+/**
+ * This script configures the SMTP server for Jahia based on the SMTP_SERVER_URL environment variable.
+ * It supports both the legacy MailService and the newer OSGi mail-service module.
+ * Script is skipped if the SMTP_SERVER_URL environment variable is not set.
+ */
 import org.jahia.bin.Jahia
 import org.jahia.osgi.BundleUtils
 import org.jahia.services.mail.MailService
