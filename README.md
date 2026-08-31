@@ -165,6 +165,9 @@ Comprehensive monitoring and reporting module for JavaScript errors and warnings
 ### jFaker - Fake Data Generation Module
 Flexible fake data generation utility for Cypress testing that combines the power of Faker.js with security-focused injection payload generation. It provides a unified API to generate both realistic test data and security testing payloads (XSS, SQL injection, etc.) through a dynamic proxy-based interface. Read more [here](./docs/jfaker.md).
 
+### Global Vars
+Generic `getGlobalVar`/`setGlobalVar` key/value store, backed by `cy.task()`, for sharing state across every spec file in a single Cypress run — something `Cypress.env()` can't do, since it resets between spec files. Read more [here](./docs/global-vars.md).
+
 ## Open-Source
 
 This is an Open-Source codebase, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source)
