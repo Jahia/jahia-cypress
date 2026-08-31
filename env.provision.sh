@@ -33,6 +33,9 @@ echo " JAHIA_USERNAME_TOOLS: ${JAHIA_USERNAME_TOOLS}"
 echo " JAHIA_PASSWORD_TOOLS: ${JAHIA_PASSWORD_TOOLS}"
 echo " SUPER_USER_PASSWORD: ${SUPER_USER_PASSWORD}"
 echo " TIMEZONE: ${TIMEZONE}"
+echo " MAILPIT_URL: ${MAILPIT_URL}"
+echo " SMTP_SERVER_URL: ${SMTP_SERVER_URL}"
+
 echo "$(date +'%d %B %Y - %k:%M') ==  Using Node version: $(node -v)"
 echo "$(date +'%d %B %Y - %k:%M') ==  Using yarn version: $(yarn -v)"
 
