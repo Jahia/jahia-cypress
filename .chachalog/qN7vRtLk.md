@@ -3,4 +3,4 @@
 "@jahia/cypress": minor
 ---
 
-Generic `getGlobalVar`/`setGlobalVar` key/value store, backed by `cy.task()`, to share state across all specs in a Cypress run.
+Generic `getGlobalVar`/`setGlobalVar` key/value store for sharing state (string | number | boolean) across all specs in a Cypress run, backed by `cy.task()`.

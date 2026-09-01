@@ -11,8 +11,9 @@ the next spec. Your flag never makes it past the file that set it.
 What does survive for the whole run is the Node process behind Cypress's plugins
 (`setupNodeEvents`) — it stays up the entire time, across every spec. `getGlobalVar`/`setGlobalVar`
 are a small key/value store built on top of that process, so a value you set in one spec is still
-there when a later spec asks for it. Use them for anything you want shared across the whole run:
-a "did we already configure X" flag, a value one spec computes and a later one needs, etc.
+there when a later spec asks for it. Use them for `string`, `number` or `boolean` flags/states you want shared across the whole run:
+a "did we already configure X" flag, an immutable version one spec computes and a later one needs, etc.
+Types, other than specified ones will be rejected on purpose due to security reasons. Use responsively, though: don't use it as a general-purpose database. It's just a small shared memory for flags and small values.
 
 ## Usage
 
@@ -31,5 +32,4 @@ getGlobalVar<boolean>('MY_FLAG').then(value => {
 });
 ```
 
-Values are held in memory only — nothing is persisted to disk, and the store resets on the next
-`cypress run`.
+he store lives in the plugins process, so its lifetime is that process's: a whole `cypress run`, or a whole `cypress open` session across repeated spec runs. A run split across several processes gets one store each.
