@@ -11,8 +11,10 @@ import org.osgi.service.cm.ConfigurationAdmin
 
 def smtpServerUrlEnv = System.getenv("SMTP_SERVER_URL")
 if (!smtpServerUrlEnv) {
-    log.info("SMTP_SERVER_URL is not set, skipping SMTP configuration.")
+    log.info("[jahia-cypress-provisioning] SMTP_SERVER_URL is not set, skipping SMTP configuration.")
     return
+} else {
+    log.info("[jahia-cypress-provisioning] Configuring SMTP server with URL: {}", smtpServerUrlEnv)
 }
 
 def smtpServerUrl = new URI(smtpServerUrlEnv)
