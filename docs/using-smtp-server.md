@@ -1,7 +1,7 @@
 Jahia-cypress handles both _legacy_ and _modern OSGi_ mail services, so you shouldn't care about manual configuration.
 To configure mail server support in your repo to be able to receive Jahia mails and notifications, please follow these steps:
 
-1. Update you `@jahia/cypress` module to the latest version (>= 8.4.0) which contains `mailpit` support and mail server configuration script for Jahia.
+1. Update you `@jahia/cypress` module to the latest version (> 8.4.0) which contains `mailpit` support and mail server configuration script for Jahia.
 2. Update services in  `docker-compose.yml` file:
    - add `mailpit` container to the services list
    - add dependency on the `mailpit` container to the `jahia` and `cypress` services
