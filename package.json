@@ -17,6 +17,7 @@
     "dist",
     "src",
     "fixtures",
+    "scripts",
     "ci.build.sh",
     "ci.startup.sh",
     "env.debug.sh",
