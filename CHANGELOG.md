@@ -1,5 +1,21 @@
 # @jahia/cypress Changelog
 
+## 8.5.0
+
+### New Features
+
+* Add cypress-mailpit support for tests (#247)
+
+* Added an optional startup provisioning script that configures Jahia's SMTP settings for a Mailpit test server when `SMTP_SERVER_URL` is set, and does nothing otherwise.
+
+* Generic `getGlobalVar`/`setGlobalVar` key/value store for sharing state (string | number | boolean) across all specs in a Cypress run, backed by `cy.task()`.
+
+### Bug Fixes
+
+* Fixed the spec/test log markers so they can no longer promote the visitor's own session to root and leak an authenticated view into the command that runs right after. (#253)
+
+* Fixed intermittent test failures when reading a fixture that the project does not provide. These reads now use the project's `defaultCommandTimeout` instead of a shorter fixed timeout, so a loaded machine no longer fails the test. (#242)
+
 ## 8.4.0
 
 * Added `addPage` to create a page from a test, so each project no longer needs its own copy. It sets the page template and title, and leaves the page content to the caller: areas, content nodes and extra languages are passed in. (#245)
