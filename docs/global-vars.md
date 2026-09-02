@@ -32,4 +32,4 @@ getGlobalVar<boolean>('MY_FLAG').then(value => {
 });
 ```
 
-he store lives in the plugins process, so its lifetime is that process's: a whole `cypress run`, or a whole `cypress open` session across repeated spec runs. A run split across several processes gets one store each.
+The store lives in the plugins process, so its lifetime is that process's: a whole `cypress run`, or a whole `cypress open` session across repeated spec runs. A run split across several processes gets one store each.
