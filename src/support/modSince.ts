@@ -90,7 +90,7 @@ const skipReason = (scope: string, title: string, required: string, current?: st
  * and caches the result in `Cypress.env(JAHIA_VERSION_ENV_VAR)`.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const jahiaSemVer = (): Cypress.Chainable<any> => {
+export const initializeVersionSupport = (): Cypress.Chainable<any> => {
     const cachedVersion = Cypress.env(JAHIA_VERSION_ENV_VAR);
 
     if (typeof cachedVersion === 'string' && cachedVersion.trim() !== '') {
@@ -222,7 +222,7 @@ export const registerVersionSupport = (): void => {
  */
 function enable(): void {
     registerVersionSupport();
-    before(() => jahiaSemVer());
+    before(() => initializeVersionSupport());
 }
 
 /** Public API for Jahia version-gated testing. */

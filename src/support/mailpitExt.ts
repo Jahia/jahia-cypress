@@ -1,12 +1,9 @@
 /**
- * Registers cypress-mailpit's `cy.mailpit*` commands and adds `cy.mailpitReady()`,
- * an SMTP/API availability check for Mailpit that cypress-mailpit doesn't provide itself.
+ * Cypress support file that extends cypress-mailpit with additional commands.
+ * Adds `cy.mailpitReady()` - an SMTP/API availability check for Mailpit that cypress-mailpit doesn't provide itself.
  *
- * Every other `cy.mailpit*` command is used as-is, straight from cypress-mailpit
+ * Every other `cy.mailpit*` command is used as-is, straight from cypress-mail pit
  * (https://github.com/pushpak1300/cypress-mailpit) — see its README for the full command list.
- *
- * Mailpit connection settings (`MAILPIT_URL`, `MAILPIT_USERNAME`, `MAILPIT_PASSWORD`) are
- * configured the same way as for cypress-mailpit itself, via `Cypress.env(...)`.
  *
  * @example
  * ```typescript
@@ -15,7 +12,6 @@
  * cy.mailpitHasEmailsBySubject('Hello');
  * ```
  */
-import 'cypress-mailpit';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -33,11 +29,6 @@ declare global {
 
 const ENV_MAILPIT_URL = 'MAILPIT_URL';
 const DEFAULT_MAILPIT_URL = 'http://localhost:8025';
-const ENV_SMTP_STATUS = 'JAHIA_SMTP_STATUS'; // 'configured' | 'absent' | undefined (unset)
-
-type SmtpStatus = 'configured' | 'absent';
-const SMTP_STATUS_CONFIGURED: SmtpStatus = 'configured';
-const SMTP_STATUS_ABSENT: SmtpStatus = 'absent';
 
 /**
  * Resolve the configured Mailpit base URL, falling back to the local default.
@@ -69,54 +60,4 @@ export function mailpitReady(options: Partial<Cypress.RequestOptions> = {}): Cyp
 
             return result;
         });
-}
-
-/**
- * Returns the current SMTP configuration status, as tracked in `Cypress.env('JAHIA_SMTP_STATUS')`.
- */
-export function mailpitEnvStatus(): SmtpStatus | undefined {
-    return Cypress.env(ENV_SMTP_STATUS);
-}
-
-/**
- * Registers a root-level `before()` hook that configures SMTP settings in Jahia, by
- * running `groovy/admin/setupSmtp.groovy`, once per run.
- *
- * Also registers a `beforeEach()` hook that clears Mailpit's email storage before each test,
- * so that tests don't see leftover emails from previous tests.
- *
- * `JAHIA_SMTP_STATUS` tracks multiple states rather than a plain boolean, so that a repo with
- * no Mailpit container only pays the `mailpitReady()` check once instead of on every spec:
- * absent/unset (not checked yet), `'configured'` (script ran), `'absent'` (Mailpit wasn't
- * reachable on the first check — skip without re-checking).
- */
-export function setupSmtp(): void {
-    before(() => {
-        switch (mailpitEnvStatus()) {
-            case SMTP_STATUS_CONFIGURED:
-                cy.log('[setupSmtp] SMTP already configured, skipping.');
-                return;
-            case SMTP_STATUS_ABSENT:
-                cy.log('[setupSmtp] SMTP absent, skipping.');
-                return;
-            default:
-                mailpitReady().then(ready => {
-                    if (!ready) {
-                        cy.log('[setupSmtp] Mailpit not running, skipping SMTP configuration.');
-                        Cypress.env(ENV_SMTP_STATUS, SMTP_STATUS_ABSENT);
-                        return;
-                    }
-
-                    cy.executeGroovy('groovy/admin/setupSmtp.groovy');
-                    Cypress.env(ENV_SMTP_STATUS, SMTP_STATUS_CONFIGURED);
-                });
-        }
-    });
-
-    beforeEach(() => {
-        // Sanity cleanup: clear Mailpit's email storage before each test, so that tests don't see leftover emails from previous tests.
-        if (mailpitEnvStatus() === SMTP_STATUS_CONFIGURED) {
-            cy.mailpitDeleteAllEmails();
-        }
-    });
 }
