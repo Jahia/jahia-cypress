@@ -168,6 +168,9 @@ Flexible fake data generation utility for Cypress testing that combines the powe
 ### Global Vars
 Generic `getGlobalVar`/`setGlobalVar` key/value store, backed by `cy.task()`, for sharing state across every spec file in a single Cypress run — something `Cypress.env()` can't do, since it resets between spec files. Read more [here](./docs/global-vars.md).
 
+### SMTP Server Support
+Configuration guide for setting up mail server support (`mailpit`) so your tests can receive Jahia mails and notifications. Read more [here](./docs/using-smtp-server.md).
+
 ## Open-Source
 
 This is an Open-Source codebase, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source)
