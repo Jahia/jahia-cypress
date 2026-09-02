@@ -19,6 +19,7 @@ const env = (on:Cypress.PluginEvents, config: Cypress.PluginConfigOptions):Cypre
     console.log('JAHIA_PROCESSING_URL =', config.env.JAHIA_PROCESSING_URL);
     console.log('SUPER_USER_PASSWORD =', config.env.SUPER_USER_PASSWORD);
     console.log('MAILPIT_URL =', config.env.MAILPIT_URL);
+
     return config;
 };
 
