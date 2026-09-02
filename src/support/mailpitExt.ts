@@ -30,14 +30,17 @@ declare global {
 }
 
 const ENV_MAILPIT_URL = 'MAILPIT_URL';
-const DEFAULT_MAILPIT_URL = 'http://localhost:8025';
 
 /**
  * Resolve the configured Mailpit base URL, falling back to the local default.
  * @returns {string} Mailpit base URL, e.g. "http://localhost:8025"
  */
 function getMailpitUrl(): string {
-    return Cypress.env(ENV_MAILPIT_URL) ?? DEFAULT_MAILPIT_URL;
+    const url = Cypress.env(ENV_MAILPIT_URL);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    expect(url, `Missing or empty required Cypress env var "${ENV_MAILPIT_URL}"`).to.be.a('string').and.not.be.empty;
+
+    return url;
 }
 
 /**
