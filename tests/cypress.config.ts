@@ -1,4 +1,5 @@
 import {defineConfig} from 'cypress';
+import {registerGlobalVarsTasks} from '../src/plugins/globalVars';
 
 export default defineConfig({
     reporter: 'cypress-multi-reporters',
@@ -17,6 +18,7 @@ export default defineConfig({
         video: false,
         screenshotOnRunFailure: false,
         setupNodeEvents(on, config) {
+            registerGlobalVarsTasks(on);
             return config;
         }
     }
