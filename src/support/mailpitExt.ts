@@ -1,5 +1,5 @@
 /**
- * Cypress support file that extends cypress-mailpit with additional commands.
+ * Cypress support file that exposes and extends cypress-mailpit with additional commands.
  * Adds `cy.mailpitReady()` - an SMTP/API availability check for Mailpit that cypress-mailpit doesn't provide itself.
  *
  * Every other `cy.mailpit*` command is used as-is, straight from cypress-mail pit
@@ -12,6 +12,8 @@
  * cy.mailpitHasEmailsBySubject('Hello');
  * ```
  */
+
+import 'cypress-mailpit';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace

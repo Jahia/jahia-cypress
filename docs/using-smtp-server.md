@@ -1,4 +1,7 @@
 Jahia-cypress handles both _legacy_ and _modern OSGi_ mail services, so you shouldn't care about manual configuration.
+
+## Repository configuration
+
 To configure mail server support in your repo to be able to receive Jahia mails and notifications, please follow these steps:
 
 1. Update you `@jahia/cypress` module to the latest version (> 8.4.0) which contains `mailpit` support and mail server configuration script for Jahia.
@@ -58,3 +61,18 @@ To configure mail server support in your repo to be able to receive Jahia mails 
 
 SMTP configuration will be done automatically by provisioning script, stored in `jahia-cypress` repo once other provisioning calls will be completed.
 Setup will be skipped if `SMTP_SERVER_URL` environment variable is not propagated to your environment in the `jahia` container.
+
+## Usage in tests
+
+`@jahia/cypress` bundles [`cypress-mailpit`](https://github.com/pushpak1300/cypress-mailpit) and registers its commands for you, so all `cy.mailpit*` commands (`cy.mailpitSendMail`, `cy.mailpitGetAllMails`, `cy.mailpitHasEmailsBySubject`, etc.) are available in your tests out of the box — no need to add `cypress-mailpit` to your own `package.json` or import it yourself. See the [cypress-mailpit README](https://github.com/pushpak1300/cypress-mailpit#commands) for the full command list.
+
+On top of that, `@jahia/cypress` adds one extra helper of its own:
+
+- `cy.mailpitReady(options?)` - checks whether the Mailpit server is up and ready to accept requests (SMTP + API + storage), using Mailpit's own `/readyz` healthcheck endpoint. Useful to wait on before sending or asserting on emails in a test.
+
+```typescript
+cy.mailpitReady().should('be.true');
+cy.mailpitSendMail({subject: 'Hello'});
+cy.mailpitHasEmailsBySubject('Hello');
+```
+

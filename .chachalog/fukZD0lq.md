@@ -3,4 +3,4 @@
 "@jahia/cypress": minor
 ---
 
-Generic mailpit wrapper for using in cypress tests (#247)
+Add cypress-mailpit support for tests (#247)
