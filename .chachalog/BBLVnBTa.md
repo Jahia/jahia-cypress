@@ -3,4 +3,4 @@
 "@jahia/cypress": patch
 ---
 
-Fixed the `[BEGIN TEST]`/`[END TEST]` spec markers silently promoting the visitor's own session to root, which could leak an authenticated view into the very next command run on that session. (#253)
+Fixed the spec/test log markers so they can no longer promote the visitor's own session to root and leak an authenticated view into the command that runs right after. (#253)
