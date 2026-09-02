@@ -10,3 +10,4 @@ export * from './browserHelper';
 export * from './modSince';
 export * from './contextReporter';
 export * from './globalVars';
+export * from './mailpitExt';

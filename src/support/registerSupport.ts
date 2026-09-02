@@ -6,6 +6,7 @@ import {fixture} from './fixture';
 import {repeatUntil} from './repeatUntil';
 import {step} from './testStep';
 import {jfaker} from './jfaker';
+import {mailpitReady} from './mailpitExt';
 import {modSince} from './modSince';
 import {collect as contextCollector} from './contextReporter';
 import {jahiaLog} from './jahiaLog';
@@ -28,6 +29,8 @@ export const registerSupport = (): void => {
     Cypress.Commands.overwrite('fixture', fixture);
 
     Cypress.Commands.add('step', step);
+
+    Cypress.Commands.add('mailpitReady', mailpitReady);
 
     // Register it.since()/describe.since()
     modSince.enable();
