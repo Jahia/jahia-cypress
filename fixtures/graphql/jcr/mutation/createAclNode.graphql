@@ -1,0 +1,14 @@
+mutation createAclNode($pathOrId: String!, $inherit: String!) {
+    jcr {
+        mutateNode(pathOrId: $pathOrId) {
+            addMixins(mixins: ["jmix:accessControlled"])
+            addChild(
+                name: "j:acl"
+                primaryNodeType: "jnt:acl"
+                properties: [{name: "j:inherit", value: $inherit, type: BOOLEAN}]
+            ) {
+                uuid
+            }
+        }
+    }
+}

@@ -40,6 +40,46 @@ export const revokeRoles = (pathOrId: string, roleNames: Array<string>, principa
     });
 };
 
+const setAclInheritance = (path: string, inherit: boolean): Cypress.Chainable => {
+    return cy.apollo({
+        variables: {path: path},
+        queryFile: 'graphql/jcr/query/getAclNode.graphql'
+    }).then(result => {
+        const variables = {pathOrId: path, inherit: String(inherit)};
+        if (result?.data?.jcr?.nodeByPath?.children?.nodes?.length > 0) {
+            return cy.apollo({variables, mutationFile: 'graphql/jcr/mutation/setAclInheritance.graphql'});
+        }
+
+        // A node without a j:acl child already inherits the ACL of its parent
+        if (inherit) {
+            return cy.wrap(result);
+        }
+
+        return cy.apollo({variables, mutationFile: 'graphql/jcr/mutation/createAclNode.graphql'});
+    });
+};
+
+/**
+ * Stops a node from inheriting the roles granted on its ancestors.
+ * Only the roles granted on the node itself then apply to it and to its descendants.
+ * @param {string} path JCR node path.
+ * @returns {Cypress.Chainable} Cypress chainable for the GraphQL request.
+ */
+export const breakAclInheritance = (path: string): Cypress.Chainable => {
+    cy.log(`Break ACL inheritance on node ${path}`);
+    return setAclInheritance(path, false);
+};
+
+/**
+ * Makes a node inherit the roles granted on its ancestors again.
+ * @param {string} path JCR node path.
+ * @returns {Cypress.Chainable} Cypress chainable for the GraphQL request.
+ */
+export const restoreAclInheritance = (path: string): Cypress.Chainable => {
+    cy.log(`Restore ACL inheritance on node ${path}`);
+    return setAclInheritance(path, true);
+};
+
 /**
  * Creates a Jahia user using the Groovy fixture.
  * @param {string} userName Username of the user to create.
