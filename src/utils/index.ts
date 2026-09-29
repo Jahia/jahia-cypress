@@ -10,3 +10,4 @@ export * from './SAMHelper';
 export * from './ExportHelper';
 export * from './Logger';
 export * from './ContentHelper';
+export * from './RoleHelper';
