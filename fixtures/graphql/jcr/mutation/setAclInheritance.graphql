@@ -1,0 +1,11 @@
+mutation setAclInheritance($pathOrId: String!, $inherit: String!) {
+    jcr {
+        mutateNode(pathOrId: $pathOrId) {
+            mutateChildren(names: ["j:acl"]) {
+                mutateProperty(name: "j:inherit") {
+                    setValue(value: $inherit, type: BOOLEAN)
+                }
+            }
+        }
+    }
+}

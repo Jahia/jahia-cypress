@@ -1,0 +1,11 @@
+query getAclNode($path: String!) {
+    jcr {
+        nodeByPath(path: $path) {
+            children(names: ["j:acl"]) {
+                nodes {
+                    name
+                }
+            }
+        }
+    }
+}
