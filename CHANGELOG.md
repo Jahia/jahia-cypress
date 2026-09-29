@@ -1,5 +1,11 @@
 # @jahia/cypress Changelog
 
+## 8.6.0
+
+* Added `breakAclInheritance` and `restoreAclInheritance` helpers to stop or restore the inheritance of roles on a node.
+
+* Added `createRole` and `deleteRole` to manage a role from a test through GraphQL, so each project no longer needs its own Groovy script.
+
 ## 8.5.0
 
 ### New Features
