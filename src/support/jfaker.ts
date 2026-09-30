@@ -11,6 +11,10 @@
  * use `parseSpecialCharSequences: false`, e.g.: `<input>.type(text, {parseSpecialCharSequences: false})`
  * to prevent Cypress from interpreting special characters in the generated strings (e.g., {, }, [, ], etc.) as commands,
  * which is especially important for injection payloads that may contain such characters.
+ *
+ * TODO: Antivirus treats bash-data.ts as potentially harmful and removes it, which causes issues with the tests which use jfaker module.
+ *       Consider implementing a workaround, such as encoding/decoding those payloads (e.g. base64), to prevent antivirus from flagging them
+ *       while still allowing the tests to run successfully.
  */
 
 import {faker} from '@faker-js/faker';
@@ -18,6 +22,7 @@ import {faker} from '@faker-js/faker';
 // Import injection data from corresponding files in injections-ts directory
 import {xssData} from '../injections/xss-data';
 import {sqlData} from '../injections/sql-data';
+import {bashData} from '../injections/bash-data';
 import {charsData} from '../injections/chars-data';
 import {htmlentitiesData} from '../injections/htmlentities-data';
 import {numbersData} from '../injections/numbers-data';
@@ -25,6 +30,7 @@ import {numbersData} from '../injections/numbers-data';
 const injectionData: Record<string, string[]> = {
     xss: xssData,
     sql: sqlData,
+    bash: bashData,
     chars: charsData,
     htmlentities: htmlentitiesData,
     numbers: numbersData
@@ -40,7 +46,7 @@ const injectionsDefaultLength = {min: 2, max: 5};
 
 /**
  * Store FakeData type in Cypress env for persistence across specs
- * @param {string} type FakeData type: 'faker' | 'xss' | 'sql' | 'chars' | 'htmlentities' | 'numbers'
+ * @param {string} type FakeData type: 'faker' | 'xss' | 'sql' | 'bash' | 'chars' | 'htmlentities' | 'numbers'
  * @returns void
  */
 function setDataType(type: string): void {
@@ -57,7 +63,7 @@ function getDataType(): string | undefined {
 
 /**
  * Generate injection data based on the specified type and length
- * @param {string} type Injection type to generate (xss, sql, chars, htmlentities, numbers)
+ * @param {string} type Injection type to generate (xss, sql, bash, chars, htmlentities, numbers)
  * @param {number} length Length of the generated injection (optional)
  * @returns {string} Generated injection string
  */
@@ -173,6 +179,7 @@ class DeepApi {
  * Available injection methods:
  * - `.xss()` - Generate XSS injection payloads
  * - `.sql()` - Generate SQL injection payloads
+ * - `.bash()` - Generate Bash injection payloads
  * - `.chars()` - Generate random special characters
  * - `.htmlentities()` - Generate HTML entities
  * - `.numbers()` - Generate random numbers entities and edge cases
