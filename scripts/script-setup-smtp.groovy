@@ -33,6 +33,9 @@ if (mailServiceModuleAvailable) {
     props.put("smtp.starttls", "false")
     props.put("smtp.ssl", String.valueOf(useSsl))
     props.put("default.from", "noreply@smtp-server.localhost")
+    // Counterpart of the legacy setTo below: mail-service sends a message with no to/cc/bcc, such as
+    // a Jahia system notification, to this address.
+    props.put("default.recipient", "admin@smtp-server.localhost")
 
     def configAdmin = BundleUtils.getOsgiService(ConfigurationAdmin.class, null)
     // "?" is a multi-location bind: the configuration is delivered to whichever bundle registers
