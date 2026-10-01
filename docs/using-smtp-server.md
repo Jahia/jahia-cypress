@@ -62,6 +62,8 @@ To configure mail server support in your repo to be able to receive Jahia mails 
 SMTP configuration will be done automatically by provisioning script, stored in `jahia-cypress` repo once other provisioning calls will be completed.
 Setup will be skipped if `SMTP_SERVER_URL` environment variable is not propagated to your environment in the `jahia` container.
 
+The script sets the default sender to `noreply@smtp-server.localhost` and the default recipient to `admin@smtp-server.localhost`, on every Jahia version. A mail that Jahia sends with no recipient of its own, such as an administrator notification, goes to `admin@smtp-server.localhost`. A mail with an explicit recipient keeps it.
+
 ## Usage in tests
 
 `@jahia/cypress` bundles [`cypress-mailpit`](https://github.com/pushpak1300/cypress-mailpit) and registers its commands for you, so all `cy.mailpit*` commands (`cy.mailpitSendMail`, `cy.mailpitGetAllMails`, `cy.mailpitHasEmailsBySubject`, etc.) are available in your tests out of the box — no need to add `cypress-mailpit` to your own `package.json` or import it yourself. See the [cypress-mailpit README](https://github.com/pushpak1300/cypress-mailpit#commands) for the full command list.
