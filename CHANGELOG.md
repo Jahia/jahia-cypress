@@ -1,5 +1,9 @@
 # @jahia/cypress Changelog
 
+## 8.6.1
+
+* Set the default mail recipient in the SMTP setup script on Jahia 8.2.4.0 and later, so a mail Jahia sends without a recipient reaches Mailpit (#260)
+
 ## 8.6.0
 
 * Added `breakAclInheritance` and `restoreAclInheritance` helpers to stop or restore the inheritance of roles on a node.
