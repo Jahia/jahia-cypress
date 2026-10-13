@@ -1,13 +1,16 @@
 import '../../../src/support/apollo/apollo';
 import '../../../src/support/apollo/apolloClient';
-import {modSince, initializeVersionSupport} from '../../../src/support/modSince';
-import {JAHIA_VERSION_ENV_VAR} from '../../../src/utils/JahiaPlatformHelper';
+import {initializeVersionSupport, modSince} from '../../../src/support/modSince';
+import {JAHIA_VERSION_ENV_VAR, cacheJahiaRelease, getJahiaVersion, resolveJahiaRelease} from '../../../src/utils/JahiaPlatformHelper';
 
 type ItSinceCall = (requiredVersion: string, title: string, fn?: (...args: unknown[]) => unknown) => Mocha.Test;
 type DescribeSinceCall = (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void) => Mocha.Suite;
 
 // Enable version gating
 modSince.enable();
+
+// The release the stubbed GraphQL API reports; a test sets it to undefined to simulate a failed lookup
+let stubbedRelease: string | undefined = '8.2.0-SNAPSHOT';
 
 // Stub apollo command
 Cypress.Commands.add('apolloClient', (() => {
@@ -20,7 +23,7 @@ Cypress.Commands.add('apollo', (() => {
             admin: {
                 jahia: {
                     version: {
-                        release: '8.2.0-SNAPSHOT'
+                        release: stubbedRelease
                     }
                 }
             }
@@ -29,6 +32,12 @@ Cypress.Commands.add('apollo', (() => {
 }) as Cypress.CommandFn<'apollo'>);
 
 describe('itSince support', () => {
+    describe('root before hook', () => {
+        it('caches the release GraphQL reports, without the -SNAPSHOT suffix', () => {
+            expect(resolveJahiaRelease()).to.equal('8.2.0');
+        });
+    });
+
     describe('registration', () => {
         it('attaches the since helper to it and it.only', () => {
             expect(it.since).to.be.a('function');
@@ -67,6 +76,18 @@ describe('itSince support', () => {
                     }
                 );
             }).to.throw('[describe.since] Invalid version: "my suite title" (arguments appear swapped).');
+        });
+
+        it('throws without the swapped hint when the requirement is neither a version nor a range', () => {
+            expect(() => {
+                (it.since as unknown as ItSinceCall)(
+                    'not a version',
+                    'my test title',
+                    () => {
+                        // No-op
+                    }
+                );
+            }).to.throw('[it.since] Invalid version: "not a version".');
         });
     });
 
@@ -159,15 +180,43 @@ describe('itSince support', () => {
 
             return initializeVersionSupport().then(version => {
                 expect(version).to.equal('9.9.9');
-                expect(Cypress.env(JAHIA_VERSION_ENV_VAR)).to.equal('9.9.9');
+                expect(resolveJahiaRelease()).to.equal('9.9.9');
                 expect(apolloClientSpy).to.not.have.been.called;
                 expect(apolloSpy).to.not.have.been.called;
             });
         });
 
-        it('stores normalized Jahia version in Cypress.env', () => {
+        it('fetches, normalizes and caches the release when none is cached', () => {
             return initializeVersionSupport().then(version => {
                 expect(version).to.equal('8.2.0');
+                expect(resolveJahiaRelease()).to.equal('8.2.0');
+            });
+        });
+
+        it('caches nothing when GraphQL reports no release', () => {
+            stubbedRelease = undefined;
+            return initializeVersionSupport().then(version => {
+                stubbedRelease = '8.2.0-SNAPSHOT';
+                expect(version).to.equal(undefined);
+                expect(resolveJahiaRelease()).to.equal(undefined);
+            });
+        });
+
+        it('returns undefined when no release is cached', () => {
+            expect(resolveJahiaRelease()).to.equal(undefined);
+            Cypress.env(JAHIA_VERSION_ENV_VAR, '   ');
+            expect(resolveJahiaRelease()).to.equal(undefined);
+        });
+
+        it('caches a release without a suffix as is', () => {
+            cacheJahiaRelease('8.2.3.7');
+            expect(resolveJahiaRelease()).to.equal('8.2.3.7');
+        });
+
+        it('stores normalized Jahia version in Cypress.env', () => {
+            return getJahiaVersion().then(version => {
+                cacheJahiaRelease(version.release);
+                expect(resolveJahiaRelease()).to.equal('8.2.0');
                 expect(Cypress.env(JAHIA_VERSION_ENV_VAR)).to.equal('8.2.0');
             });
         });
@@ -257,6 +306,86 @@ describe('itSince support', () => {
             });
         });
 
+        describe('plain four-part version', () => {
+            let ran = false;
+
+            beforeEach(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.2.4.1');
+            });
+
+            it.since('8.2.4.0', 'runs test callback on a later patch, since a plain version is a minimum', () => {
+                ran = true;
+            });
+
+            it('executes callback for a later patch', () => {
+                expect(ran).to.equal(true);
+            });
+        });
+
+        describe('range below the current version', () => {
+            let ran = false;
+
+            beforeEach(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.1.0');
+            });
+
+            it.since('<8.2.0', 'runs test callback when current version is inside the range', () => {
+                ran = true;
+            });
+
+            it('executes callback for a version inside the range', () => {
+                expect(ran).to.equal(true);
+            });
+        });
+
+        describe('range above the current version', () => {
+            let ran = false;
+
+            beforeEach(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.2.0');
+            });
+
+            it.since('<8.2.0', 'skips test callback when current version is outside the range', () => {
+                ran = true;
+            });
+
+            it('does not execute callback for a version outside the range', () => {
+                expect(ran).to.equal(false);
+            });
+        });
+
+        describe('range with alternatives, matching one', () => {
+            let ran = false;
+
+            beforeEach(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.2.3.7');
+            });
+
+            it.since('>=8.1.9.5 <8.2.0 || >=8.2.3.5', 'runs test callback when current version matches one alternative', () => {
+                ran = true;
+            });
+
+            it('executes callback for a version matching one alternative', () => {
+                expect(ran).to.equal(true);
+            });
+        });
+
+        describe('range with alternatives, matching none', () => {
+            let ran = false;
+
+            beforeEach(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.2.2.9');
+            });
+
+            it.since('>=8.1.9.5 <8.2.0 || >=8.2.3.5', 'skips test callback when current version matches no alternative', () => {
+                ran = true;
+            });
+
+            it('does not execute callback for a version matching no alternative', () => {
+                expect(ran).to.equal(false);
+            });
+        });
+
         describe('config overload', () => {
             let ran = false;
 
@@ -310,6 +439,42 @@ describe('itSince support', () => {
             });
 
             it('does not execute suite callback for lower version', () => {
+                expect(suiteRan).to.equal(false);
+            });
+        });
+
+        describe('describe.since range, supported version', () => {
+            let suiteRan = false;
+
+            before(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.1.0');
+            });
+
+            describe.since('<8.2.0', 'runs suite when current version is inside the range', () => {
+                it('executes suite tests for a version inside the range', () => {
+                    suiteRan = true;
+                });
+
+                it('executes suite callback for a version inside the range', () => {
+                    expect(suiteRan).to.equal(true);
+                });
+            });
+        });
+
+        describe('describe.since range, unsupported version', () => {
+            let suiteRan = false;
+
+            before(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.2.0');
+            });
+
+            describe.since('<8.2.0', 'skips suite when current version is outside the range', () => {
+                it('does not execute suite tests for a version outside the range', () => {
+                    suiteRan = true;
+                });
+            });
+
+            it('does not execute suite callback for a version outside the range', () => {
                 expect(suiteRan).to.equal(false);
             });
         });
