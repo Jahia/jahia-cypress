@@ -102,8 +102,6 @@ const skipReason = (scope: string, title: string, required: string): string => {
         `[${scope}] Skipping "${title}" — ${JAHIA_VERSION_ENV_VAR} is not set. Required: ${required}.`;
 };
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
 /**
  * Returns the cached Jahia release, or fetches it from the GraphQL API and caches it without the
  * `-SNAPSHOT` suffix. Caches nothing when GraphQL reports no release: an empty cache skips every
@@ -111,7 +109,7 @@ const skipReason = (scope: string, title: string, required: string): string => {
  * @returns The release, e.g. '8.2.3.0', or undefined when none could be fetched.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const initializeVersionSupport = (): Cypress.Chainable<any> => {
+const initializeVersionSupport = (): Cypress.Chainable<any> => {
     const cachedRelease = resolveJahiaRelease();
     if (cachedRelease) {
         return cy.wrap(cachedRelease, {log: false});
@@ -126,6 +124,8 @@ export const initializeVersionSupport = (): Cypress.Chainable<any> => {
         return cy.wrap(resolveJahiaRelease(), {log: false});
     });
 };
+
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Attaches `.since()` to `it`, `it.only`, `it.skip`, `describe`, `describe.only`,

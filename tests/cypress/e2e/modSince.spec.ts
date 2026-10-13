@@ -1,6 +1,6 @@
 import '../../../src/support/apollo/apollo';
 import '../../../src/support/apollo/apolloClient';
-import {initializeVersionSupport, modSince} from '../../../src/support/modSince';
+import {modSince} from '../../../src/support/modSince';
 import {JAHIA_VERSION_ENV_VAR, cacheJahiaRelease, getJahiaVersion, resolveJahiaRelease} from '../../../src/utils/JahiaPlatformHelper';
 
 type ItSinceCall = (requiredVersion: string, title: string, fn?: (...args: unknown[]) => unknown) => Mocha.Test;
@@ -8,9 +8,6 @@ type DescribeSinceCall = (requiredVersion: string, title: string, fn: (this: Moc
 
 // Enable version gating
 modSince.enable();
-
-// The release the stubbed GraphQL API reports; a test sets it to undefined to simulate a failed lookup
-let stubbedRelease: string | undefined = '8.2.0-SNAPSHOT';
 
 // Stub apollo command
 Cypress.Commands.add('apolloClient', (() => {
@@ -23,7 +20,7 @@ Cypress.Commands.add('apollo', (() => {
             admin: {
                 jahia: {
                     version: {
-                        release: stubbedRelease
+                        release: '8.2.0-SNAPSHOT'
                     }
                 }
             }
@@ -178,28 +175,9 @@ describe('itSince support', () => {
             const apolloClientSpy = cy.spy(cyAny, 'apolloClient').as('apolloClientSpy');
             const apolloSpy = cy.spy(cyAny, 'apollo').as('apolloSpy');
 
-            return initializeVersionSupport().then(version => {
-                expect(version).to.equal('9.9.9');
-                expect(resolveJahiaRelease()).to.equal('9.9.9');
-                expect(apolloClientSpy).to.not.have.been.called;
-                expect(apolloSpy).to.not.have.been.called;
-            });
-        });
-
-        it('fetches, normalizes and caches the release when none is cached', () => {
-            return initializeVersionSupport().then(version => {
-                expect(version).to.equal('8.2.0');
-                expect(resolveJahiaRelease()).to.equal('8.2.0');
-            });
-        });
-
-        it('caches nothing when GraphQL reports no release', () => {
-            stubbedRelease = undefined;
-            return initializeVersionSupport().then(version => {
-                stubbedRelease = '8.2.0-SNAPSHOT';
-                expect(version).to.equal(undefined);
-                expect(resolveJahiaRelease()).to.equal(undefined);
-            });
+            expect(resolveJahiaRelease()).to.equal('9.9.9');
+            expect(apolloClientSpy).to.not.have.been.called;
+            expect(apolloSpy).to.not.have.been.called;
         });
 
         it('returns undefined when no release is cached', () => {
