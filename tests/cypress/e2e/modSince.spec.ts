@@ -1,6 +1,7 @@
 import '../../../src/support/apollo/apollo';
 import '../../../src/support/apollo/apolloClient';
-import {modSince, initializeVersionSupport, JAHIA_VERSION_ENV_VAR} from '../../../src/support/modSince';
+import {modSince, initializeVersionSupport} from '../../../src/support/modSince';
+import {JAHIA_VERSION_ENV_VAR} from '../../../src/utils/JahiaPlatformHelper';
 
 type ItSinceCall = (requiredVersion: string, title: string, fn?: (...args: unknown[]) => unknown) => Mocha.Test;
 type DescribeSinceCall = (requiredVersion: string, title: string, fn: (this: Mocha.Suite) => void) => Mocha.Suite;

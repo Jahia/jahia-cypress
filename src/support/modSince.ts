@@ -1,9 +1,6 @@
 import {compare, validate} from 'compare-versions';
 // Intentionally keep explicit path to avoid edge case errors in runtime
-import {getJahiaVersion} from '../utils/JahiaPlatformHelper';
-
-/** Cypress environment variable key used to store the current Jahia version. */
-export const JAHIA_VERSION_ENV_VAR = 'CYPRESS_JAHIA_VERSION';
+import {JAHIA_VERSION_ENV_VAR, getJahiaVersion} from '../utils/JahiaPlatformHelper';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
