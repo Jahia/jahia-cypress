@@ -1,6 +1,6 @@
-import {compare, validate} from 'compare-versions';
+import {satisfies, validate} from 'compare-versions';
 // Intentionally keep explicit path to avoid edge case errors in runtime
-import {JAHIA_VERSION_ENV_VAR, getJahiaVersion} from '../utils/JahiaPlatformHelper';
+import {JAHIA_VERSION_ENV_VAR, cacheJahiaRelease, getJahiaVersion, resolveJahiaRelease} from '../utils/JahiaPlatformHelper';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -37,18 +37,39 @@ declare global {
 // ─── Internal helpers ────────────────────────────────────────────────────────
 
 /**
- * Returns `true` when `current` satisfies `>= required`.
- * Treats missing, empty, or unparseable versions as unsupported.
- * @param current - The running Jahia version read from `Cypress.env`.
- * @param required - Minimum version the test or suite needs.
+ * Turns a `since()` requirement into a compare-versions range. A plain version is a minimum, so
+ * `'8.2.4.0'` reads `'>=8.2.4.0'` as before; anything else is a range, e.g. `'<8.2.4'` or
+ * `'>=8.1.9.5 <8.2.0 || >=8.2.3.5'`.
+ * @param required - The version or range given to `since()`.
  */
-const isSupported = (current: string | undefined, required: string): boolean => {
-    if (!current?.trim()) {
+const toRange = (required: string): string => (validate(required) ? `>=${required}` : required);
+
+/**
+ * Returns `true` when `required` is a plain version or a range compare-versions can read.
+ * @param required - The version or range given to `since()`.
+ */
+const isValidRequirement = (required: string): boolean => {
+    try {
+        satisfies('0.0.0', toRange(required));
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Returns `true` when the cached Jahia release satisfies `required`, a plain version read as a minimum or a range.
+ * Treats a missing or unparseable release as unsupported.
+ * @param required - The version or range the test or suite needs.
+ */
+const isSupported = (required: string): boolean => {
+    const current = resolveJahiaRelease();
+    if (!current) {
         return false;
     }
 
     try {
-        return compare(String(current), required, '>=');
+        return satisfies(current, toRange(required));
     } catch {
         return false;
     }
@@ -62,8 +83,8 @@ const isSupported = (current: string | undefined, required: string): boolean => 
  * @param scope - Label used in the error message (e.g. `"it.since"`).
  */
 const assertArgs = (version: string, title: string, scope: string): void => {
-    if (!validate(version)) {
-        const hint = validate(title) ? ' (arguments appear swapped)' : '';
+    if (!isValidRequirement(version)) {
+        const hint = isValidRequirement(title) ? ' (arguments appear swapped)' : '';
         throw new Error(`[${scope}] Invalid version: "${version}"${hint}.`);
     }
 };
@@ -72,34 +93,39 @@ const assertArgs = (version: string, title: string, scope: string): void => {
  * Builds a human-readable message explaining why a test or suite was skipped.
  * @param scope - Label for the helper (e.g. `"it.since"` or `"describe.since"`).
  * @param title - Original test or suite title.
- * @param required - Minimum version the test or suite needs.
- * @param current - The running Jahia version; `undefined` when not yet fetched.
+ * @param required - The version or range the test or suite needs; the message reads the cached release itself.
  */
-const skipReason = (scope: string, title: string, required: string, current?: string): string =>
-    current ?
-        `[${scope}] Skipping "${title}" — ${JAHIA_VERSION_ENV_VAR}="${current}" < required ${required}.` :
+const skipReason = (scope: string, title: string, required: string): string => {
+    const current = resolveJahiaRelease();
+    return current ?
+        `[${scope}] Skipping "${title}" — ${JAHIA_VERSION_ENV_VAR}="${current}" does not satisfy ${toRange(required)}.` :
         `[${scope}] Skipping "${title}" — ${JAHIA_VERSION_ENV_VAR} is not set. Required: ${required}.`;
-
-// ─── Public API ───────────────────────────────────────────────────────────────
+};
 
 /**
- * Fetches the Jahia version from the GraphQL API, strips the `-SNAPSHOT` suffix,
- * and caches the result in `Cypress.env(JAHIA_VERSION_ENV_VAR)`.
+ * Returns the cached Jahia release, or fetches it from the GraphQL API and caches it without the
+ * `-SNAPSHOT` suffix. Caches nothing when GraphQL reports no release: an empty cache skips every
+ * gated test, while a placeholder release would run the ones gated on an upper bound such as '<8.2.4'.
+ * @returns The release, e.g. '8.2.3.0', or undefined when none could be fetched.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const initializeVersionSupport = (): Cypress.Chainable<any> => {
-    const cachedVersion = Cypress.env(JAHIA_VERSION_ENV_VAR);
-
-    if (typeof cachedVersion === 'string' && cachedVersion.trim() !== '') {
-        return cy.wrap(cachedVersion, {log: false});
+const initializeVersionSupport = (): Cypress.Chainable<any> => {
+    const cachedRelease = resolveJahiaRelease();
+    if (cachedRelease) {
+        return cy.wrap(cachedRelease, {log: false});
     }
 
-    return getJahiaVersion().then(jahiaVersion => {
-        const version = jahiaVersion?.release?.replace('-SNAPSHOT', '') || '0.0.0.1';
-        Cypress.env(JAHIA_VERSION_ENV_VAR, version);
-        return version;
+    return getJahiaVersion().then(version => {
+        if (version?.release) {
+            cacheJahiaRelease(version.release);
+        }
+
+        // Wrapped, because a then() callback that returns undefined yields the previous subject instead
+        return cy.wrap(resolveJahiaRelease(), {log: false});
     });
 };
+
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Attaches `.since()` to `it`, `it.only`, `it.skip`, `describe`, `describe.only`,
@@ -139,9 +165,8 @@ export const registerVersionSupport = (): void => {
 
             const userFn = typeof configOrFn === 'function' ? configOrFn : maybeFn;
             const wrappedFn = function (this: Mocha.Context) {
-                const current = Cypress.env(JAHIA_VERSION_ENV_VAR);
-                if (!isSupported(current, version)) {
-                    console.warn(skipReason('it.since', title, version, current));
+                if (!isSupported(version)) {
+                    console.warn(skipReason('it.since', title, version));
                     this.skip();
                 } else if (typeof userFn === 'function') {
                     return userFn.call(this);
@@ -172,9 +197,8 @@ export const registerVersionSupport = (): void => {
             return target(title, function (this: Mocha.Suite) {
                 // Suite-level runtime check runs after the global before() has fetched the version
                 before(function (this: Mocha.Context) {
-                    const current = Cypress.env(JAHIA_VERSION_ENV_VAR);
-                    if (!isSupported(current, version)) {
-                        console.warn(skipReason('describe.since', title, version, current));
+                    if (!isSupported(version)) {
+                        console.warn(skipReason('describe.since', title, version));
                         this.skip();
                     }
                 });
