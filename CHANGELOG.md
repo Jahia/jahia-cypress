@@ -1,5 +1,11 @@
 # @jahia/cypress Changelog
 
+## 8.7.0
+
+* Added `startModule` and `stopModule` to start or stop a module and wait until it is active or stopped, on any Jahia version.
+
+* `it.since()` and `describe.since()` now accept version ranges such as `'<8.2.4'`, and a plain version still means that version or later.
+
 ## 8.6.1
 
 * Set the default mail recipient in the SMTP setup script on Jahia 8.2.4.0 and later, so a mail Jahia sends without a recipient reaches Mailpit (#260)
