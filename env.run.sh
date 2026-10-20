@@ -38,7 +38,8 @@ bash -c "unset npm_config_package; npx --yes @jahia/jahia-reporter@latest utils:
   --jahiaPassword=\"${SUPER_USER_PASSWORD}\" \
   --filepath=\"results/installed-jahia-modules.json\""
 echo "$(date +'%d %B %Y - %k:%M') == Modules fetched =="
-INSTALLED_MODULE_VERSION=$(cat results/installed-jahia-modules.json | jq '.module.version')
+# jq prints a JSON string with its quotes without -r, and "UNKNOWN" with quotes never equals UNKNOWN
+INSTALLED_MODULE_VERSION=$(cat results/installed-jahia-modules.json | jq -r '.module.version')
 if [[ $INSTALLED_MODULE_VERSION == "UNKNOWN" ]]; then
   echo "$(date +'%d %B %Y - %k:%M') ERROR: Unable to detect module: ${MODULE_ID} on the remote system "
   echo "$(date +'%d %B %Y - %k:%M') ERROR: The Script will exit"
