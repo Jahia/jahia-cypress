@@ -4,7 +4,19 @@
 
 BASEDIR=$(dirname $(readlink -f $0))
 
-bash $BASEDIR/env.provision.sh
+if ! bash $BASEDIR/env.provision.sh; then
+  echo "$(date +'%d %B %Y - %k:%M') == PROVISIONING FAILED - EXITING SCRIPT, NOT RUNNING THE TESTS"
+  mkdir -p ./results
+  echo "failure" > ./results/test_failure
+  exit 1
+fi
+
+if ! bash $BASEDIR/env.readiness.sh; then
+  echo "$(date +'%d %B %Y - %k:%M') == PLATFORM NOT READY - EXITING SCRIPT, NOT RUNNING THE TESTS"
+  mkdir -p ./results
+  echo "failure" > ./results/test_failure
+  exit 1
+fi
 
 source $BASEDIR/set-env.sh
 

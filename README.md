@@ -176,6 +176,9 @@ Generic `getGlobalVar`/`setGlobalVar` key/value store, backed by `cy.task()`, fo
 ### SMTP Server Support
 Configuration guide for setting up mail server support (`mailpit`) so your tests can receive Jahia mails and notifications. Read more [here](./docs/using-smtp-server.md).
 
+### Provisioning Readiness Check
+`env.run.sh` checks, once the provisioning ran, that every module of the manifest is installed and started, and stops before Cypress starts when one is missing. Read more [here](./docs/provisioning-readiness.md).
+
 ## Open-Source
 
 This is an Open-Source codebase, you can find more details about Open-Source @ Jahia [in this repository](https://github.com/Jahia/open-source)
