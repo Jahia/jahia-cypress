@@ -17,6 +17,10 @@ when a module is missing or not started. `env.run.sh` then stops before Cypress 
 answers when it could not run the script at all. The answer of the API is kept in
 `run-artifacts/provisioning-response.json`.
 
+The check of the module under test, which stops the run when the module `MODULE_ID` names is not
+installed, fires too: it used to compare the version with its JSON quotes, so it never did. A
+repository whose tests target no module, such as the Jahia core, sets `MODULE_ID_CHECK=false`.
+
 ## What is checked
 
 - Every `mvn:` and `js:mvn:` URL under `installBundle`, `installModule`, `installAndStartBundle`,
@@ -41,6 +45,7 @@ that `env.run.sh` already makes.
 | `PROVISIONING_CHECK` | `true` | `false` skips the check. |
 | `PROVISIONING_CHECK_IGNORE` | | The module ids the check leaves out, separated by commas, for a module whose id is not the artifactId of its URL. |
 | `PROVISIONING_CHECK_TIMEOUT` | `60` | The seconds the check waits for a module in a transient state. |
+| `MODULE_ID_CHECK` | `true` | `false` lets the run go on when the module `MODULE_ID` names is not installed, for a repository whose tests target no module. |
 
 The variables are read from the environment of the Cypress container, so a `docker-compose` file
 sets them under `environment:`, next to `MANIFEST`.

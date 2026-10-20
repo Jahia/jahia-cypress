@@ -40,7 +40,9 @@ bash -c "unset npm_config_package; npx --yes @jahia/jahia-reporter@latest utils:
 echo "$(date +'%d %B %Y - %k:%M') == Modules fetched =="
 # jq prints a JSON string with its quotes without -r, and "UNKNOWN" with quotes never equals UNKNOWN
 INSTALLED_MODULE_VERSION=$(cat results/installed-jahia-modules.json | jq -r '.module.version')
-if [[ $INSTALLED_MODULE_VERSION == "UNKNOWN" ]]; then
+if [[ "${MODULE_ID_CHECK}" == "false" ]]; then
+  echo "$(date +'%d %B %Y - %k:%M') == MODULE_ID_CHECK is false, the module ${MODULE_ID} is not expected on the remote system (version: ${INSTALLED_MODULE_VERSION})"
+elif [[ $INSTALLED_MODULE_VERSION == "UNKNOWN" ]]; then
   echo "$(date +'%d %B %Y - %k:%M') ERROR: Unable to detect module: ${MODULE_ID} on the remote system "
   echo "$(date +'%d %B %Y - %k:%M') ERROR: The Script will exit"
   echo "$(date +'%d %B %Y - %k:%M') ERROR: Tests will NOT run"
