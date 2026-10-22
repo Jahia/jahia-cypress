@@ -4,6 +4,20 @@ const loggerScript = 'groovy/logger.groovy';
 const delimeters = {spec: '='.repeat(20), test: '-'.repeat(20)};
 
 /**
+ * Escapes text for the inside of a Groovy double-quoted string. `executeGroovy` substitutes the
+ * message into `logger.info("MESSAGE")` as is, so a `"` ends the string early, and a `$` or a `\`
+ * starts an interpolation or an escape.
+ * @param text - The text to place between the double quotes.
+ * @returns The text with `\`, `"`, `$` and line breaks escaped.
+ */
+export const escapeGroovyString = (text: string): string => text
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\$/g, '\\$')
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n');
+
+/**
  * Generates a marker for the beginning or end of a test suite.
  * @param action - The action being performed (e.g., "Starting" or "Ending").
  * @param name - The name of the test suite.
@@ -54,25 +68,33 @@ const withPreservedCookies = (fn: () => void): void => {
 };
 
 /**
+ * Writes a marker to the Jahia log.
+ * @param message - The marker to log.
+ */
+const logMarker = (message: string): void => {
+    withPreservedCookies(() => cy.executeGroovy(loggerScript, {MESSAGE: escapeGroovyString(message)}));
+};
+
+/**
  * Enables logging markers for the start and end of test suites and individual tests.
  * This function sets up hooks to log messages before and after each test and suite execution.
  * It uses a Groovy script to log the messages, which can be useful for tracking test execution in Jahia logs.
  */
 const enableSpecsMarker = (): void => {
     before(() => {
-        withPreservedCookies(() => cy.executeGroovy(loggerScript, {MESSAGE: specMarker('[BEGIN SPEC]', Cypress.spec.name)}));
+        logMarker(specMarker('[BEGIN SPEC]', Cypress.spec.name));
     });
 
     beforeEach(function () {
-        withPreservedCookies(() => cy.executeGroovy(loggerScript, {MESSAGE: testMarker('[BEGIN TEST]', this.currentTest!.title)}));
+        logMarker(testMarker('[BEGIN TEST]', this.currentTest!.title));
     });
 
     afterEach(function () {
-        withPreservedCookies(() => cy.executeGroovy(loggerScript, {MESSAGE: testMarker('[END TEST]', this.currentTest!.title)}));
+        logMarker(testMarker('[END TEST]', this.currentTest!.title));
     });
 
     after(() => {
-        withPreservedCookies(() => cy.executeGroovy(loggerScript, {MESSAGE: specMarker('[END SPEC]', Cypress.spec.name)}));
+        logMarker(specMarker('[END SPEC]', Cypress.spec.name));
     });
 };
 
