@@ -495,6 +495,10 @@ describe('itSince support', () => {
                 before('setup', () => {
                     hooksRan.push('before');
                 });
+                before('callback setup', function (done) {
+                    hooksRan.push('done before');
+                    done();
+                });
                 beforeEach(() => {
                     hooksRan.push('beforeEach');
                 });
@@ -538,6 +542,10 @@ describe('itSince support', () => {
                 before('setup', () => {
                     hooksRan.push('before');
                 });
+                before('callback setup', function (done) {
+                    hooksRan.push('done before');
+                    done();
+                });
                 after('teardown', () => {
                     hooksRan.push('after');
                 });
@@ -549,7 +557,7 @@ describe('itSince support', () => {
 
             describe('once the gated suite has ended', () => {
                 it('ran its hooks around the test', () => {
-                    expect(hooksRan).to.deep.equal(['before', 'test', 'after']);
+                    expect(hooksRan).to.deep.equal(['before', 'done before', 'test', 'after']);
                 });
             });
         });
