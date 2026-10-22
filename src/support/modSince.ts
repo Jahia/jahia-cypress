@@ -125,6 +125,31 @@ const initializeVersionSupport = (): Cypress.Chainable<any> => {
     });
 };
 
+type HookRegistrar = (titleOrFn: string | Mocha.Func, fn?: Mocha.Func) => void;
+
+const HOOK_NAMES = ['before', 'after', 'beforeEach', 'afterEach'] as const;
+
+/**
+ * Wraps a Mocha hook registrar so that each hook it registers does nothing when `required` is not met.
+ * Skipping the tests of a suite does not stop Mocha from running its other before() and its after()
+ * hooks, so the setup and teardown of a gated suite would still run against a Jahia it does not support.
+ * @param register - The global hook registrar, e.g. `before`.
+ * @param required - The version or range the suite needs.
+ */
+const gateHook = (register: HookRegistrar, required: string): HookRegistrar => (titleOrFn, maybeFn) => {
+    const userFn = (typeof titleOrFn === 'function' ? titleOrFn : maybeFn) as Mocha.Func;
+    // Mocha tells a callback hook by its arity, so the wrapper keeps the done parameter when the hook has one
+    const gated = userFn.length > 0 ?
+        function (this: Mocha.Context, done: Mocha.Done) {
+            return isSupported(required) ? userFn.call(this, done) : done();
+        } :
+        function (this: Mocha.Context) {
+            return isSupported(required) ? (userFn as () => unknown).call(this) : undefined;
+        };
+
+    return typeof titleOrFn === 'string' ? register(titleOrFn, gated as Mocha.Func) : register(gated as Mocha.Func);
+};
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -203,7 +228,20 @@ export const registerVersionSupport = (): void => {
                     }
                 });
 
-                fn.call(this);
+                // The hooks the suite registers run only when the version is supported
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const globals = globalThis as any;
+                const originals = HOOK_NAMES.map(name => globals[name]);
+                HOOK_NAMES.forEach((name, i) => {
+                    globals[name] = gateHook(originals[i], version);
+                });
+                try {
+                    fn.call(this);
+                } finally {
+                    HOOK_NAMES.forEach((name, i) => {
+                        globals[name] = originals[i];
+                    });
+                }
             });
         };
     }

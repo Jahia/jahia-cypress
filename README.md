@@ -117,6 +117,8 @@ Modifiers are supported as well:
 
 `it.since(...)` and `describe.since(...)` run only when the current Jahia version satisfies `requiredVersion`: a plain version is a minimum (`'8.2.0'` means `>=8.2.0`), and a range such as `'<8.2.4'` or `'>=8.1.9.5 <8.2.0 || >=8.2.3.5'` is read as written. Otherwise they are skipped. Underlying functionality is based on [compare-versions#version-ranges](https://www.npmjs.com/package/compare-versions#version-ranges), thus refer to the corresponding document for ranges syntax details.
 
+A `describe.since(...)` suite that is skipped runs none of its hooks either: its `before()`, `after()`, `beforeEach()` and `afterEach()`, and those of its nested suites, do nothing, so its setup and teardown never reach a Jahia version that does not support it.
+
 `it.skip.since(...)` and `describe.skip.since(...)` are always skipped (same behavior as Cypress `skip`, with a version argument for consistency).
 
 Jahia version is fetched in a root `before()` hook and stored in environment variable `CYPRESS_JAHIA_VERSION`. To read it in a test or a hook, call `resolveJahiaRelease()`, which returns the release without the `-SNAPSHOT` suffix (e.g. `'8.2.3.0'`). It is not available while the spec file loads, because the root `before()` has not run yet.
