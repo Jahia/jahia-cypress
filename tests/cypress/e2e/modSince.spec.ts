@@ -416,8 +416,11 @@ describe('itSince support', () => {
                 });
             });
 
-            it('does not execute suite callback for lower version', () => {
-                expect(suiteRan).to.equal(false);
+            // Mocha runs the tests of a suite before its nested suites, so the check sits in a later sibling suite
+            describe('once the gated suite has ended', () => {
+                it('does not execute suite callback for lower version', () => {
+                    expect(suiteRan).to.equal(false);
+                });
             });
         });
 
@@ -452,8 +455,11 @@ describe('itSince support', () => {
                 });
             });
 
-            it('does not execute suite callback for a version outside the range', () => {
-                expect(suiteRan).to.equal(false);
+            // Mocha runs the tests of a suite before its nested suites, so the check sits in a later sibling suite
+            describe('once the gated suite has ended', () => {
+                it('does not execute suite callback for a version outside the range', () => {
+                    expect(suiteRan).to.equal(false);
+                });
             });
         });
 
@@ -470,8 +476,81 @@ describe('itSince support', () => {
                 });
             });
 
-            it('does not execute suite callback when version is missing', () => {
-                expect(suiteRan).to.equal(false);
+            // Mocha runs the tests of a suite before its nested suites, so the check sits in a later sibling suite
+            describe('once the gated suite has ended', () => {
+                it('does not execute suite callback when version is missing', () => {
+                    expect(suiteRan).to.equal(false);
+                });
+            });
+        });
+
+        describe('describe.since unsupported version, hooks', () => {
+            const hooksRan: string[] = [];
+
+            before(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.1.0');
+            });
+
+            describe.since('8.2.0', 'skips the hooks of a suite the current version does not support', () => {
+                before('setup', () => {
+                    hooksRan.push('before');
+                });
+                beforeEach(() => {
+                    hooksRan.push('beforeEach');
+                });
+                afterEach(() => {
+                    hooksRan.push('afterEach');
+                });
+                after('teardown', () => {
+                    hooksRan.push('after');
+                });
+
+                describe('nested suite', () => {
+                    after(() => {
+                        hooksRan.push('nested after');
+                    });
+
+                    it('is never run', () => {
+                        hooksRan.push('test');
+                    });
+                });
+
+                it('is never run either', () => {
+                    hooksRan.push('test');
+                });
+            });
+
+            describe('once the gated suite has ended', () => {
+                it('ran none of its hooks', () => {
+                    expect(hooksRan).to.deep.equal([]);
+                });
+            });
+        });
+
+        describe('describe.since supported version, hooks', () => {
+            const hooksRan: string[] = [];
+
+            before(() => {
+                Cypress.env(JAHIA_VERSION_ENV_VAR, '8.2.0');
+            });
+
+            describe.since('8.2.0', 'runs the hooks of a suite the current version supports', () => {
+                before('setup', () => {
+                    hooksRan.push('before');
+                });
+                after('teardown', () => {
+                    hooksRan.push('after');
+                });
+
+                it('runs', () => {
+                    hooksRan.push('test');
+                });
+            });
+
+            describe('once the gated suite has ended', () => {
+                it('ran its hooks around the test', () => {
+                    expect(hooksRan).to.deep.equal(['before', 'test', 'after']);
+                });
             });
         });
     });
