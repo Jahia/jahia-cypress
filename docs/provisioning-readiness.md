@@ -39,9 +39,16 @@ repository whose tests target no module, such as the Jahia core, sets `MODULE_ID
   installed otherwise.
 - A module in a transient state (STARTING, WAITING_TO_BE_IMPORTED, SPRING_STARTING) is read again
   every 5 seconds, up to `PROVISIONING_CHECK_TIMEOUT` seconds.
+- The modules of every manifest an `include:` names, written as a string, a list or `url:` entries,
+  and of the manifests that one includes in turn. Jahia finds an included manifest among the files
+  submitted with the manifest, by the name of the file without its folder, and `env.provision.sh`
+  submits every file of `assets/`, so `include: 'provisioning.yml'` reads `assets/provisioning.yml`.
+  The check looks it up the same way. An include that no file of `assets/` holds fails the check,
+  since Jahia then logs `Cannot include` and installs none of its modules.
 
-An entry with an `if` condition is left out, since Jahia decides it. So is a local file, whose name
-does not give the module id, and the manifests an `include:` names, which the check does not read.
+An entry with an `if` condition is left out, since Jahia decides it, an `include:` included. So is a
+local file, whose name does not give the module id. An `include:` that names a URL, such as
+`https://…` or `mvn:…`, is not fetched: the check prints a `not checked` line for it and goes on.
 The modules a project submits from its `artifacts/` folder are covered by the check of `MODULE_ID`
 that `env.run.sh` already makes.
 
@@ -62,7 +69,9 @@ sets them under `environment:`, next to `MANIFEST`.
 Every line of the check starts with `[READINESS]`. A failed check prints one `MISSING` line per
 module, with the state the manifest asks for and the states the platform reports, then
 `PLATFORM NOT READY - EXITING SCRIPT, NOT RUNNING THE TESTS`. The cause is in the `ERROR` lines of
-`jahia.log`, such as `Cannot install mvn:org.jahia.modules/sitemap`. When the asked version is
+`jahia.log`, such as `Cannot install mvn:org.jahia.modules/sitemap`. A module an included manifest
+names ends its line with the name of that manifest, as in `(mvn:org.jahia.modules/qa-module, in
+provisioning.yml)`. When the asked version is
 missing, the line also names the versions that are installed, which points at a failed upgrade.
 
 The match of the version is exact. When `installOrUpgradeBundle` asks for a version older than the

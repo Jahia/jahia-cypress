@@ -5,7 +5,10 @@
  * ERROR line in the log of Jahia, and the suite would otherwise run on a platform that misses it.
  *
  *   node dist/cli/provisioningCheck.js --manifest <file> --url <jahia> --password <password>
- *                                      [--user root] [--ignore id,id] [--timeout <seconds>]
+ *                                      [--assets <dir>] [--user root] [--ignore id,id] [--timeout <seconds>]
+ *
+ * --assets names the folder whose files env.provision.sh submits with the manifest, where an include
+ * finds the manifest it names. It defaults to assets.
  *
  * Exits 0 when every module is there, 1 when one is missing or not started, and 2 when the check
  * itself could not run.
@@ -13,6 +16,7 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
+import * as path from 'path';
 import {parse} from 'yaml';
 
 /**
@@ -38,6 +42,12 @@ const MVN_URL = /^(?:js:)?mvn:([^/]+)\/([^/]+)(?:\/([^/]*))?(?:\/.*)?$/;
 /** The Maven versions that name no version of their own, so any installed version matches them. */
 const ANY_VERSION = ['', 'LATEST', 'RELEASE'];
 
+/**
+ * A resource key Jahia fetches as a URL (PATTERN of ProvisioningScriptUtil in jahia-private). Any
+ * other key names a file submitted with the manifest.
+ */
+const URL_KEY = /^[a-z][a-z0-9+.-]+:.*/;
+
 export type ExpectedState = 'STARTED' | 'INSTALLED';
 
 export type ExpectedModule = {
@@ -49,6 +59,24 @@ export type ExpectedModule = {
     expected: ExpectedState;
     /** True for a mvn: URL whose module id the check cannot read, which fails the check */
     unreadable?: boolean;
+    /** True for an included manifest no submitted file holds, which fails the check */
+    missingInclude?: boolean;
+    /** The included manifest that names the module, absent for the manifest the check was given */
+    from?: string;
+};
+
+/**
+ * Reads an included manifest by the name its `include:` gives, the way Jahia finds it among the files
+ * submitted with the manifest.
+ * @returns {string | undefined} The YAML text, or undefined when no submitted file has that name
+ */
+export type IncludeReader = (name: string) => string | undefined;
+
+export type ManifestModules = {
+    /** The modules of the manifest and of the manifests it includes, in the order Jahia installs them */
+    modules: ExpectedModule[];
+    /** The includes that name a URL, which the check does not fetch */
+    remoteIncludes: string[];
 };
 
 /** One entry of the `_localInfo` answer of the module manager API */
@@ -113,62 +141,142 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
- * Lists the modules a manifest installs, with the state each operation leaves them in. An entry under
- * an `if` condition is left out, since Jahia decides it, and so is a local file, whose name does not
- * give the module id. A module two entries name is listed once, STARTED when either entry starts it.
- * @param {string} manifestText - The YAML text of the manifest
- * @returns {ExpectedModule[]} The modules, in the order of the manifest
+ * The items of an operation that takes one value or a list, as convertToList of ProvisioningScriptUtil
+ * in jahia-private builds them: a list item is the value, or a map with the value under `url` and
+ * options of its own, and each item inherits the options of the entry.
+ * @param {Record<string, unknown>} entry - The entry of the manifest
+ * @param {string} key - The operation key, such as installBundle or include
+ * @returns {Record<string, unknown>[]} The options of each item, with its value under `url`
  */
-export const expectedModules = (manifestText: string): ExpectedModule[] => {
-    const manifest: unknown = parse(manifestText);
-    if (!Array.isArray(manifest)) {
-        return [];
-    }
+const itemsOf = (entry: Record<string, unknown>, key: string): Record<string, unknown>[] => {
+    const value = entry[key];
+    const items: unknown[] = Array.isArray(value) ? value : [value];
+    return items.map(item => (typeof item === 'string' ?
+        {...entry, url: item} :
+        {...entry, ...(isRecord(item) ? item : {})}));
+};
 
+/**
+ * Lists the modules a manifest installs, with the state each operation leaves them in, and follows its
+ * includes the way Jahia runs them: in place, and by the name of a submitted file. An entry under an
+ * `if` condition is left out, since Jahia decides it, and so is a local file, whose name does not give
+ * the module id. A module two entries name is listed once, STARTED when either entry starts it.
+ * @param {string} manifestText - The YAML text of the manifest
+ * @param {IncludeReader} [readInclude] - Reads an included manifest; without it, includes are not followed
+ * @returns {ManifestModules} The modules, and the includes the check cannot follow
+ */
+export const readManifest = (manifestText: string, readInclude?: IncludeReader): ManifestModules => {
     const byId: Record<string, ExpectedModule> = {};
-    const ordered: ExpectedModule[] = [];
-    manifest.forEach((entry: unknown) => {
-        if (!isRecord(entry)) {
+    const result: ManifestModules = {modules: [], remoteIncludes: []};
+
+    const addModule = (key: string, options: Record<string, unknown>, from: string | undefined): void => {
+        if (typeof options.url !== 'string' || options.if !== undefined) {
             return;
         }
 
-        const key = Object.keys(INSTALL_KEYS).find(installKey => installKey in entry);
-        if (!key) {
+        const origin = from === undefined ? {} : {from};
+        const id = moduleIdOfUrl(options.url);
+        if (!id) {
+            if (/^(?:js:)?mvn:/.test(options.url.trim())) {
+                result.modules.push({id: options.url, url: options.url, expected: 'STARTED', unreadable: true, ...origin});
+            }
+
             return;
         }
 
-        const value = entry[key];
-        const items: unknown[] = Array.isArray(value) ? value : [value];
-        items.forEach(item => {
-            // A list item is the URL, or a map with the URL under `url` and options of its own
-            const options: Record<string, unknown> = typeof item === 'string' ?
-                {...entry, url: item} :
-                {...entry, ...(isRecord(item) ? item : {})};
-            if (typeof options.url !== 'string' || options.if !== undefined) {
+        const expected: ExpectedState = startsModule(key, options.autoStart) ? 'STARTED' : 'INSTALLED';
+        if (byId[id]) {
+            if (expected === 'STARTED') {
+                byId[id].expected = expected;
+            }
+        } else {
+            byId[id] = {id, url: options.url, expected, ...origin};
+            result.modules.push(byId[id]);
+        }
+    };
+
+    // `including` is the chain of includes that led here, so a manifest that includes itself stops
+    const walk = (text: string, from: string | undefined, including: string[]): void => {
+        const manifest: unknown = parse(text);
+        if (!Array.isArray(manifest)) {
+            return;
+        }
+
+        manifest.forEach((entry: unknown) => {
+            if (!isRecord(entry)) {
                 return;
             }
 
-            const id = moduleIdOfUrl(options.url);
-            if (!id) {
-                if (/^(?:js:)?mvn:/.test(options.url.trim())) {
-                    ordered.push({id: options.url, url: options.url, expected: 'STARTED', unreadable: true});
+            if ('include' in entry) {
+                if (readInclude) {
+                    itemsOf(entry, 'include').forEach(options => {
+                        const name = options.url;
+                        if (typeof name !== 'string' || options.if !== undefined || including.indexOf(name) >= 0) {
+                            return;
+                        }
+
+                        if (URL_KEY.test(name)) {
+                            result.remoteIncludes.push(name);
+                            return;
+                        }
+
+                        const included = readInclude(name);
+                        if (included === undefined) {
+                            result.modules.push({id: name, url: name, expected: 'STARTED', missingInclude: true, ...(from === undefined ? {} : {from})});
+                            return;
+                        }
+
+                        walk(included, name, [...including, name]);
+                    });
                 }
 
                 return;
             }
 
-            const expected: ExpectedState = startsModule(key, options.autoStart) ? 'STARTED' : 'INSTALLED';
-            if (byId[id]) {
-                if (expected === 'STARTED') {
-                    byId[id].expected = expected;
-                }
-            } else {
-                byId[id] = {id, url: options.url, expected};
-                ordered.push(byId[id]);
+            const key = Object.keys(INSTALL_KEYS).find(installKey => installKey in entry);
+            if (key) {
+                itemsOf(entry, key).forEach(options => addModule(key, options, from));
             }
         });
-    });
-    return ordered;
+    };
+
+    walk(manifestText, undefined, []);
+    return result;
+};
+
+/**
+ * Lists the modules a manifest installs, as readManifest does.
+ * @param {string} manifestText - The YAML text of the manifest
+ * @param {IncludeReader} [readInclude] - Reads an included manifest; without it, includes are not followed
+ * @returns {ExpectedModule[]} The modules, in the order Jahia installs them
+ */
+export const expectedModules = (manifestText: string, readInclude?: IncludeReader): ExpectedModule[] =>
+    readManifest(manifestText, readInclude).modules;
+
+/**
+ * Indexes the files env.provision.sh submits with the manifest by the name Jahia keys them with, which
+ * is the file name without its directory, so an include finds them as Jahia does.
+ * @param {string} dir - The assets folder, every file of which env.provision.sh submits
+ * @returns {IncludeReader} A reader of the files of the folder
+ */
+export const assetsReader = (dir: string): IncludeReader => {
+    const files: Record<string, string> = {};
+    const index = (folder: string): void => {
+        fs.readdirSync(folder, {withFileTypes: true}).forEach(file => {
+            const filePath = path.join(folder, file.name);
+            if (file.isDirectory()) {
+                index(filePath);
+            } else {
+                files[file.name] = filePath;
+            }
+        });
+    };
+
+    if (fs.existsSync(dir)) {
+        index(dir);
+    }
+
+    return name => (files[name] === undefined ? undefined : fs.readFileSync(files[name], 'utf8'));
 };
 
 /**
@@ -210,7 +318,7 @@ export const installedModulesOf = (localInfo: unknown): InstalledModules => {
  */
 export const compareModules = (expected: ExpectedModule[], installed: InstalledModules): ModuleReport[] =>
     expected.map(expectedModule => {
-        if (expectedModule.unreadable) {
+        if (expectedModule.unreadable || expectedModule.missingInclude) {
             return {...expectedModule, found: [], otherVersions: [], status: 'failed'};
         }
 
@@ -281,17 +389,23 @@ const describeError = (error: unknown): string => {
 };
 
 const describe = (report: ModuleReport): string => {
+    const origin = report.from === undefined ? '' : `, in ${report.from}`;
+    if (report.missingInclude) {
+        return `no submitted file is named ${report.url}, which the manifest includes${origin}`;
+    }
+
     if (report.unreadable) {
-        return `cannot read the module id of ${report.url}`;
+        return `cannot read the module id of ${report.url}${origin}`;
     }
 
     const found = report.found.length > 0 ? report.found.join(', ') : 'nothing';
     const others = report.otherVersions.length > 0 ? `, installed: ${report.otherVersions.join(', ')}` : '';
-    return `${report.id}: expected ${report.expected}, found ${found}${others} (${report.url})`;
+    return `${report.id}: expected ${report.expected}, found ${found}${others} (${report.url}${origin})`;
 };
 
 type Args = {
     manifest: string;
+    assets: string;
     url: string;
     user: string;
     password: string;
@@ -306,11 +420,12 @@ const parseArgs = (argv: string[]): Args => {
     }
 
     if (!values.manifest || !values.url) {
-        throw new Error('usage: provisioningCheck --manifest <file> --url <jahia> --password <password> [--user root] [--ignore id,id] [--timeout <seconds>]');
+        throw new Error('usage: provisioningCheck --manifest <file> --url <jahia> --password <password> [--assets <dir>] [--user root] [--ignore id,id] [--timeout <seconds>]');
     }
 
     return {
         manifest: values.manifest,
+        assets: values.assets || 'assets',
         url: values.url.replace(/\/$/, ''),
         user: values.user || 'root',
         password: values.password || '',
@@ -347,7 +462,8 @@ const readReports = async (args: Args, checked: ExpectedModule[], deadline: numb
  */
 export const main = async (argv: string[]): Promise<number> => {
     const args = parseArgs(argv);
-    const expected = expectedModules(fs.readFileSync(args.manifest, 'utf8'));
+    const {modules: expected, remoteIncludes} = readManifest(fs.readFileSync(args.manifest, 'utf8'), assetsReader(args.assets));
+    remoteIncludes.forEach(include => log(`not checked: the modules of ${include}, an include the check does not fetch`));
     const ignored = expected.filter(expectedModule => args.ignore.indexOf(expectedModule.id) >= 0);
     ignored.forEach(expectedModule => log(`ignored ${expectedModule.id} (${expectedModule.url})`));
     const checked = expected.filter(expectedModule => args.ignore.indexOf(expectedModule.id) < 0);

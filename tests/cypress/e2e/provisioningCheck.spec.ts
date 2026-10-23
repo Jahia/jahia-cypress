@@ -1,4 +1,12 @@
-import {compareModules, expectedModules, installedModulesOf, moduleIdOfUrl, versionOfUrl} from '../../../src/cli/provisioningCheck';
+import {
+    compareModules,
+    expectedModules,
+    IncludeReader,
+    installedModulesOf,
+    moduleIdOfUrl,
+    readManifest,
+    versionOfUrl
+} from '../../../src/cli/provisioningCheck';
 
 const manifest = `
 - include: 'provisioning.yml'
@@ -149,5 +157,104 @@ describe('provisioning readiness check, version of the module', () => {
         expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell')).to.equal('ok');
         expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/LATEST')).to.equal('ok');
         expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/RELEASE')).to.equal('ok');
+    });
+});
+
+// The files of assets/, by the name Jahia keys a submitted file with
+const assets: Record<string, string> = {
+    'provisioning.yml': `
+- installBundle:
+    - 'mvn:org.jahia.modules/channels'
+    - 'mvn:org.jahia.modules/qa-module'
+  autoStart: true
+- include: 'demo.yml'
+`,
+    'demo.yml': `
+- installAndStartBundle: 'mvn:org.jahia.modules/digitall/3.0.0'
+- include: 'provisioning.yml'
+`,
+    'forms.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/forms',
+    'sitemap.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/sitemap'
+};
+const readAsset: IncludeReader = name => assets[name];
+
+describe('provisioning readiness check, included manifests', () => {
+    it('lists the modules of an include in place, with the manifest that names them', () => {
+        const manifest = `
+- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell
+- include: 'provisioning.yml'
+- installOrUpgradeBundle: mvn:org.jahia.modules/jexperience
+`;
+        expect(expectedModules(manifest, readAsset)).to.deep.equal([
+            {id: 'app-shell', url: 'mvn:org.jahia.modules/app-shell', expected: 'STARTED'},
+            {id: 'channels', url: 'mvn:org.jahia.modules/channels', expected: 'STARTED', from: 'provisioning.yml'},
+            {id: 'qa-module', url: 'mvn:org.jahia.modules/qa-module', expected: 'STARTED', from: 'provisioning.yml'},
+            {id: 'digitall', url: 'mvn:org.jahia.modules/digitall/3.0.0', expected: 'STARTED', from: 'demo.yml'},
+            {id: 'jexperience', url: 'mvn:org.jahia.modules/jexperience', expected: 'STARTED'}
+        ]);
+    });
+
+    it('stops an include that leads back to a manifest it came from', () => {
+        expect(expectedModules('- include: provisioning.yml', readAsset).map(module => module.id))
+            .to.deep.equal(['channels', 'qa-module', 'digitall']);
+    });
+
+    it('reads an include written as a list of names or of url: entries, and leaves out one under an if', () => {
+        const manifest = `
+- include:
+    - 'forms.yml'
+    - url: 'sitemap.yml'
+- include: 'demo.yml'
+  if: 'jahia.version >= "8.2.3.0"'
+`;
+        expect(expectedModules(manifest, readAsset).map(module => module.id)).to.deep.equal(['forms', 'sitemap']);
+    });
+
+    it('lists a module named in the manifest and in an include once, STARTED when either starts it', () => {
+        const manifest = `
+- installBundle: mvn:org.jahia.modules/channels
+- include: provisioning.yml
+`;
+        const channels = expectedModules(manifest, readAsset).filter(module => module.id === 'channels');
+        expect(channels).to.deep.equal([{id: 'channels', url: 'mvn:org.jahia.modules/channels', expected: 'STARTED'}]);
+    });
+
+    it('fails an include that no submitted file holds, since Jahia installs none of its modules', () => {
+        const expected = expectedModules('- include: provisionning.yml', readAsset);
+        expect(expected).to.deep.equal([
+            {id: 'provisionning.yml', url: 'provisionning.yml', expected: 'STARTED', missingInclude: true}
+        ]);
+        expect(compareModules(expected, {})[0].status).to.equal('failed');
+    });
+
+    it('names an include of a URL as not checked, and does not read it', () => {
+        const read: string[] = [];
+        const result = readManifest(`
+- include: 'https://example.com/manifest.yml'
+- include: 'mvn:org.jahia.test/manifests/1.0.0/yml'
+`, name => {
+            read.push(name);
+            return undefined;
+        });
+        expect(result.modules).to.deep.equal([]);
+        expect(result.remoteIncludes).to.deep.equal(['https://example.com/manifest.yml', 'mvn:org.jahia.test/manifests/1.0.0/yml']);
+        expect(read).to.deep.equal([]);
+    });
+
+    it('reports a module of an include that the Maven repository could not serve', () => {
+        const platform = installedModulesOf({
+            'org.jahia.modules/channels/8.1.0.SNAPSHOT': {type: 'MODULE', osgiState: 'ACTIVE', moduleState: 'STARTED'},
+            'org.jahia.modules/digitall/3.0.0': {type: 'MODULE', osgiState: 'ACTIVE', moduleState: 'STARTED'}
+        });
+        const reports = compareModules(expectedModules('- include: provisioning.yml', readAsset), platform);
+        expect(reports.map(report => `${report.id}:${report.status}`)).to.deep.equal([
+            'channels:ok',
+            'qa-module:failed',
+            'digitall:ok'
+        ]);
+    });
+
+    it('leaves the includes alone without a reader', () => {
+        expect(expectedModules('- include: provisioning.yml')).to.deep.equal([]);
     });
 });
