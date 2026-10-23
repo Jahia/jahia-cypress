@@ -26,6 +26,13 @@ repository whose tests target no module, such as the Jahia core, sets `MODULE_ID
 - Every `mvn:` and `js:mvn:` URL under `installBundle`, `installModule`, `installAndStartBundle`,
   `installAndStartModule`, `installOrUpgradeBundle` and `installOrUpgradeModule`, written as a string
   or as a `url:` entry. The module id is the artifactId of the URL.
+- The version the URL names, when it names one. Only that version counts, so a failed upgrade does
+  not pass on the version it left. The check compares the OSGi form of the version, which turns the
+  first `-` into a `.`: `8.11.0-SNAPSHOT` matches `8.11.0.SNAPSHOT`. A URL with no version, `LATEST`,
+  `RELEASE` or a range accepts any installed version.
+- A `mvn:` URL whose module id the check cannot read, such as one that names its repository with
+  `mvn:<repository>!group/artifact/version`, fails the check. `PROVISIONING_CHECK_IGNORE` cannot skip
+  it, because the fix is to change the entry in the manifest.
 - The state each operation leaves the module in, as Jahia applies it: `installAndStart*` leaves it
   STARTED, `installOrUpgrade*` leaves it STARTED unless the entry says `autoStart: false`, and
   `installBundle` and `installModule` leave it STARTED only when the entry says `autoStart: true`,
@@ -55,4 +62,10 @@ sets them under `environment:`, next to `MANIFEST`.
 Every line of the check starts with `[READINESS]`. A failed check prints one `MISSING` line per
 module, with the state the manifest asks for and the states the platform reports, then
 `PLATFORM NOT READY - EXITING SCRIPT, NOT RUNNING THE TESTS`. The cause is in the `ERROR` lines of
-`jahia.log`, such as `Cannot install mvn:org.jahia.modules/sitemap`.
+`jahia.log`, such as `Cannot install mvn:org.jahia.modules/sitemap`. When the asked version is
+missing, the line also names the versions that are installed, which points at a failed upgrade.
+
+The match of the version is exact. When `installOrUpgradeBundle` asks for a version older than the
+installed one, Jahia logs `Skipping installation of …, a more recent version is already installed`
+and keeps the newer one, so the check fails: the platform does not run the version the manifest asks
+for, and the manifest needs a fix.

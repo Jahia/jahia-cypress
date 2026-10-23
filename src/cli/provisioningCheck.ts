@@ -33,21 +33,28 @@ const INSTALL_KEYS: Record<string, 'always' | 'unlessRefused' | 'onlyAsked'> = {
 const TRANSIENT_STATES = ['STARTING', 'WAITING_TO_BE_IMPORTED', 'SPRING_STARTING'];
 
 /** `mvn:group/artifact[/version[/type]]`, with the `js:` prefix of a JavaScript module. */
-const MVN_URL = /^(?:js:)?mvn:([^/]+)\/([^/]+)(?:\/.*)?$/;
+const MVN_URL = /^(?:js:)?mvn:([^/]+)\/([^/]+)(?:\/([^/]*))?(?:\/.*)?$/;
+
+/** The Maven versions that name no version of their own, so any installed version matches them. */
+const ANY_VERSION = ['', 'LATEST', 'RELEASE'];
 
 export type ExpectedState = 'STARTED' | 'INSTALLED';
 
 export type ExpectedModule = {
-    /** The module id, which is the artifactId of the URL */
+    /** The module id, which is the artifactId of the URL, or the URL itself when the check cannot read it */
     id: string;
     /** The URL as the manifest wrote it */
     url: string;
     /** STARTED when the operation starts the module, INSTALLED when it only installs it */
     expected: ExpectedState;
+    /** True for a mvn: URL whose module id the check cannot read, which fails the check */
+    unreadable?: boolean;
 };
 
 /** One entry of the `_localInfo` answer of the module manager API */
 export type BundleInfo = {
+    /** The OSGi version, such as 8.11.0.SNAPSHOT */
+    version: string;
     type: string;
     osgiState: string;
     moduleState: string | null;
@@ -59,6 +66,8 @@ export type InstalledModules = Record<string, BundleInfo[]>;
 export type ModuleReport = ExpectedModule & {
     /** The state of each installed version, empty when the module is absent */
     found: string[];
+    /** The installed versions the URL does not ask for, with their state */
+    otherVersions: string[];
     status: 'ok' | 'pending' | 'failed';
 };
 
@@ -70,6 +79,23 @@ export type ModuleReport = ExpectedModule & {
 export const moduleIdOfUrl = (url: string): string | undefined => {
     const match = MVN_URL.exec(url.trim());
     return match ? match[2] : undefined;
+};
+
+/**
+ * Extracts the version of a `mvn:` or `js:mvn:` URL, in the form OSGi gives it: Maven writes
+ * 8.11.0-SNAPSHOT where the bundle reports 8.11.0.SNAPSHOT.
+ * @param {string} url - The URL of a provisioning entry
+ * @returns {string | undefined} The version, or undefined when the URL names none, names LATEST or
+ * RELEASE, or names a range
+ */
+export const versionOfUrl = (url: string): string | undefined => {
+    const match = MVN_URL.exec(url.trim());
+    const version = match && match[3] !== undefined ? match[3] : '';
+    if (ANY_VERSION.indexOf(version) >= 0 || /[[\](),]/.test(version)) {
+        return undefined;
+    }
+
+    return version.replace('-', '.');
 };
 
 const startsModule = (key: string, autoStart: unknown): boolean => {
@@ -124,6 +150,10 @@ export const expectedModules = (manifestText: string): ExpectedModule[] => {
 
             const id = moduleIdOfUrl(options.url);
             if (!id) {
+                if (/^(?:js:)?mvn:/.test(options.url.trim())) {
+                    ordered.push({id: options.url, url: options.url, expected: 'STARTED', unreadable: true});
+                }
+
                 return;
             }
 
@@ -155,12 +185,13 @@ export const installedModulesOf = (localInfo: unknown): InstalledModules => {
 
     Object.keys(localInfo).forEach(bundleKey => {
         const info = localInfo[bundleKey];
-        const id = bundleKey.split('/')[1];
+        const [, id, version] = bundleKey.split('/');
         if (!id || !isRecord(info) || info.type !== 'MODULE') {
             return;
         }
 
         const bundleInfo: BundleInfo = {
+            version: version || '',
             type: String(info.type),
             osgiState: String(info.osgiState),
             moduleState: typeof info.moduleState === 'string' ? info.moduleState : null
@@ -171,14 +202,23 @@ export const installedModulesOf = (localInfo: unknown): InstalledModules => {
 };
 
 /**
- * Compares the modules a manifest expects with the modules a Jahia holds.
+ * Compares the modules a manifest expects with the modules a Jahia holds. When the URL names a
+ * version, only that version counts, so a failed upgrade does not pass on the version it left.
  * @param {ExpectedModule[]} expected - The modules of the manifest
  * @param {InstalledModules} installed - The modules of the platform
  * @returns {ModuleReport[]} One report per expected module
  */
 export const compareModules = (expected: ExpectedModule[], installed: InstalledModules): ModuleReport[] =>
     expected.map(expectedModule => {
-        const versions = installed[expectedModule.id] || [];
+        if (expectedModule.unreadable) {
+            return {...expectedModule, found: [], otherVersions: [], status: 'failed'};
+        }
+
+        const wanted = versionOfUrl(expectedModule.url);
+        const all = installed[expectedModule.id] || [];
+        const versions = all.filter(version => wanted === undefined || version.version === wanted);
+        const otherVersions = all.filter(version => versions.indexOf(version) < 0)
+            .map(version => `${version.version} ${version.moduleState || version.osgiState}`);
         const found = versions.map(version => version.moduleState || version.osgiState);
         let status: ModuleReport['status'] = 'failed';
         if (expectedModule.expected === 'INSTALLED' ? versions.length > 0 : found.indexOf('STARTED') >= 0) {
@@ -187,7 +227,7 @@ export const compareModules = (expected: ExpectedModule[], installed: InstalledM
             status = 'pending';
         }
 
-        return {...expectedModule, found, status};
+        return {...expectedModule, found, otherVersions, status};
     });
 
 const getJson = (url: string, user: string, password: string): Promise<unknown> =>
@@ -241,8 +281,13 @@ const describeError = (error: unknown): string => {
 };
 
 const describe = (report: ModuleReport): string => {
+    if (report.unreadable) {
+        return `cannot read the module id of ${report.url}`;
+    }
+
     const found = report.found.length > 0 ? report.found.join(', ') : 'nothing';
-    return `${report.id}: expected ${report.expected}, found ${found} (${report.url})`;
+    const others = report.otherVersions.length > 0 ? `, installed: ${report.otherVersions.join(', ')}` : '';
+    return `${report.id}: expected ${report.expected}, found ${found}${others} (${report.url})`;
 };
 
 type Args = {

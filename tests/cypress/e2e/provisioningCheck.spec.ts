@@ -1,4 +1,4 @@
-import {compareModules, expectedModules, installedModulesOf, moduleIdOfUrl} from '../../../src/cli/provisioningCheck';
+import {compareModules, expectedModules, installedModulesOf, moduleIdOfUrl, versionOfUrl} from '../../../src/cli/provisioningCheck';
 
 const manifest = `
 - include: 'provisioning.yml'
@@ -42,6 +42,14 @@ describe('provisioning readiness check', () => {
         expect(moduleIdOfUrl('mvn:org.jahia.modules/sitemap/5.3.0')).to.equal('sitemap');
         expect(moduleIdOfUrl('js:mvn:org.jahia.qa/qa-js-module/LATEST/tgz')).to.equal('qa-js-module');
         expect(moduleIdOfUrl('my-module-1.0.0-SNAPSHOT.jar')).to.equal(undefined);
+    });
+
+    it('fails a mvn: URL whose module id it cannot read, such as one that names its repository', () => {
+        const url = 'mvn:https://nexus.example.com/repository/public!org.jahia.modules/app-shell/3.4.0';
+        expect(moduleIdOfUrl(url)).to.be.undefined;
+        const expected = expectedModules(`- installOrUpgradeBundle: '${url}'`);
+        expect(expected).to.deep.equal([{id: url, url, expected: 'STARTED', unreadable: true}]);
+        expect(compareModules(expected, {})[0].status).to.equal('failed');
     });
 
     it('lists the modules of each install operation with the state the operation leaves them in', () => {
@@ -88,5 +96,58 @@ describe('provisioning readiness check', () => {
     it('accepts an installed module whatever its state when the operation does not start it', () => {
         const expected = expectedModules('- installBundle: js:mvn:org.jahia.qa/qa-js-module/LATEST/tgz');
         expect(compareModules(expected, installedModulesOf(localInfo))[0].status).to.equal('ok');
+    });
+
+});
+
+// Written as _localInfo answers on Jahia 8.2.3, which keys a module group/symbolicName/osgiVersion
+const versionedLocalInfo = {
+    'org.jahia.modules/app-shell/3.3.0': {type: 'MODULE', osgiState: 'ACTIVE', moduleState: 'STARTED'},
+    'org.jahia.modules/forms/4.1.0': {type: 'MODULE', osgiState: 'RESOLVED', moduleState: 'RESOLVED'},
+    'org.jahia.modules/forms/4.2.0': {type: 'MODULE', osgiState: 'ACTIVE', moduleState: 'STARTED'},
+    'org.jahia.modules/default/8.11.0.SNAPSHOT': {type: 'MODULE', osgiState: 'ACTIVE', moduleState: 'STARTED'}
+};
+
+describe('provisioning readiness check, version of the module', () => {
+    const statusOf = (manifestLine: string) =>
+        compareModules(expectedModules(manifestLine), installedModulesOf(versionedLocalInfo))[0].status;
+
+    it('reads the version of a URL in its OSGi form, and none for LATEST, RELEASE or a range', () => {
+        expect(versionOfUrl('mvn:org.jahia.modules/forms/4.2.0')).to.equal('4.2.0');
+        expect(versionOfUrl('mvn:org.jahia.modules/default/8.11.0-SNAPSHOT')).to.equal('8.11.0.SNAPSHOT');
+        expect(versionOfUrl('js:mvn:org.jahia.qa/qa-js-module/1.2.0/tgz')).to.equal('1.2.0');
+        expect(versionOfUrl('mvn:org.jahia.modules/forms')).to.equal(undefined);
+        expect(versionOfUrl('js:mvn:org.jahia.qa/qa-js-module/LATEST/tgz')).to.equal(undefined);
+        expect(versionOfUrl('mvn:org.jahia.modules/forms/RELEASE')).to.equal(undefined);
+        expect(versionOfUrl('mvn:org.jahia.modules/forms/[4.0,5.0)')).to.equal(undefined);
+    });
+
+    it('fails a module whose only installed version is not the one the manifest asks for', () => {
+        expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/3.4.0')).to.equal('failed');
+    });
+
+    it('names the installed version a failed upgrade left', () => {
+        const expected = expectedModules('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/3.4.0');
+        const [report] = compareModules(expected, installedModulesOf(versionedLocalInfo));
+        expect(report.found).to.deep.equal([]);
+        expect(report.otherVersions).to.deep.equal(['3.3.0 STARTED']);
+    });
+
+    it('accepts the asked version when an older one is installed beside it', () => {
+        expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/forms/4.2.0')).to.equal('ok');
+    });
+
+    it('fails when the asked version is installed but only the other one is started', () => {
+        expect(statusOf('- installAndStartBundle: mvn:org.jahia.modules/forms/4.1.0')).to.equal('failed');
+    });
+
+    it('matches a Maven SNAPSHOT version to its OSGi form', () => {
+        expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/default/8.11.0-SNAPSHOT')).to.equal('ok');
+    });
+
+    it('accepts any version when the URL names none, or names LATEST or RELEASE', () => {
+        expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell')).to.equal('ok');
+        expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/LATEST')).to.equal('ok');
+        expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/RELEASE')).to.equal('ok');
     });
 });
