@@ -1,5 +1,17 @@
 # @jahia/cypress Changelog
 
+## 8.8.0
+
+### New Features
+
+* Added a readiness check that stops a test run before Cypress starts when a module of the manifest is missing or not started. A Maven repository that could not serve a module now fails the run at once instead of spec by spec, and a provisioning call that fails stops the run too. A suite whose module under test is not installed also stops now, which the previous check could never detect, so a suite green today can turn red at startup when its provisioning was already failing. A repository whose tests target no module, such as the Jahia core, sets `MODULE_ID_CHECK=false`.
+
+### Bug Fixes
+
+* A `describe.since()` suite skipped on an unsupported Jahia version no longer runs its `before()` and `after()` hooks, so its setup and teardown no longer fail on that version.
+
+* The test start and end markers written to the Jahia log no longer fail for a test or spec name that contains a double quote, a dollar sign or a backslash.
+
 ## 8.7.0
 
 * Added `startModule` and `stopModule` to start or stop a module and wait until it is active or stopped, on any Jahia version.
