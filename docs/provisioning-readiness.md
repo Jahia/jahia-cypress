@@ -43,12 +43,24 @@ repository whose tests target no module, such as the Jahia core, sets `MODULE_ID
   and of the manifests that one includes in turn. Jahia finds an included manifest among the files
   submitted with the manifest, by the name of the file without its folder, and `env.provision.sh`
   submits every file of `assets/`, so `include: 'provisioning.yml'` reads `assets/provisioning.yml`.
-  The check looks it up the same way. An include that no file of `assets/` holds fails the check,
-  since Jahia then logs `Cannot include` and installs none of its modules.
+  The check looks it up the same way, and leaves out a symbolic link, which `find assets -type f`
+  does not submit. An include that no file of `assets/` holds fails the check, since Jahia then logs
+  `Cannot include` and installs none of its modules. `PROVISIONING_CHECK_IGNORE` skips it when it
+  lists the name of that include.
 
-An entry with an `if` condition is left out, since Jahia decides it, an `include:` included. So is a
-local file, whose name does not give the module id. An `include:` that names a URL, such as
-`https://…` or `mvn:…`, is not fetched: the check prints a `not checked` line for it and goes on.
+An install entry with an `if` condition is left out, since Jahia decides it. So is a local file,
+whose name does not give the module id. The check would rather pass a run than fail one that
+provisions fine, so it prints a `not checked` line and goes on for an include it cannot follow the
+way Jahia does:
+
+- an include that names a URL, such as `https://…`, `mvn:…` or `file:…`, which the check does not
+  fetch;
+- an include with an `if`, which Jahia runs or not depending on its version, whatever the condition
+  says;
+- an include whose name several files of `assets/` share, since Jahia keeps one of them in an order
+  the check cannot reproduce;
+- an included manifest the check cannot parse.
+
 The modules a project submits from its `artifacts/` folder are covered by the check of `MODULE_ID`
 that `env.run.sh` already makes.
 

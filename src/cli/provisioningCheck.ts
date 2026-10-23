@@ -66,17 +66,25 @@ export type ExpectedModule = {
 };
 
 /**
- * Reads an included manifest by the name its `include:` gives, the way Jahia finds it among the files
- * submitted with the manifest.
- * @returns {string | undefined} The YAML text, or undefined when no submitted file has that name
+ * What a reader finds for the name an `include:` gives: the YAML text of the file, no file, or the
+ * reason the check cannot tell which file Jahia reads.
  */
-export type IncludeReader = (name: string) => string | undefined;
+export type IncludeLookup = {text: string} | {missing: true} | {unchecked: string};
+
+/** Reads an included manifest the way Jahia finds it among the files submitted with the manifest */
+export type IncludeReader = (name: string) => IncludeLookup;
+
+/** An include whose modules the check leaves out, with the reason */
+export type UncheckedInclude = {
+    name: string;
+    reason: string;
+};
 
 export type ManifestModules = {
     /** The modules of the manifest and of the manifests it includes, in the order Jahia installs them */
     modules: ExpectedModule[];
-    /** The includes that name a URL, which the check does not fetch */
-    remoteIncludes: string[];
+    /** The includes the check does not follow, which pass rather than risk failing a sound run */
+    uncheckedIncludes: UncheckedInclude[];
 };
 
 /** One entry of the `_localInfo` answer of the module manager API */
@@ -160,14 +168,24 @@ const itemsOf = (entry: Record<string, unknown>, key: string): Record<string, un
  * Lists the modules a manifest installs, with the state each operation leaves them in, and follows its
  * includes the way Jahia runs them: in place, and by the name of a submitted file. An entry under an
  * `if` condition is left out, since Jahia decides it, and so is a local file, whose name does not give
- * the module id. A module two entries name is listed once, STARTED when either entry starts it.
+ * the module id. A module two entries name is listed once, STARTED when either entry starts it. An
+ * include the check cannot follow as Jahia does is listed as unchecked, and an include no submitted
+ * file holds is listed once as a missing module.
  * @param {string} manifestText - The YAML text of the manifest
  * @param {IncludeReader} [readInclude] - Reads an included manifest; without it, includes are not followed
- * @returns {ManifestModules} The modules, and the includes the check cannot follow
+ * @returns {ManifestModules} The modules, and the includes the check does not follow
  */
 export const readManifest = (manifestText: string, readInclude?: IncludeReader): ManifestModules => {
     const byId: Record<string, ExpectedModule> = {};
-    const result: ManifestModules = {modules: [], remoteIncludes: []};
+    const result: ManifestModules = {modules: [], uncheckedIncludes: []};
+    // An include two manifests name is reported once, as byId does for a module
+    const reported = new Set<string>();
+    const leaveOut = (name: string, reason: string): void => {
+        if (!reported.has(name)) {
+            reported.add(name);
+            result.uncheckedIncludes.push({name, reason});
+        }
+    };
 
     const addModule = (key: string, options: Record<string, unknown>, from: string | undefined): void => {
         if (typeof options.url !== 'string' || options.if !== undefined) {
@@ -195,9 +213,51 @@ export const readManifest = (manifestText: string, readInclude?: IncludeReader):
         }
     };
 
-    // `including` is the chain of includes that led here, so a manifest that includes itself stops
-    const walk = (text: string, from: string | undefined, including: string[]): void => {
-        const manifest: unknown = parse(text);
+    const follow = (options: Record<string, unknown>, from: string | undefined, including: string[]): void => {
+        const name = options.url;
+        // `including` is the chain of includes that led here, so a manifest that includes itself stops
+        if (typeof name !== 'string' || including.indexOf(name) >= 0 || !readInclude) {
+            return;
+        }
+
+        // Include reads no `if`, so whether Jahia runs the entry depends on the version of Jahia
+        if (options.if !== undefined) {
+            leaveOut(name, 'an include under an if');
+            return;
+        }
+
+        if (URL_KEY.test(name)) {
+            leaveOut(name, 'an include the check does not fetch');
+            return;
+        }
+
+        const lookup = readInclude(name);
+        if ('unchecked' in lookup) {
+            leaveOut(name, lookup.unchecked);
+            return;
+        }
+
+        if ('missing' in lookup) {
+            if (!reported.has(name)) {
+                reported.add(name);
+                result.modules.push({id: name, url: name, expected: 'STARTED', missingInclude: true, ...(from === undefined ? {} : {from})});
+            }
+
+            return;
+        }
+
+        let included: unknown;
+        try {
+            included = parse(lookup.text);
+        } catch (error) {
+            leaveOut(name, `a manifest the check cannot parse (${error instanceof Error ? error.message.split('\n')[0] : String(error)})`);
+            return;
+        }
+
+        walk(included, name, [...including, name]);
+    };
+
+    const walk = (manifest: unknown, from: string | undefined, including: string[]): void => {
         if (!Array.isArray(manifest)) {
             return;
         }
@@ -208,28 +268,7 @@ export const readManifest = (manifestText: string, readInclude?: IncludeReader):
             }
 
             if ('include' in entry) {
-                if (readInclude) {
-                    itemsOf(entry, 'include').forEach(options => {
-                        const name = options.url;
-                        if (typeof name !== 'string' || options.if !== undefined || including.indexOf(name) >= 0) {
-                            return;
-                        }
-
-                        if (URL_KEY.test(name)) {
-                            result.remoteIncludes.push(name);
-                            return;
-                        }
-
-                        const included = readInclude(name);
-                        if (included === undefined) {
-                            result.modules.push({id: name, url: name, expected: 'STARTED', missingInclude: true, ...(from === undefined ? {} : {from})});
-                            return;
-                        }
-
-                        walk(included, name, [...including, name]);
-                    });
-                }
-
+                itemsOf(entry, 'include').forEach(options => follow(options, from, including));
                 return;
             }
 
@@ -240,7 +279,7 @@ export const readManifest = (manifestText: string, readInclude?: IncludeReader):
         });
     };
 
-    walk(manifestText, undefined, []);
+    walk(parse(manifestText), undefined, []);
     return result;
 };
 
@@ -255,19 +294,20 @@ export const expectedModules = (manifestText: string, readInclude?: IncludeReade
 
 /**
  * Indexes the files env.provision.sh submits with the manifest by the name Jahia keys them with, which
- * is the file name without its directory, so an include finds them as Jahia does.
+ * is the file name without its directory, so an include finds them as Jahia does. A symbolic link is
+ * left out, as `find assets -type f` leaves it out of the submitted files.
  * @param {string} dir - The assets folder, every file of which env.provision.sh submits
  * @returns {IncludeReader} A reader of the files of the folder
  */
 export const assetsReader = (dir: string): IncludeReader => {
-    const files: Record<string, string> = {};
+    const files: Record<string, string[]> = {};
     const index = (folder: string): void => {
         fs.readdirSync(folder, {withFileTypes: true}).forEach(file => {
             const filePath = path.join(folder, file.name);
             if (file.isDirectory()) {
                 index(filePath);
-            } else {
-                files[file.name] = filePath;
+            } else if (file.isFile()) {
+                files[file.name] = [...(files[file.name] || []), filePath];
             }
         });
     };
@@ -276,7 +316,19 @@ export const assetsReader = (dir: string): IncludeReader => {
         index(dir);
     }
 
-    return name => (files[name] === undefined ? undefined : fs.readFileSync(files[name], 'utf8'));
+    return name => {
+        const paths = files[name];
+        if (paths === undefined) {
+            return {missing: true};
+        }
+
+        // Jahia keeps the last file of that name in the order find lists them, which no sort reproduces
+        if (paths.length > 1) {
+            return {unchecked: `a name ${paths.length} files of ${dir} share (${paths.join(', ')})`};
+        }
+
+        return {text: fs.readFileSync(paths[0], 'utf8')};
+    };
 };
 
 /**
@@ -462,8 +514,8 @@ const readReports = async (args: Args, checked: ExpectedModule[], deadline: numb
  */
 export const main = async (argv: string[]): Promise<number> => {
     const args = parseArgs(argv);
-    const {modules: expected, remoteIncludes} = readManifest(fs.readFileSync(args.manifest, 'utf8'), assetsReader(args.assets));
-    remoteIncludes.forEach(include => log(`not checked: the modules of ${include}, an include the check does not fetch`));
+    const {modules: expected, uncheckedIncludes} = readManifest(fs.readFileSync(args.manifest, 'utf8'), assetsReader(args.assets));
+    uncheckedIncludes.forEach(include => log(`not checked: the modules of ${include.name}, ${include.reason}`));
     const ignored = expected.filter(expectedModule => args.ignore.indexOf(expectedModule.id) >= 0);
     ignored.forEach(expectedModule => log(`ignored ${expectedModule.id} (${expectedModule.url})`));
     const checked = expected.filter(expectedModule => args.ignore.indexOf(expectedModule.id) < 0);

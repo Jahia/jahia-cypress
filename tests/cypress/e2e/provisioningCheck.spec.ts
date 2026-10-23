@@ -1,6 +1,7 @@
 import {
     compareModules,
     expectedModules,
+    IncludeLookup,
     IncludeReader,
     installedModulesOf,
     moduleIdOfUrl,
@@ -160,6 +161,7 @@ describe('provisioning readiness check, version of the module', () => {
     });
 });
 
+
 // The files of assets/, by the name Jahia keys a submitted file with
 const assets: Record<string, string> = {
     'provisioning.yml': `
@@ -169,14 +171,16 @@ const assets: Record<string, string> = {
   autoStart: true
 - include: 'demo.yml'
 `,
-    'demo.yml': `
-- installAndStartBundle: 'mvn:org.jahia.modules/digitall/3.0.0'
-- include: 'provisioning.yml'
-`,
+    'demo.yml': "- installAndStartBundle: 'mvn:org.jahia.modules/digitall/3.0.0'",
+    'loop-a.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/forms\n- include: loop-b.yml',
+    'loop-b.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/sitemap\n- include: loop-a.yml',
     'forms.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/forms',
-    'sitemap.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/sitemap'
+    'sitemap.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/sitemap',
+    'broken.yml': '- installBundle: [unclosed',
+    'first.yml': '- include: provisionning.yml',
+    'second.yml': '- include: provisionning.yml'
 };
-const readAsset: IncludeReader = name => assets[name];
+const readAsset: IncludeReader = name => (assets[name] === undefined ? {missing: true} : {text: assets[name]});
 
 describe('provisioning readiness check, included manifests', () => {
     it('lists the modules of an include in place, with the manifest that names them', () => {
@@ -195,17 +199,15 @@ describe('provisioning readiness check, included manifests', () => {
     });
 
     it('stops an include that leads back to a manifest it came from', () => {
-        expect(expectedModules('- include: provisioning.yml', readAsset).map(module => module.id))
-            .to.deep.equal(['channels', 'qa-module', 'digitall']);
+        expect(expectedModules('- include: loop-a.yml', readAsset).map(module => module.id))
+            .to.deep.equal(['forms', 'sitemap']);
     });
 
-    it('reads an include written as a list of names or of url: entries, and leaves out one under an if', () => {
+    it('reads an include written as a list of names or of url: entries', () => {
         const manifest = `
 - include:
     - 'forms.yml'
     - url: 'sitemap.yml'
-- include: 'demo.yml'
-  if: 'jahia.version >= "8.2.3.0"'
 `;
         expect(expectedModules(manifest, readAsset).map(module => module.id)).to.deep.equal(['forms', 'sitemap']);
     });
@@ -219,26 +221,40 @@ describe('provisioning readiness check, included manifests', () => {
         expect(channels).to.deep.equal([{id: 'channels', url: 'mvn:org.jahia.modules/channels', expected: 'STARTED'}]);
     });
 
-    it('fails an include that no submitted file holds, since Jahia installs none of its modules', () => {
-        const expected = expectedModules('- include: provisionning.yml', readAsset);
+    it('fails an include that no submitted file holds, once however many manifests include it', () => {
+        const expected = expectedModules('- include: [first.yml, second.yml]', readAsset);
         expect(expected).to.deep.equal([
-            {id: 'provisionning.yml', url: 'provisionning.yml', expected: 'STARTED', missingInclude: true}
+            {id: 'provisionning.yml', url: 'provisionning.yml', expected: 'STARTED', missingInclude: true, from: 'first.yml'}
         ]);
         expect(compareModules(expected, {})[0].status).to.equal('failed');
     });
 
-    it('names an include of a URL as not checked, and does not read it', () => {
+    it('leaves out, without reading it, an include of a URL and an include under an if', () => {
         const read: string[] = [];
         const result = readManifest(`
 - include: 'https://example.com/manifest.yml'
 - include: 'mvn:org.jahia.test/manifests/1.0.0/yml'
+- include: 'forms.yml'
+  if: 'jahia.version >= "8.2.3.0"'
 `, name => {
             read.push(name);
-            return undefined;
+            return {missing: true};
         });
         expect(result.modules).to.deep.equal([]);
-        expect(result.remoteIncludes).to.deep.equal(['https://example.com/manifest.yml', 'mvn:org.jahia.test/manifests/1.0.0/yml']);
+        expect(result.uncheckedIncludes).to.deep.equal([
+            {name: 'https://example.com/manifest.yml', reason: 'an include the check does not fetch'},
+            {name: 'mvn:org.jahia.test/manifests/1.0.0/yml', reason: 'an include the check does not fetch'},
+            {name: 'forms.yml', reason: 'an include under an if'}
+        ]);
         expect(read).to.deep.equal([]);
+    });
+
+    it('leaves out an include the reader cannot tell, and one the check cannot parse', () => {
+        const result = readManifest('- include: [shared.yml, broken.yml]', name =>
+            (name === 'shared.yml' ? {unchecked: 'a name 2 files share'} : readAsset(name)));
+        expect(result.modules).to.deep.equal([]);
+        expect(result.uncheckedIncludes.map(include => include.name)).to.deep.equal(['shared.yml', 'broken.yml']);
+        expect(result.uncheckedIncludes[1].reason).to.match(/^a manifest the check cannot parse/);
     });
 
     it('reports a module of an include that the Maven repository could not serve', () => {
@@ -256,5 +272,20 @@ describe('provisioning readiness check, included manifests', () => {
 
     it('leaves the includes alone without a reader', () => {
         expect(expectedModules('- include: provisioning.yml')).to.deep.equal([]);
+    });
+
+    it('reads the files of the assets folder by their name, and leaves out a symbolic link', () => {
+        cy.task('readAssets', {
+            files: {'provisioning.yml': 'top', 'nested/demo.yml': 'nested', 'a/shared.yml': 'a', 'b/shared.yml': 'b'},
+            links: {'linked.yml': 'provisioning.yml'},
+            names: ['provisioning.yml', 'demo.yml', 'linked.yml', 'absent.yml', 'shared.yml']
+        }).then(lookups => {
+            const [top, nested, linked, absent, shared] = lookups as IncludeLookup[];
+            expect(top).to.deep.equal({text: 'top'});
+            expect(nested).to.deep.equal({text: 'nested'});
+            expect(linked).to.deep.equal({missing: true});
+            expect(absent).to.deep.equal({missing: true});
+            expect(shared).to.have.property('unchecked').that.match(/^a name 2 files of .* share/);
+        });
     });
 });
