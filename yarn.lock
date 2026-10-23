@@ -1429,6 +1429,7 @@ __metadata:
     mochawesome: "npm:^6.3.1"
     pkg-pr-new: "npm:^0.0.86"
     typescript: "npm:^5.9.3"
+    yaml: "npm:^2.9.1"
   bin:
     ci.build: ./ci.build.sh
     ci.startup: ./ci.startup.sh
@@ -6504,6 +6505,15 @@ __metadata:
   version: 3.1.1
   resolution: "yallist@npm:3.1.1"
   checksum: 10c0/c66a5c46bc89af1625476f7f0f2ec3653c1a1791d2f9407cfb4c2ba812a1e1c9941416d71ba9719876530e3340a99925f697142989371b72d93b9ee628afd8c1
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "yaml@npm:2.9.1"
+  bin:
+    yaml: bin.mjs
+  checksum: 10c0/9d06676ef02b89559a8b10a71882bd2cdae81e8393dc8dbc871615c3259475d9609ad973d19cb3c9e71e72d6206e3d1e7aa241c7e55f3d16fd2e77db305827d6
   languageName: node
   linkType: hard
 

@@ -71,10 +71,15 @@ sed -i -e "s/NEXUS_USERNAME/$(echo ${NEXUS_USERNAME} | sed -e 's/\\/\\\\/g; s/\/
 sed -i -e "s/NEXUS_PASSWORD/$(echo ${NEXUS_PASSWORD} | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" ./run-artifacts/${MANIFEST}
 
 echo "$(date +'%d %B %Y - %k:%M') == Executing manifest: ${MANIFEST} =="
-curl -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_PROCESSING_URL}/modules/api/provisioning --form script="@./run-artifacts/${MANIFEST};type=text/yaml" $(find assets -type f | sed -E 's/^(.+)$/--form file=\"@\1\"/' | xargs)
+# The API answers 200 with the result of each operation, and an operation that failed only reaches
+# the log of Jahia, so env.readiness.sh checks the modules afterwards. This stops the run on a
+# transport error and on a status the API answers when it could not run the script at all.
+HTTP_CODE=$(curl -s -S -o ./run-artifacts/provisioning-response.json -w '%{http_code}' -u root:${SUPER_USER_PASSWORD} -X POST ${JAHIA_PROCESSING_URL}/modules/api/provisioning --form script="@./run-artifacts/${MANIFEST};type=text/yaml" $(find assets -type f | sed -E 's/^(.+)$/--form file=\"@\1\"/' | xargs))
+CURL_EXIT=$?
+cat ./run-artifacts/provisioning-response.json 2>/dev/null
 echo
-if [[ $? -eq 1 ]]; then
-  echo "$(date +'%d %B %Y - %k:%M') == PROVISIONING FAILURE - EXITING SCRIPT, NOT RUNNING THE TESTS"
+if [[ ${CURL_EXIT} -ne 0 || ${HTTP_CODE} -lt 200 || ${HTTP_CODE} -ge 300 ]]; then
+  echo "$(date +'%d %B %Y - %k:%M') == PROVISIONING FAILURE (curl exit code ${CURL_EXIT}, HTTP ${HTTP_CODE}) - EXITING SCRIPT, NOT RUNNING THE TESTS"
   echo "failure" > ./results/test_failure
   exit 1
 fi

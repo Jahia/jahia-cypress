@@ -4,7 +4,19 @@
 
 BASEDIR=$(dirname $(readlink -f $0))
 
-bash $BASEDIR/env.provision.sh
+if ! bash $BASEDIR/env.provision.sh; then
+  echo "$(date +'%d %B %Y - %k:%M') == PROVISIONING FAILED - EXITING SCRIPT, NOT RUNNING THE TESTS"
+  mkdir -p ./results
+  echo "failure" > ./results/test_failure
+  exit 1
+fi
+
+if ! bash $BASEDIR/env.readiness.sh; then
+  echo "$(date +'%d %B %Y - %k:%M') == PLATFORM NOT READY - EXITING SCRIPT, NOT RUNNING THE TESTS"
+  mkdir -p ./results
+  echo "failure" > ./results/test_failure
+  exit 1
+fi
 
 source $BASEDIR/set-env.sh
 
@@ -26,8 +38,11 @@ bash -c "unset npm_config_package; npx --yes @jahia/jahia-reporter@latest utils:
   --jahiaPassword=\"${SUPER_USER_PASSWORD}\" \
   --filepath=\"results/installed-jahia-modules.json\""
 echo "$(date +'%d %B %Y - %k:%M') == Modules fetched =="
-INSTALLED_MODULE_VERSION=$(cat results/installed-jahia-modules.json | jq '.module.version')
-if [[ $INSTALLED_MODULE_VERSION == "UNKNOWN" ]]; then
+# jq prints a JSON string with its quotes without -r, and "UNKNOWN" with quotes never equals UNKNOWN
+INSTALLED_MODULE_VERSION=$(cat results/installed-jahia-modules.json | jq -r '.module.version')
+if [[ "${MODULE_ID_CHECK}" == "false" ]]; then
+  echo "$(date +'%d %B %Y - %k:%M') == MODULE_ID_CHECK is false, the module ${MODULE_ID} is not expected on the remote system (version: ${INSTALLED_MODULE_VERSION})"
+elif [[ $INSTALLED_MODULE_VERSION == "UNKNOWN" ]]; then
   echo "$(date +'%d %B %Y - %k:%M') ERROR: Unable to detect module: ${MODULE_ID} on the remote system "
   echo "$(date +'%d %B %Y - %k:%M') ERROR: The Script will exit"
   echo "$(date +'%d %B %Y - %k:%M') ERROR: Tests will NOT run"

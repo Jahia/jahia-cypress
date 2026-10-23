@@ -1,0 +1,380 @@
+/**
+ * Checks that a Jahia holds every module a provisioning manifest installs, in the state the manifest
+ * asks for. env.readiness.sh runs it once env.provision.sh ran, because the provisioning API answers
+ * 200 whatever happened to each operation: a module the Maven repository could not serve is only an
+ * ERROR line in the log of Jahia, and the suite would otherwise run on a platform that misses it.
+ *
+ *   node dist/cli/provisioningCheck.js --manifest <file> --url <jahia> --password <password>
+ *                                      [--user root] [--ignore id,id] [--timeout <seconds>]
+ *
+ * Exits 0 when every module is there, 1 when one is missing or not started, and 2 when the check
+ * itself could not run.
+ */
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
+import {parse} from 'yaml';
+
+/**
+ * The operation keys that install a module, with the rule Jahia applies to start it (InstallModule in
+ * jahia-private): installAndStart* always starts, installOrUpgrade* starts unless the entry says
+ * `autoStart: false`, and installBundle/installModule start only when the entry says `autoStart: true`.
+ */
+const INSTALL_KEYS: Record<string, 'always' | 'unlessRefused' | 'onlyAsked'> = {
+    installBundle: 'onlyAsked',
+    installModule: 'onlyAsked',
+    installAndStartBundle: 'always',
+    installAndStartModule: 'always',
+    installOrUpgradeBundle: 'unlessRefused',
+    installOrUpgradeModule: 'unlessRefused'
+};
+
+/** The module states of Jahia that end in STARTED on their own, so the check reads them again. */
+const TRANSIENT_STATES = ['STARTING', 'WAITING_TO_BE_IMPORTED', 'SPRING_STARTING'];
+
+/** `mvn:group/artifact[/version[/type]]`, with the `js:` prefix of a JavaScript module. */
+const MVN_URL = /^(?:js:)?mvn:([^/]+)\/([^/]+)(?:\/([^/]*))?(?:\/.*)?$/;
+
+/** The Maven versions that name no version of their own, so any installed version matches them. */
+const ANY_VERSION = ['', 'LATEST', 'RELEASE'];
+
+export type ExpectedState = 'STARTED' | 'INSTALLED';
+
+export type ExpectedModule = {
+    /** The module id, which is the artifactId of the URL, or the URL itself when the check cannot read it */
+    id: string;
+    /** The URL as the manifest wrote it */
+    url: string;
+    /** STARTED when the operation starts the module, INSTALLED when it only installs it */
+    expected: ExpectedState;
+    /** True for a mvn: URL whose module id the check cannot read, which fails the check */
+    unreadable?: boolean;
+};
+
+/** One entry of the `_localInfo` answer of the module manager API */
+export type BundleInfo = {
+    /** The OSGi version, such as 8.11.0.SNAPSHOT */
+    version: string;
+    type: string;
+    osgiState: string;
+    moduleState: string | null;
+};
+
+/** The installed versions of each module, by module id */
+export type InstalledModules = Record<string, BundleInfo[]>;
+
+export type ModuleReport = ExpectedModule & {
+    /** The state of each installed version, empty when the module is absent */
+    found: string[];
+    /** The installed versions the URL does not ask for, with their state */
+    otherVersions: string[];
+    status: 'ok' | 'pending' | 'failed';
+};
+
+/**
+ * Extracts the module id of a `mvn:` or `js:mvn:` URL.
+ * @param {string} url - The URL of a provisioning entry
+ * @returns {string | undefined} The artifactId, or undefined for a URL of another kind, such as a file name
+ */
+export const moduleIdOfUrl = (url: string): string | undefined => {
+    const match = MVN_URL.exec(url.trim());
+    return match ? match[2] : undefined;
+};
+
+/**
+ * Extracts the version of a `mvn:` or `js:mvn:` URL, in the form OSGi gives it: Maven writes
+ * 8.11.0-SNAPSHOT where the bundle reports 8.11.0.SNAPSHOT.
+ * @param {string} url - The URL of a provisioning entry
+ * @returns {string | undefined} The version, or undefined when the URL names none, names LATEST or
+ * RELEASE, or names a range
+ */
+export const versionOfUrl = (url: string): string | undefined => {
+    const match = MVN_URL.exec(url.trim());
+    const version = match && match[3] !== undefined ? match[3] : '';
+    if (ANY_VERSION.indexOf(version) >= 0 || /[[\](),]/.test(version)) {
+        return undefined;
+    }
+
+    return version.replace('-', '.');
+};
+
+const startsModule = (key: string, autoStart: unknown): boolean => {
+    switch (INSTALL_KEYS[key]) {
+        case 'always':
+            return true;
+        case 'unlessRefused':
+            return autoStart !== false;
+        default:
+            return autoStart === true;
+    }
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * Lists the modules a manifest installs, with the state each operation leaves them in. An entry under
+ * an `if` condition is left out, since Jahia decides it, and so is a local file, whose name does not
+ * give the module id. A module two entries name is listed once, STARTED when either entry starts it.
+ * @param {string} manifestText - The YAML text of the manifest
+ * @returns {ExpectedModule[]} The modules, in the order of the manifest
+ */
+export const expectedModules = (manifestText: string): ExpectedModule[] => {
+    const manifest: unknown = parse(manifestText);
+    if (!Array.isArray(manifest)) {
+        return [];
+    }
+
+    const byId: Record<string, ExpectedModule> = {};
+    const ordered: ExpectedModule[] = [];
+    manifest.forEach((entry: unknown) => {
+        if (!isRecord(entry)) {
+            return;
+        }
+
+        const key = Object.keys(INSTALL_KEYS).find(installKey => installKey in entry);
+        if (!key) {
+            return;
+        }
+
+        const value = entry[key];
+        const items: unknown[] = Array.isArray(value) ? value : [value];
+        items.forEach(item => {
+            // A list item is the URL, or a map with the URL under `url` and options of its own
+            const options: Record<string, unknown> = typeof item === 'string' ?
+                {...entry, url: item} :
+                {...entry, ...(isRecord(item) ? item : {})};
+            if (typeof options.url !== 'string' || options.if !== undefined) {
+                return;
+            }
+
+            const id = moduleIdOfUrl(options.url);
+            if (!id) {
+                if (/^(?:js:)?mvn:/.test(options.url.trim())) {
+                    ordered.push({id: options.url, url: options.url, expected: 'STARTED', unreadable: true});
+                }
+
+                return;
+            }
+
+            const expected: ExpectedState = startsModule(key, options.autoStart) ? 'STARTED' : 'INSTALLED';
+            if (byId[id]) {
+                if (expected === 'STARTED') {
+                    byId[id].expected = expected;
+                }
+            } else {
+                byId[id] = {id, url: options.url, expected};
+                ordered.push(byId[id]);
+            }
+        });
+    });
+    return ordered;
+};
+
+/**
+ * Groups the `_localInfo` answer of the module manager API by module id. The API keys each bundle as
+ * `groupId/symbolicName/version`, and a Jahia module uses its symbolicName as its id.
+ * @param {unknown} localInfo - The parsed answer of GET /modules/api/bundles/* /_localInfo
+ * @returns {InstalledModules} The versions of each module
+ */
+export const installedModulesOf = (localInfo: unknown): InstalledModules => {
+    const installed: InstalledModules = {};
+    if (!isRecord(localInfo)) {
+        return installed;
+    }
+
+    Object.keys(localInfo).forEach(bundleKey => {
+        const info = localInfo[bundleKey];
+        const [, id, version] = bundleKey.split('/');
+        if (!id || !isRecord(info) || info.type !== 'MODULE') {
+            return;
+        }
+
+        const bundleInfo: BundleInfo = {
+            version: version || '',
+            type: String(info.type),
+            osgiState: String(info.osgiState),
+            moduleState: typeof info.moduleState === 'string' ? info.moduleState : null
+        };
+        installed[id] = [...(installed[id] || []), bundleInfo];
+    });
+    return installed;
+};
+
+/**
+ * Compares the modules a manifest expects with the modules a Jahia holds. When the URL names a
+ * version, only that version counts, so a failed upgrade does not pass on the version it left.
+ * @param {ExpectedModule[]} expected - The modules of the manifest
+ * @param {InstalledModules} installed - The modules of the platform
+ * @returns {ModuleReport[]} One report per expected module
+ */
+export const compareModules = (expected: ExpectedModule[], installed: InstalledModules): ModuleReport[] =>
+    expected.map(expectedModule => {
+        if (expectedModule.unreadable) {
+            return {...expectedModule, found: [], otherVersions: [], status: 'failed'};
+        }
+
+        const wanted = versionOfUrl(expectedModule.url);
+        const all = installed[expectedModule.id] || [];
+        const versions = all.filter(version => wanted === undefined || version.version === wanted);
+        const otherVersions = all.filter(version => versions.indexOf(version) < 0)
+            .map(version => `${version.version} ${version.moduleState || version.osgiState}`);
+        const found = versions.map(version => version.moduleState || version.osgiState);
+        let status: ModuleReport['status'] = 'failed';
+        if (expectedModule.expected === 'INSTALLED' ? versions.length > 0 : found.indexOf('STARTED') >= 0) {
+            status = 'ok';
+        } else if (found.some(state => TRANSIENT_STATES.indexOf(state) >= 0)) {
+            status = 'pending';
+        }
+
+        return {...expectedModule, found, otherVersions, status};
+    });
+
+const getJson = (url: string, user: string, password: string): Promise<unknown> =>
+    new Promise((resolve, reject) => {
+        const client = url.startsWith('https:') ? https : http;
+        const request = client.get(url, {auth: `${user}:${password}`}, response => {
+            let body = '';
+            response.setEncoding('utf8');
+            response.on('data', chunk => {
+                body += chunk;
+            });
+            response.on('end', () => {
+                if (response.statusCode !== 200) {
+                    reject(new Error(`GET ${url} answered HTTP ${response.statusCode}: ${body.slice(0, 200)}`));
+                    return;
+                }
+
+                try {
+                    resolve(JSON.parse(body));
+                } catch {
+                    reject(new Error(`GET ${url} answered no JSON: ${body.slice(0, 200)}`));
+                }
+            });
+        });
+        request.on('error', reject);
+    });
+
+const sleep = (ms: number): Promise<void> => new Promise(resolve => {
+    setTimeout(resolve, ms);
+});
+
+const log = (message: string): void => console.log(`[READINESS] ${message}`);
+
+/**
+ * Names an error, down to the errors an AggregateError holds, which is what a connection refused on
+ * every address of a host raises with an empty message.
+ * @param {unknown} error - What the check caught
+ * @returns {string} The message, or the code or the name of an error with no message
+ */
+const describeError = (error: unknown): string => {
+    if (!(error instanceof Error)) {
+        return String(error);
+    }
+
+    const {errors, code} = error as Error & {errors?: unknown[]; code?: string};
+    if (Array.isArray(errors) && errors.length > 0) {
+        return errors.map(describeError).join('; ');
+    }
+
+    return error.message || code || error.name;
+};
+
+const describe = (report: ModuleReport): string => {
+    if (report.unreadable) {
+        return `cannot read the module id of ${report.url}`;
+    }
+
+    const found = report.found.length > 0 ? report.found.join(', ') : 'nothing';
+    const others = report.otherVersions.length > 0 ? `, installed: ${report.otherVersions.join(', ')}` : '';
+    return `${report.id}: expected ${report.expected}, found ${found}${others} (${report.url})`;
+};
+
+type Args = {
+    manifest: string;
+    url: string;
+    user: string;
+    password: string;
+    ignore: string[];
+    timeout: number;
+};
+
+const parseArgs = (argv: string[]): Args => {
+    const values: Record<string, string> = {};
+    for (let i = 0; i < argv.length; i += 2) {
+        values[argv[i].replace(/^--/, '')] = argv[i + 1] || '';
+    }
+
+    if (!values.manifest || !values.url) {
+        throw new Error('usage: provisioningCheck --manifest <file> --url <jahia> --password <password> [--user root] [--ignore id,id] [--timeout <seconds>]');
+    }
+
+    return {
+        manifest: values.manifest,
+        url: values.url.replace(/\/$/, ''),
+        user: values.user || 'root',
+        password: values.password || '',
+        ignore: (values.ignore || '').split(',').map(id => id.trim()).filter(id => id !== ''),
+        timeout: Number(values.timeout) > 0 ? Number(values.timeout) : 60
+    };
+};
+
+/**
+ * Reads the modules of the platform and compares them with the manifest, again every 5 seconds while
+ * a module is in a transient state and the deadline is not reached.
+ * @param {Args} args - The connection to the platform
+ * @param {ExpectedModule[]} checked - The modules of the manifest
+ * @param {number} deadline - The time, in ms since the epoch, after which a transient state is a failure
+ * @returns {Promise<ModuleReport[]>} One report per module
+ */
+const readReports = async (args: Args, checked: ExpectedModule[], deadline: number): Promise<ModuleReport[]> => {
+    const localInfo = await getJson(`${args.url}/modules/api/bundles/*/_localInfo`, args.user, args.password);
+    const reports = compareModules(checked, installedModulesOf(localInfo));
+    const pending = reports.filter(report => report.status === 'pending');
+    if (pending.length === 0 || Date.now() >= deadline) {
+        return reports;
+    }
+
+    log(`waiting for ${pending.map(report => `${report.id} (${report.found.join(', ')})`).join(', ')}`);
+    await sleep(5000);
+    return readReports(args, checked, deadline);
+};
+
+/**
+ * Runs the check from the command line and returns its exit code.
+ * @param {string[]} argv - The arguments after the script name
+ * @returns {Promise<number>} 0 when every module is there, 1 when one is not, 2 when the check could not run
+ */
+export const main = async (argv: string[]): Promise<number> => {
+    const args = parseArgs(argv);
+    const expected = expectedModules(fs.readFileSync(args.manifest, 'utf8'));
+    const ignored = expected.filter(expectedModule => args.ignore.indexOf(expectedModule.id) >= 0);
+    ignored.forEach(expectedModule => log(`ignored ${expectedModule.id} (${expectedModule.url})`));
+    const checked = expected.filter(expectedModule => args.ignore.indexOf(expectedModule.id) < 0);
+    if (checked.length === 0) {
+        log(`${args.manifest} installs no module to check`);
+        return 0;
+    }
+
+    log(`checking the ${checked.length} module(s) of ${args.manifest} on ${args.url}`);
+    const reports = await readReports(args, checked, Date.now() + (args.timeout * 1000));
+    reports.filter(report => report.status === 'ok').forEach(report => log(`ok ${describe(report)}`));
+    const failed = reports.filter(report => report.status !== 'ok');
+    failed.forEach(report => log(`MISSING ${describe(report)}`));
+    if (failed.length > 0) {
+        log(`${failed.length} of ${checked.length} module(s) of the manifest are missing or not started, see the ERROR lines of jahia.log`);
+        return 1;
+    }
+
+    log('every module of the manifest is there');
+    return 0;
+};
+
+if (require.main === module) {
+    main(process.argv.slice(2)).then(code => {
+        process.exitCode = code;
+    }, error => {
+        log(`the check could not run: ${describeError(error)}`);
+        process.exitCode = 2;
+    });
+}
