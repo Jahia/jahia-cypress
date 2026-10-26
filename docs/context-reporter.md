@@ -63,6 +63,12 @@ describe('Content Management', () => {
       // effective tags: ['regression', 'content', 'critical']
     });
   });
+
+  describe('Deletion', () => {
+    it('should delete page', () => {
+      // effective tags: ['regression', 'content']
+    });
+  });
 });
 ```
 
