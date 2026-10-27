@@ -3,7 +3,6 @@
  * It supports both the legacy MailService and the newer OSGi mail-service module.
  * Script is skipped if the SMTP_SERVER_URL environment variable is not set.
  */
-import org.jahia.bin.Jahia
 import org.jahia.osgi.BundleUtils
 import org.jahia.services.mail.MailService
 import org.jahia.services.mail.MailSettings
@@ -20,9 +19,16 @@ if (!smtpServerUrlEnv) {
 def smtpServerUrl = new URI(smtpServerUrlEnv)
 def useSsl = smtpServerUrl.getScheme().equalsIgnoreCase("smtps")
 
-// mail-service (org.jahia.modules.mail PID) replaces the legacy MailService starting 8.2.4.0.
-def mailServiceModuleAvailable = new org.jahia.commons.Version(Jahia.VERSION)
-        .compareTo(new org.jahia.commons.Version("8.2.4.0")) >= 0
+// mail-service (org.jahia.modules.mail PID) replaces the legacy MailService once Jahia core ships the
+// org.jahia.api.mail API: from 8.2.4.0, and from 8.2.3.8 on the 8.2.3.x line. The legacy store() does
+// nothing from then on, so the presence of the API decides, not the version number.
+def mailServiceModuleAvailable
+try {
+    Class.forName("org.jahia.api.mail.MailService", false, MailService.class.classLoader)
+    mailServiceModuleAvailable = true
+} catch (ClassNotFoundException ignored) {
+    mailServiceModuleAvailable = false
+}
 
 if (mailServiceModuleAvailable) {
     def props = new Hashtable<String, Object>()
