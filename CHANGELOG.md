@@ -1,5 +1,9 @@
 # @jahia/cypress Changelog
 
+## 8.9.0
+
+* Configure mail-service in the SMTP setup script on every Jahia version whose core ships the `org.jahia.api.mail` API, which includes 8.2.3.8 and later 8.2.3.x releases
+
 ## 8.8.0
 
 ### New Features
