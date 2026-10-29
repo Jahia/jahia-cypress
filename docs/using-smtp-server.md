@@ -62,7 +62,7 @@ To configure mail server support in your repo to be able to receive Jahia mails 
 SMTP configuration will be done automatically by provisioning script, stored in `jahia-cypress` repo once other provisioning calls will be completed.
 Setup will be skipped if `SMTP_SERVER_URL` environment variable is not propagated to your environment in the `jahia` container.
 
-The script sets the default sender to `noreply@smtp-server.localhost` and the default recipient to `admin@smtp-server.localhost`, on every Jahia version. A mail that Jahia sends with no recipient of its own, such as an administrator notification, goes to `admin@smtp-server.localhost`. A mail with an explicit recipient keeps it.
+The script configures the mail-service module when Jahia core ships the `org.jahia.api.mail` API, from 8.2.4.0 and from 8.2.3.8 on the 8.2.3.x line, and the legacy mail service otherwise. It sets the default sender to `noreply@smtp-server.localhost` and the default recipient to `admin@smtp-server.localhost`, on every Jahia version. A mail that Jahia sends with no recipient of its own, such as an administrator notification, goes to `admin@smtp-server.localhost`. A mail with an explicit recipient keeps it.
 
 ## Usage in tests
 
