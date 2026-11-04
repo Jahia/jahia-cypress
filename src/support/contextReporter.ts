@@ -42,9 +42,11 @@ function tag(...tags: string[]): void {
         const runnable = (cy as any).state('runnable') as TaggedRunnable;
         runnable._tags = [...(runnable._tags ?? []), ...tags];
     } else {
-        // Inside describe() — collection phase, schedule a before() hook to tag the suite
+        // Inside describe() — collection phase, schedule a before() hook to tag the suite.
+        // this.test is the hook itself, so its parent is the suite that called tag();
+        // this.currentTest.parent would be the suite of the first test to run.
         before(function () {
-            const suite = this.currentTest?.parent;
+            const suite = this.test?.parent;
             if (suite) {
                 const taggedSuite = suite as TaggedSuite;
                 taggedSuite._tags = [...(taggedSuite._tags ?? []), ...tags];
@@ -54,20 +56,16 @@ function tag(...tags: string[]): void {
 }
 
 /**
- * Internal function to collect all tags upon 'test:after:run' event and add them to the mochawesome context.
+ * Internal function to compute the effective tags of a test.
  *
  * Walks up the suite chain to collect inherited tags and combines them with test-specific tags.
- * The collected tags are added to the test context in the mochawesome report, where jahia-reporter
- * can extract them and sync to the corresponding TestRail test case.
  *
- * @param test
  * @param runnable
- * @internal to be used in registerSupport only
+ * @return {string[]} unique tags, outermost suite first, test-specific tags last
+ * @internal to be used in collect and in tests only
  */
-export function collect(test: any, runnable: any): void {
+export function getTags(runnable: any): string[] {
     const taggedRunnable = runnable as TaggedRunnable;
-    // Add video context
-    // addContext({test}, {title: 'video', value: `videos/${Cypress.spec.relative.replace('/.cy.*', '').replace('cypress/e2e/', '')}.mp4`});
 
     // Walk up the suite chain (outermost first) to collect inherited suite tags
     const suiteTags: string[] = [];
@@ -80,8 +78,25 @@ export function collect(test: any, runnable: any): void {
         parent = parent.parent as TaggedSuite | undefined;
     }
 
+    return Array.from(new Set([...suiteTags, ...(taggedRunnable._tags ?? [])]));
+}
+
+/**
+ * Internal function to collect all tags upon 'test:after:run' event and add them to the mochawesome context.
+ *
+ * The collected tags are added to the test context in the mochawesome report, where jahia-reporter
+ * can extract them and sync to the corresponding TestRail test case.
+ *
+ * @param test
+ * @param runnable
+ * @internal to be used in registerSupport only
+ */
+export function collect(test: any, runnable: any): void {
+    // Add video context
+    // addContext({test}, {title: 'video', value: `videos/${Cypress.spec.relative.replace('/.cy.*', '').replace('cypress/e2e/', '')}.mp4`});
+
     // Collect all unique tags (suite + test) and add to context
-    const allTags = Array.from(new Set([...suiteTags, ...(taggedRunnable._tags ?? [])]));
+    const allTags = getTags(runnable);
     if (allTags.length > 0) {
         addContext({test}, {title: 'tags', value: allTags});
     }
