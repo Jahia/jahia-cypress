@@ -32,6 +32,7 @@ fi
 echo "$(date +'%d %B %Y - %k:%M') [READINESS] == Checking the modules of ${MANIFEST_FILE} on ${JAHIA_PROCESSING_URL} =="
 node "$BASEDIR/dist/cli/provisioningCheck.js" \
   --manifest "${MANIFEST_FILE}" \
+  --assets ./assets \
   --url "${JAHIA_PROCESSING_URL}" \
   --password "${SUPER_USER_PASSWORD}" \
   --ignore "${PROVISIONING_CHECK_IGNORE}" \

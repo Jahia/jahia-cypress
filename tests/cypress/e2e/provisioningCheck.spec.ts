@@ -1,4 +1,13 @@
-import {compareModules, expectedModules, installedModulesOf, moduleIdOfUrl, versionOfUrl} from '../../../src/cli/provisioningCheck';
+import {
+    compareModules,
+    expectedModules,
+    IncludeLookup,
+    IncludeReader,
+    installedModulesOf,
+    moduleIdOfUrl,
+    readManifest,
+    versionOfUrl
+} from '../../../src/cli/provisioningCheck';
 
 const manifest = `
 - include: 'provisioning.yml'
@@ -149,5 +158,134 @@ describe('provisioning readiness check, version of the module', () => {
         expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell')).to.equal('ok');
         expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/LATEST')).to.equal('ok');
         expect(statusOf('- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell/RELEASE')).to.equal('ok');
+    });
+});
+
+
+// The files of assets/, by the name Jahia keys a submitted file with
+const assets: Record<string, string> = {
+    'provisioning.yml': `
+- installBundle:
+    - 'mvn:org.jahia.modules/channels'
+    - 'mvn:org.jahia.modules/qa-module'
+  autoStart: true
+- include: 'demo.yml'
+`,
+    'demo.yml': "- installAndStartBundle: 'mvn:org.jahia.modules/digitall/3.0.0'",
+    'loop-a.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/forms\n- include: loop-b.yml',
+    'loop-b.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/sitemap\n- include: loop-a.yml',
+    'forms.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/forms',
+    'sitemap.yml': '- installOrUpgradeBundle: mvn:org.jahia.modules/sitemap',
+    'broken.yml': '- installBundle: [unclosed',
+    'first.yml': '- include: provisionning.yml',
+    'second.yml': '- include: provisionning.yml'
+};
+const readAsset: IncludeReader = name => (assets[name] === undefined ? {missing: true} : {text: assets[name]});
+
+describe('provisioning readiness check, included manifests', () => {
+    it('lists the modules of an include in place, with the manifest that names them', () => {
+        const manifest = `
+- installOrUpgradeBundle: mvn:org.jahia.modules/app-shell
+- include: 'provisioning.yml'
+- installOrUpgradeBundle: mvn:org.jahia.modules/jexperience
+`;
+        expect(expectedModules(manifest, readAsset)).to.deep.equal([
+            {id: 'app-shell', url: 'mvn:org.jahia.modules/app-shell', expected: 'STARTED'},
+            {id: 'channels', url: 'mvn:org.jahia.modules/channels', expected: 'STARTED', from: 'provisioning.yml'},
+            {id: 'qa-module', url: 'mvn:org.jahia.modules/qa-module', expected: 'STARTED', from: 'provisioning.yml'},
+            {id: 'digitall', url: 'mvn:org.jahia.modules/digitall/3.0.0', expected: 'STARTED', from: 'demo.yml'},
+            {id: 'jexperience', url: 'mvn:org.jahia.modules/jexperience', expected: 'STARTED'}
+        ]);
+    });
+
+    it('stops an include that leads back to a manifest it came from', () => {
+        expect(expectedModules('- include: loop-a.yml', readAsset).map(module => module.id))
+            .to.deep.equal(['forms', 'sitemap']);
+    });
+
+    it('reads an include written as a list of names or of url: entries', () => {
+        const manifest = `
+- include:
+    - 'forms.yml'
+    - url: 'sitemap.yml'
+`;
+        expect(expectedModules(manifest, readAsset).map(module => module.id)).to.deep.equal(['forms', 'sitemap']);
+    });
+
+    it('lists a module named in the manifest and in an include once, STARTED when either starts it', () => {
+        const manifest = `
+- installBundle: mvn:org.jahia.modules/channels
+- include: provisioning.yml
+`;
+        const channels = expectedModules(manifest, readAsset).filter(module => module.id === 'channels');
+        expect(channels).to.deep.equal([{id: 'channels', url: 'mvn:org.jahia.modules/channels', expected: 'STARTED'}]);
+    });
+
+    it('fails an include that no submitted file holds, once however many manifests include it', () => {
+        const expected = expectedModules('- include: [first.yml, second.yml]', readAsset);
+        expect(expected).to.deep.equal([
+            {id: 'provisionning.yml', url: 'provisionning.yml', expected: 'STARTED', missingInclude: true, from: 'first.yml'}
+        ]);
+        expect(compareModules(expected, {})[0].status).to.equal('failed');
+    });
+
+    it('leaves out, without reading it, an include of a URL and an include under an if', () => {
+        const read: string[] = [];
+        const result = readManifest(`
+- include: 'https://example.com/manifest.yml'
+- include: 'mvn:org.jahia.test/manifests/1.0.0/yml'
+- include: 'forms.yml'
+  if: 'jahia.version >= "8.2.3.0"'
+`, name => {
+            read.push(name);
+            return {missing: true};
+        });
+        expect(result.modules).to.deep.equal([]);
+        expect(result.uncheckedIncludes).to.deep.equal([
+            {name: 'https://example.com/manifest.yml', reason: 'an include the check does not fetch'},
+            {name: 'mvn:org.jahia.test/manifests/1.0.0/yml', reason: 'an include the check does not fetch'},
+            {name: 'forms.yml', reason: 'an include under an if'}
+        ]);
+        expect(read).to.deep.equal([]);
+    });
+
+    it('leaves out an include the reader cannot tell, and one the check cannot parse', () => {
+        const result = readManifest('- include: [shared.yml, broken.yml]', name =>
+            (name === 'shared.yml' ? {unchecked: 'a name 2 files share'} : readAsset(name)));
+        expect(result.modules).to.deep.equal([]);
+        expect(result.uncheckedIncludes.map(include => include.name)).to.deep.equal(['shared.yml', 'broken.yml']);
+        expect(result.uncheckedIncludes[1].reason).to.match(/^a manifest the check cannot parse/);
+    });
+
+    it('reports a module of an include that the Maven repository could not serve', () => {
+        const platform = installedModulesOf({
+            'org.jahia.modules/channels/8.1.0.SNAPSHOT': {type: 'MODULE', osgiState: 'ACTIVE', moduleState: 'STARTED'},
+            'org.jahia.modules/digitall/3.0.0': {type: 'MODULE', osgiState: 'ACTIVE', moduleState: 'STARTED'}
+        });
+        const reports = compareModules(expectedModules('- include: provisioning.yml', readAsset), platform);
+        expect(reports.map(report => `${report.id}:${report.status}`)).to.deep.equal([
+            'channels:ok',
+            'qa-module:failed',
+            'digitall:ok'
+        ]);
+    });
+
+    it('leaves the includes alone without a reader', () => {
+        expect(expectedModules('- include: provisioning.yml')).to.deep.equal([]);
+    });
+
+    it('reads the files of the assets folder by their name, and leaves out a symbolic link', () => {
+        cy.task('readAssets', {
+            files: {'provisioning.yml': 'top', 'nested/demo.yml': 'nested', 'a/shared.yml': 'a', 'b/shared.yml': 'b'},
+            links: {'linked.yml': 'provisioning.yml'},
+            names: ['provisioning.yml', 'demo.yml', 'linked.yml', 'absent.yml', 'shared.yml']
+        }).then(lookups => {
+            const [top, nested, linked, absent, shared] = lookups as IncludeLookup[];
+            expect(top).to.deep.equal({text: 'top'});
+            expect(nested).to.deep.equal({text: 'nested'});
+            expect(linked).to.deep.equal({missing: true});
+            expect(absent).to.deep.equal({missing: true});
+            expect(shared).to.have.property('unchecked').that.match(/^a name 2 files of .* share/);
+        });
     });
 });
