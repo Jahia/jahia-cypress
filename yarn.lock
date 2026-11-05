@@ -1435,6 +1435,7 @@ __metadata:
     ci.startup: ./ci.startup.sh
     env.debug: ./env.debug.sh
     env.run: ./env.run.sh
+    jahia-cypress-run: ./dist/cli/phasedRun.js
   languageName: unknown
   linkType: soft
 
