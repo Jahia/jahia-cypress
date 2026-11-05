@@ -1,0 +1,13 @@
+query getPublicationJobsWithPaths {
+    admin {
+        jahia {
+            scheduler {
+                jobs {
+                    group
+                    jobStatus
+                    publicationPaths: jobStringListProperty(name: "publicationPaths")
+                }
+            }
+        }
+    }
+}
