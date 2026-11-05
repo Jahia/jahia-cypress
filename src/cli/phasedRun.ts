@@ -243,7 +243,8 @@ const runCypress = ({phase, worker, isolated, files, passthrough, cwd}: Run): Pr
     }
 
     const reporterConfig = args.some(arg => arg.startsWith('--reporter-options')) ? undefined : workerReporterConfig(label, cwd);
-    const cypressBin = require.resolve('cypress/bin/cypress', {paths: [cwd]});
+    // The "exports" map of cypress hides bin/cypress, so resolve the package entry and take its bin
+    const cypressBin = path.join(path.dirname(require.resolve('cypress', {paths: [cwd]})), 'bin', 'cypress');
     const command = [
         cypressBin,
         'run',
