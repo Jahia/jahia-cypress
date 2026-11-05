@@ -9,7 +9,8 @@
     "ci.build": "./ci.build.sh",
     "ci.startup": "./ci.startup.sh",
     "env.debug": "./env.debug.sh",
-    "env.run": "./env.run.sh"
+    "env.run": "./env.run.sh",
+    "jahia-cypress-run": "./dist/cli/phasedRun.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
