@@ -3,4 +3,4 @@
 "@jahia/cypress": patch
 ---
 
-Find the `Accordion` items of Moonstone 2.22.0, whose header is a `button` in an `h3`, as well as the `header` of earlier versions
+Find the `Accordion` items of Moonstone 2.22.0, whose header is a `button` in an `h3`, as well as the `header` of earlier versions, by their `aria-controls` and `aria-expanded` attributes instead of Moonstone classes
