@@ -5,17 +5,18 @@ export class Accordion extends BaseComponent {
     static defaultSelector = '.moonstone-accordion';
 
     click(itemName: string): Accordion {
-        this.get().find(`section.moonstone-accordionItem header[aria-controls="${itemName}"]`).click();
+        this.get().find(`[aria-controls="${itemName}"][aria-expanded]`).click();
         return this;
     }
 
     listItems(): Chainable<string[]> {
-        return this.get().find('section.moonstone-accordionItem header').then(items => {
-            return Array.prototype.slice.call(items, 0).map(i => i.attributes['aria-controls'] ? i.attributes['aria-controls'].value : null).filter(i => i !== null);
+        // The header of an item is `section > header` up to Moonstone 2.21 and `section > h3 > button` from 2.22
+        return this.get().find('section > [aria-controls][aria-expanded], section > h3 > [aria-controls][aria-expanded]').then(items => {
+            return Array.prototype.slice.call(items, 0).map(i => i.getAttribute('aria-controls'));
         });
     }
 
     getContent(): Chainable<JQuery> {
-        return this.get().find('section.moonstone-accordionItem .moonstone-accordionItem_content');
+        return this.get().find('section > [role="region"]');
     }
 }
