@@ -31,7 +31,16 @@ try {
 }
 
 if (mailServiceModuleAvailable) {
-    def props = new Hashtable<String, Object>()
+    def configAdmin = BundleUtils.getOsgiService(ConfigurationAdmin.class, null)
+    // "?" is a multi-location bind: the configuration is delivered to whichever bundle registers
+    // mail-service's DS component for this PID, regardless of which bundle created/updated it here.
+    // A plain getConfiguration(pid) binds the location to the calling bundle (the console/system
+    // bundle), which mail-service's component never receives.
+    def config = configAdmin.getConfiguration("org.jahia.modules.mail", "?")
+    // Merge into the existing properties: they hold felix.fileinstall.filename, through which
+    // fileinstall writes the change back to karaf/etc/org.jahia.modules.mail.cfg. A new dictionary
+    // detaches that file, which then wins again at the next start.
+    def props = config.properties ?: new Hashtable<String, Object>()
     props.put("smtp.host", smtpServerUrl.getHost())
     props.put("smtp.port", String.valueOf(smtpServerUrl.getPort()))
     // Mailpit accepts unauthenticated plain SMTP, so no auth is required.
@@ -42,13 +51,10 @@ if (mailServiceModuleAvailable) {
     // Counterpart of the legacy setTo below: mail-service sends a message with no to/cc/bcc, such as
     // a Jahia system notification, to this address.
     props.put("default.recipient", "admin@smtp-server.localhost")
-
-    def configAdmin = BundleUtils.getOsgiService(ConfigurationAdmin.class, null)
-    // "?" is a multi-location bind: the configuration is delivered to whichever bundle registers
-    // mail-service's DS component for this PID, regardless of which bundle created/updated it here.
-    // A plain getConfiguration(pid) binds the location to the calling bundle (the console/system
-    // bundle), which mail-service's component never receives.
-    configAdmin.getConfiguration("org.jahia.modules.mail", "?").update(props)
+    // Since mail-service 1.0.0 (Jahia 8.2.3.8 / 8.2.4.0), a fresh install, or an upgrade with no legacy
+    // SMTP URL, writes the configuration with disabled=true: turn delivery on explicitly.
+    props.put("disabled", "false")
+    config.update(props)
 } else {
     MailSettings mailSettings = new MailSettings()
     mailSettings.setServiceActivated(true)

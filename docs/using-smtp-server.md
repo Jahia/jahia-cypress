@@ -64,6 +64,8 @@ Setup will be skipped if `SMTP_SERVER_URL` environment variable is not propagate
 
 The script configures the mail-service module when Jahia core ships the `org.jahia.api.mail` API, from 8.2.4.0 and from 8.2.3.8 on the 8.2.3.x line, and the legacy mail service otherwise. It sets the default sender to `noreply@smtp-server.localhost` and the default recipient to `admin@smtp-server.localhost`, on every Jahia version. A mail that Jahia sends with no recipient of its own, such as an administrator notification, goes to `admin@smtp-server.localhost`. A mail with an explicit recipient keeps it.
 
+On mail-service, the script merges its settings into the existing `org.jahia.modules.mail` configuration and sets `disabled=false`, so they are written to `karaf/etc/org.jahia.modules.mail.cfg`. Jahia writes that file with `disabled=true` on a fresh install and on an upgrade with no SMTP URL, and it reloads the file at each start, so mail stays enabled after a restart of Jahia.
+
 ## Usage in tests
 
 `@jahia/cypress` bundles [`cypress-mailpit`](https://github.com/pushpak1300/cypress-mailpit) and registers its commands for you, so all `cy.mailpit*` commands (`cy.mailpitSendMail`, `cy.mailpitGetAllMails`, `cy.mailpitHasEmailsBySubject`, etc.) are available in your tests out of the box — no need to add `cypress-mailpit` to your own `package.json` or import it yourself. See the [cypress-mailpit README](https://github.com/pushpak1300/cypress-mailpit#commands) for the full command list.
