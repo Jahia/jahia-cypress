@@ -178,6 +178,9 @@ Generic `getGlobalVar`/`setGlobalVar` key/value store, backed by `cy.task()`, fo
 ### SMTP Server Support
 Configuration guide for setting up mail server support (`mailpit`) so your tests can receive Jahia mails and notifications. Read more [here](./docs/using-smtp-server.md).
 
+### Session Cleanup
+`registerSupport()` logs out the Jahia session that a test leaves behind. The sessions of `cy.login()` then stay below the limit of logged-in users of the Jahia license. Read more [here](./docs/session-cleanup.md).
+
 ### Provisioning Readiness Check
 `env.run.sh` checks, once the provisioning ran, that every module of the manifest is installed and started, and stops before Cypress starts when one is missing. Read more [here](./docs/provisioning-readiness.md).
 
