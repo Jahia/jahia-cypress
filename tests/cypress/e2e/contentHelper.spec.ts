@@ -174,6 +174,13 @@ describe('ContentHelper addPageWithArea', () => {
         });
     });
 
+    it('adds the default text when the area content is null', () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return addPageWithArea({...page, areaContent: null as any}).then(() => {
+            expect(lastCall.variables.children[0].children[0].primaryNodeType).to.equal('jnt:text');
+        });
+    });
+
     it('adds an empty area when the area content is an empty array', () => {
         return addPageWithArea({...page, areaContent: []}).then(() => {
             expect(lastCall.variables.children).to.deep.equal([

@@ -68,8 +68,8 @@ export type AddPageWithAreaOptions = AddPageOptions & {
 
 /**
  * Add a `jnt:page` with an area under it, the structure a test needs to render a page with some content.
- * The area is a `jnt:contentList` named `area`; it holds `areaContent`, or one `jnt:text` when no content
- * is given. `children`, if any, are added under the page after the area. Everything else is `addPage`.
+ * The area is a `jnt:contentList` that the `area` option names; it holds `areaContent`, or one `jnt:text`
+ * when no content is given. `children`, if any, are added under the page after the area. Everything else is `addPage`.
  *
  * @param options the page to add, its area and the area content
  * @param apolloOptions options forwarded to `cy.apollo`
@@ -78,15 +78,12 @@ export type AddPageWithAreaOptions = AddPageOptions & {
 export const addPageWithArea = (options: AddPageWithAreaOptions, apolloOptions: ApolloOptions = {}): Cypress.Chainable => {
     const {area = 'area-main', areaContent, children = [], ...pageOptions} = options;
 
-    let content = areaContent;
-    if (content === undefined) {
-        const textProperty: Record<string, string> = {name: 'text', type: 'STRING', value: options.name};
-        if (options.language !== undefined) {
-            textProperty.language = options.language;
-        }
-
-        content = [{name: 'text', primaryNodeType: 'jnt:text', properties: [textProperty]}];
+    const textProperty: Record<string, string> = {name: 'text', type: 'STRING', value: options.name};
+    if (options.language !== undefined) {
+        textProperty.language = options.language;
     }
+
+    const content = areaContent ?? [{name: 'text', primaryNodeType: 'jnt:text', properties: [textProperty]}];
 
     return addPage({
         ...pageOptions,
