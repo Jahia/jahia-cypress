@@ -2,74 +2,130 @@
  * Logs out the Jahia session that a test leaves behind. See docs/session-cleanup.md.
  */
 
+import {logoutRequest} from './logout';
+
 const SESSION_COOKIE = 'JSESSIONID';
 
-/** The session ids that `loginAndStoreSession()` stored with `cy.session()`, which later tests restore. */
-const storedSessionIds = new Set<string>();
+/** The session ids that `cy.session()` stored, which a later test restores. */
+const keptSessionIds = new Set<string>();
+
+/** The session ids to log out when the spec ends. */
+const specEndSessionIds = new Set<string>();
 
 /**
  * Tells whether the session of the cookie must be logged out.
  * @param {string | undefined} sessionId the value of the session cookie, if any
- * @param {ReadonlySet<string>} keptSessionIds the session ids that a later test restores
+ * @param {ReadonlySet<string>} keptIds the session ids that a later test restores
  * @returns {boolean} true when there is a session that no later test restores
  */
-export const shouldLogout = (sessionId: string | undefined, keptSessionIds: ReadonlySet<string>): boolean => {
-    return Boolean(sessionId) && !keptSessionIds.has(sessionId);
-};
-
-const isEnabled = (): boolean => Cypress.env('JAHIA_LOGOUT_AFTER_TEST') !== false;
-
-const baseUrlHostname = (): string | undefined => {
-    const baseUrl = Cypress.config().baseUrl;
-    return baseUrl ? new URL(baseUrl).hostname : undefined;
+export const shouldLogout = (sessionId: string | undefined, keptIds: ReadonlySet<string>): boolean => {
+    return Boolean(sessionId) && !keptIds.has(sessionId);
 };
 
 /**
- * Keeps the current session open after the test, because `cy.session()` restores it in a later test.
+ * Tells whether the value of `JAHIA_LOGOUT_AFTER_TEST` leaves the hook on.
+ * @param {unknown} value the value of the Cypress environment variable, a boolean or a string
+ * @returns {boolean} false for `false` and for the string `'false'`, true otherwise
  */
-export const keepCurrentSession = (): void => {
-    cy.getCookie(SESSION_COOKIE, {log: false}).then(cookie => {
-        if (cookie) {
-            storedSessionIds.add(cookie.value);
-        }
-    });
+export const isEnabled = (value: unknown): boolean => value !== false && String(value).toLowerCase() !== 'false';
+
+const baseUrlHostname = (): string | undefined => {
+    const baseUrl = Cypress.config('baseUrl');
+    return baseUrl ? new URL(baseUrl).hostname : undefined;
 };
 
-const logoutLeftSession = (): void => {
-    const hostname = baseUrlHostname();
-    if (!isEnabled() || !hostname) {
-        return;
-    }
+const isActive = (): boolean => isEnabled(Cypress.env('JAHIA_LOGOUT_AFTER_TEST')) && Boolean(baseUrlHostname());
 
-    cy.getCookie(SESSION_COOKIE, {domain: hostname, log: false}).then(cookie => {
-        if (shouldLogout(cookie?.value, storedSessionIds)) {
-            cy.request({
-                method: 'POST',
-                url: '/cms/logout',
-                followRedirect: false,
-                failOnStatusCode: false,
-                log: false
+const withSessionId = (fn: (sessionId: string | undefined) => void): void => {
+    cy.getCookie(SESSION_COOKIE, {domain: baseUrlHostname(), log: false}).then(cookie => fn(cookie?.value));
+};
+
+const logoutCurrentSession = (): void => {
+    logoutRequest().then(response => {
+        if (response.status >= 400) {
+            Cypress.log({
+                name: 'sessionCleanup',
+                message: `The logout of the session that the test left answered ${response.status}`
             });
         }
     });
 };
 
 /**
- * Registers the hooks that log out the session a test leaves behind. With `testIsolation`, the hook runs
- * after each test. Without it, the tests of a spec share their session, so the hook runs once after the spec.
+ * Keeps the current session open after the test, because `cy.session()` restores it in a later test.
+ * @param {boolean} acrossSpecs true when `cy.session()` also restores the session in a later spec
+ */
+export const keepCurrentSession = (acrossSpecs = false): void => {
+    withSessionId(sessionId => {
+        if (sessionId) {
+            keptSessionIds.add(sessionId);
+            if (!acrossSpecs) {
+                specEndSessionIds.add(sessionId);
+            }
+        }
+    });
+};
+
+/** Logs out the session of the test, unless `cy.session()` restores it later. */
+export const afterTest = (): void => {
+    if (!isActive()) {
+        return;
+    }
+
+    withSessionId(sessionId => {
+        if (!shouldLogout(sessionId, keptSessionIds)) {
+            return;
+        }
+
+        if (Cypress.config('testIsolation') === false) {
+            // The next test of the suite shares this session: log it out when the spec ends.
+            specEndSessionIds.add(sessionId);
+        } else {
+            logoutCurrentSession();
+        }
+    });
+};
+
+/** Logs out the sessions that the tests of the spec shared, and the sessions that `cy.session()` stored for the spec only. */
+export const afterSpec = (): void => {
+    if (!isActive() || specEndSessionIds.size === 0) {
+        return;
+    }
+
+    const domain = baseUrlHostname();
+    specEndSessionIds.forEach(sessionId => {
+        cy.setCookie(SESSION_COOKIE, sessionId, {domain, path: '/', log: false});
+        logoutCurrentSession();
+        keptSessionIds.delete(sessionId);
+    });
+    specEndSessionIds.clear();
+    cy.clearCookie(SESSION_COOKIE, {domain, log: false});
+};
+
+/**
+ * Replaces `cy.session()`: the setup also keeps the session it opens, so the hooks do not log it out.
+ * @param {Function} originalFn the original `cy.session()` command
+ * @param {string | object} id the id of the session
+ * @param {Function} setup the setup of the session
+ * @param {Cypress.SessionOptions} options the options of the session
+ * @returns {Cypress.Chainable<null>} the chain of the original command
+ */
+export const sessionThatKeeps: Cypress.CommandFnWithOriginalFn<'session'> = (originalFn, id, setup, options) => {
+    return originalFn(id, () => {
+        setup();
+        keepCurrentSession(Boolean(options?.cacheAcrossSpecs));
+    }, options);
+};
+
+/**
+ * Registers the hooks that log out the session a test leaves behind, and marks each session that
+ * `cy.session()` stores, so that the hooks keep it while a later test can restore it.
  */
 const enable = (): void => {
-    afterEach(() => {
-        if (Cypress.config('testIsolation') !== false) {
-            logoutLeftSession();
-        }
-    });
+    Cypress.Commands.overwrite('session', sessionThatKeeps);
 
-    after(() => {
-        if (Cypress.config('testIsolation') === false) {
-            logoutLeftSession();
-        }
-    });
+    afterEach(afterTest);
+    after(afterSpec);
 };
 
 export const sessionCleanup = {enable};

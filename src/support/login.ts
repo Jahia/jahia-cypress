@@ -3,8 +3,6 @@
 // Load type definitions that come with Cypress module
 /// <reference types="cypress" />
 
-import {keepCurrentSession} from './sessionCleanup';
-
 declare global {
     namespace Cypress {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,7 +51,6 @@ export const login = (username = 'root', password: string = Cypress.env('SUPER_U
 export const loginAndStoreSession = (username = 'root', password: string = Cypress.env('SUPER_USER_PASSWORD'), url = '/start'): void => {
     cy.session('session-' + username, () => {
         cy.login(username, password); // Edit in chief
-        keepCurrentSession();
     }, {
         validate() {
             cy.request(url).its('status').should('eq', 200);
