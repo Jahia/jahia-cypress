@@ -12,6 +12,20 @@ declare global {
     }
 }
 
+/**
+ * Sends the logout request of the current session, and fails on no status.
+ * @returns {Cypress.Chainable<Cypress.Response<any>>} the response of Jahia
+ */
+export const logoutRequest = (): Cypress.Chainable<Cypress.Response<any>> => {
+    return cy.request({
+        method: 'POST',
+        url: '/cms/logout',
+        followRedirect: false,
+        failOnStatusCode: false,
+        log: false
+    });
+};
+
 export const logout = (): void => {
     Cypress.log({
         name: 'logout',
@@ -21,12 +35,7 @@ export const logout = (): void => {
         }
     });
 
-    cy.request({
-        method: 'POST',
-        url: '/cms/logout',
-        followRedirect: false,
-        log: false
-    }).then(res => {
+    logoutRequest().then(res => {
         expect(res.status, 'Logout result').to.eq(302);
     });
 };
