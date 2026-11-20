@@ -103,7 +103,8 @@ export const afterSpec = (): void => {
 };
 
 /**
- * Replaces `cy.session()`: the setup also keeps the session it opens, so the hooks do not log it out.
+ * Replaces `cy.session()`: once the session is created or restored, keeps it, so the hooks do not log it out.
+ * The arguments reach `cy.session()` unchanged, because Cypress compares the text of the setup.
  * @param {Function} originalFn the original `cy.session()` command
  * @param {string | object} id the id of the session
  * @param {Function} setup the setup of the session
@@ -111,15 +112,15 @@ export const afterSpec = (): void => {
  * @returns {Cypress.Chainable<null>} the chain of the original command
  */
 export const sessionThatKeeps: Cypress.CommandFnWithOriginalFn<'session'> = (originalFn, id, setup, options) => {
-    return originalFn(id, () => {
-        setup();
+    return originalFn(id, setup, options).then(subject => {
         keepCurrentSession(Boolean(options?.cacheAcrossSpecs));
-    }, options);
+        cy.wrap(subject, {log: false});
+    });
 };
 
 /**
  * Registers the hooks that log out the session a test leaves behind, and marks each session that
- * `cy.session()` stores, so that the hooks keep it while a later test can restore it.
+ * `cy.session()` creates or restores, so that the hooks keep it while a later test can restore it.
  */
 const enable = (): void => {
     Cypress.Commands.overwrite('session', sessionThatKeeps);

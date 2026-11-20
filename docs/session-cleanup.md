@@ -32,10 +32,12 @@ but Jahia does not count that session as a logged-in user. A run of these calls 
 - In a suite with `testIsolation: false`, the tests share their session. The hook keeps that
   session after each test and logs it out when the spec ends.
 - `cy.session()` stores a session that a later test restores, and `cy.loginAndStoreSession()` calls
-  it. The hook keeps each session that `cy.session()` stores. Cypress clears these sessions between
-  specs, so the hook logs them out when the spec ends.
+  it. The hook keeps each session that `cy.session()` creates or restores. Cypress clears these
+  sessions between specs, so the hook logs them out when the spec ends.
 - A session that `cy.session()` stores with `cacheAcrossSpecs: true` stays open, because a later
   spec restores it.
+- With no `baseUrl` in the Cypress configuration, the hooks send nothing, and each session stays
+  open until it times out.
 
 Mocha runs an `afterEach` hook inside a `describe` block before the hooks of the support file. That
 cleanup hook therefore still runs with the session of the test. An `afterEach` hook at the top level

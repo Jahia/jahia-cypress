@@ -1,15 +1,24 @@
-import {afterSpec, afterTest, isEnabled, keepCurrentSession, sessionThatKeeps, shouldLogout} from '../../../src/support/sessionCleanup';
+import {afterSpec, afterTest, isEnabled, sessionThatKeeps, shouldLogout} from '../../../src/support/sessionCleanup';
 
 const COOKIE = 'JSESSIONID';
 const logoutCalls: string[] = [];
+let logoutStatus = 302;
 
 // Record each logout instead of sending it: this suite runs with no Jahia.
 Cypress.Commands.overwrite('request', (_originalFn, options: Partial<Cypress.RequestOptions>) => {
-    cy.getCookie(COOKIE).then(cookie => {
+    cy.getCookie(COOKIE, {domain: 'localhost'}).then(cookie => {
         logoutCalls.push(`${options.method} ${options.url} ${cookie?.value}`);
     });
-    return cy.wrap({status: 302} as Cypress.Response<unknown>, {log: false});
+    return cy.wrap({status: logoutStatus} as Cypress.Response<unknown>, {log: false});
 });
+
+Cypress.Commands.overwrite('session', sessionThatKeeps);
+
+/** Stands for `cy.session()`: records the setup it gets, and sets the cookie of a created or restored session. */
+const fakeSession = (sessionId: string, received: {setup?: unknown}) => ((_id: string, setup: unknown) => {
+    received.setup = setup;
+    return cy.setCookie(COOKIE, sessionId, {domain: 'localhost', log: false}).then(() => null);
+}) as unknown as Cypress.CommandOriginalFn<'session'>;
 
 describe('sessionCleanup logout decision', () => {
     it('logs out a session that no later test restores', () => {
@@ -45,6 +54,7 @@ describe('sessionCleanup off switch', () => {
 describe('sessionCleanup hooks', {baseUrl: 'http://localhost:8080'}, () => {
     beforeEach(() => {
         logoutCalls.length = 0;
+        logoutStatus = 302;
         Cypress.env('JAHIA_LOGOUT_AFTER_TEST', undefined);
     });
 
@@ -67,14 +77,39 @@ describe('sessionCleanup hooks', {baseUrl: 'http://localhost:8080'}, () => {
         cy.then(() => expect(logoutCalls).to.deep.equal([]));
     });
 
-    it('keeps a session that cy.session() stored, and logs it out when the spec ends', () => {
-        let setup: () => void;
-        const originalFn = ((_id: string, wrappedSetup: () => void) => {
-            setup = wrappedSetup;
-            return cy.wrap(null);
-        }) as unknown as Cypress.CommandOriginalFn<'session'>;
-        sessionThatKeeps(originalFn, 'session-root', () => cy.setCookie(COOKIE, 'KEPT-1', {domain: 'localhost'}), {});
-        cy.then(() => setup());
+    it('writes the status in the command log when the logout fails', () => {
+        const messages: string[] = [];
+        cy.on('log:added', attributes => {
+            if (attributes.name === 'sessionCleanup') {
+                messages.push(attributes.message);
+            }
+        });
+        logoutStatus = 500;
+        cy.setCookie(COOKIE, 'LEFT-3', {domain: 'localhost'});
+        cy.then(() => afterTest());
+        cy.then(() => expect(messages).to.deep.equal(['The logout of the session that the test left answered 500']));
+    });
+
+    it('keeps a session that a real cy.session() created, and logs it out when the spec ends', () => {
+        cy.session('real-session', () => {
+            cy.setCookie(COOKIE, 'REAL-1', {domain: 'localhost'});
+        });
+        cy.then(() => afterTest());
+        cy.then(() => expect(logoutCalls).to.deep.equal([]));
+        cy.then(() => afterSpec());
+        cy.then(() => expect(logoutCalls).to.deep.equal(['POST /cms/logout REAL-1']));
+    });
+
+    it('passes the setup to cy.session() unchanged', () => {
+        const received: {setup?: unknown} = {};
+        const setup = () => cy.log('setup');
+        sessionThatKeeps(fakeSession('UNCHANGED-1', received), 'session-root', setup, {});
+        cy.then(() => expect(received.setup).to.equal(setup));
+        cy.then(() => afterSpec());
+    });
+
+    it('keeps a session that cy.session() restored without running its setup, and logs it out when the spec ends', () => {
+        sessionThatKeeps(fakeSession('KEPT-1', {}), 'session-root', () => undefined, {});
         cy.then(() => afterTest());
         cy.then(() => expect(logoutCalls).to.deep.equal([]));
         cy.then(() => afterSpec());
@@ -82,8 +117,7 @@ describe('sessionCleanup hooks', {baseUrl: 'http://localhost:8080'}, () => {
     });
 
     it('keeps a session that cy.session() caches across specs, also when the spec ends', () => {
-        cy.setCookie(COOKIE, 'ACROSS-1', {domain: 'localhost'});
-        cy.then(() => keepCurrentSession(true));
+        sessionThatKeeps(fakeSession('ACROSS-1', {}), 'session-root', () => undefined, {cacheAcrossSpecs: true});
         cy.then(() => afterTest());
         cy.then(() => afterSpec());
         cy.then(() => expect(logoutCalls).to.deep.equal([]));
@@ -96,6 +130,15 @@ describe('sessionCleanup hooks', {baseUrl: 'http://localhost:8080'}, () => {
             cy.then(() => expect(logoutCalls).to.deep.equal([]));
             cy.then(() => afterSpec());
             cy.then(() => expect(logoutCalls).to.deep.equal(['POST /cms/logout SHARED-1']));
+        });
+
+        it('logs out each session that the tests shared when the spec ends', () => {
+            cy.setCookie(COOKIE, 'SHARED-A', {domain: 'localhost'});
+            cy.then(() => afterTest());
+            cy.setCookie(COOKIE, 'SHARED-B', {domain: 'localhost'});
+            cy.then(() => afterTest());
+            cy.then(() => afterSpec());
+            cy.then(() => expect(logoutCalls).to.deep.equal(['POST /cms/logout SHARED-A', 'POST /cms/logout SHARED-B']));
         });
     });
 });
