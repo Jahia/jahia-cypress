@@ -10,6 +10,7 @@ import {mailpitReady} from './mailpitExt';
 import {modSince} from './modSince';
 import {collect as contextCollector} from './contextReporter';
 import {jahiaLog} from './jahiaLog';
+import {sessionCleanup} from './sessionCleanup';
 
 export const registerSupport = (): void => {
     Cypress.Commands.add('apolloClient', apolloClient);
@@ -35,6 +36,7 @@ export const registerSupport = (): void => {
     // Register it.since()/describe.since()
     modSince.enable();
     jahiaLog.enableSpecsMarker();
+    sessionCleanup.enable();
 
     /**
      * Override Cypress `type()` command to interpret special characters (e.g., {, }, etc.) either literally or as commands.
