@@ -1,5 +1,5 @@
 import '../../../src/support/apollo/apollo';
-import {addPage} from '../../../src/utils/ContentHelper';
+import {addPage, addPageWithArea} from '../../../src/utils/ContentHelper';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApolloCall = {mutationFile?: string, variables?: any, errorPolicy?: string};
@@ -115,6 +115,94 @@ describe('ContentHelper addPage', () => {
             template: 'simple'
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }, {errorPolicy: 'ignore'} as any).then(() => {
+            expect(lastCall.errorPolicy).to.equal('ignore');
+        });
+    });
+});
+
+describe('ContentHelper addPageWithArea', () => {
+    const page = {parentPathOrId: '/sites/mySite/home', name: 'myPage', template: 'simple', title: 'My page', language: 'en'};
+
+    beforeEach(() => {
+        lastCall = null;
+    });
+
+    it('adds the page the way addPage does', () => {
+        return addPageWithArea(page).then(() => {
+            expect(lastCall.mutationFile).to.equal('graphql/jcr/mutation/addNode.graphql');
+            expect(lastCall.variables.parentPathOrId).to.equal('/sites/mySite/home');
+            expect(lastCall.variables.name).to.equal('myPage');
+            expect(lastCall.variables.primaryNodeType).to.equal('jnt:page');
+            expect(lastCall.variables.properties).to.deep.equal([
+                {name: 'j:templateName', type: 'STRING', value: 'simple'},
+                {name: 'jcr:title', type: 'STRING', value: 'My page', language: 'en'}
+            ]);
+        });
+    });
+
+    it('adds area-main with one jnt:text holding the page name in the page language', () => {
+        return addPageWithArea(page).then(() => {
+            expect(lastCall.variables.children).to.deep.equal([{
+                name: 'area-main',
+                primaryNodeType: 'jnt:contentList',
+                children: [{
+                    name: 'text',
+                    primaryNodeType: 'jnt:text',
+                    properties: [{name: 'text', type: 'STRING', value: 'myPage', language: 'en'}]
+                }]
+            }]);
+        });
+    });
+
+    it('sets an unlocalized text when no language is given', () => {
+        return addPageWithArea({parentPathOrId: '/sites/mySite/home', name: 'myPage', template: 'simple'}).then(() => {
+            expect(lastCall.variables.children[0].children[0].properties).to.deep.equal([
+                {name: 'text', type: 'STRING', value: 'myPage'}
+            ]);
+        });
+    });
+
+    it('names the area and fills it with the given content of any node type', () => {
+        const areaContent = [
+            {name: 'banner', primaryNodeType: 'jnt:bigText', properties: [{name: 'text', type: 'STRING', value: '<p>Bonjour</p>', language: 'fr'}]}
+        ];
+
+        return addPageWithArea({...page, area: 'pagecontent', areaContent: areaContent}).then(() => {
+            expect(lastCall.variables.children).to.deep.equal([
+                {name: 'pagecontent', primaryNodeType: 'jnt:contentList', children: areaContent}
+            ]);
+        });
+    });
+
+    it('adds the default text when the area content is null', () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return addPageWithArea({...page, areaContent: null as any}).then(() => {
+            expect(lastCall.variables.children[0].children[0].primaryNodeType).to.equal('jnt:text');
+        });
+    });
+
+    it('adds an empty area when the area content is an empty array', () => {
+        return addPageWithArea({...page, areaContent: []}).then(() => {
+            expect(lastCall.variables.children).to.deep.equal([
+                {name: 'area-main', primaryNodeType: 'jnt:contentList', children: []}
+            ]);
+        });
+    });
+
+    it('adds the other children after the area, and passes properties and mixins through', () => {
+        const children = [{name: 'sidebar', primaryNodeType: 'jnt:contentList'}];
+        const properties = [{name: 'jcr:title', type: 'STRING', value: 'Ma page', language: 'fr'}];
+
+        return addPageWithArea({...page, children: children, properties: properties, mixins: ['jmix:sitemap']}).then(() => {
+            expect(lastCall.variables.children.map(child => child.name)).to.deep.equal(['area-main', 'sidebar']);
+            expect(lastCall.variables.mixins).to.deep.equal(['jmix:sitemap']);
+            expect(lastCall.variables.properties[0]).to.deep.equal(properties[0]);
+        });
+    });
+
+    it('forwards apollo options', () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return addPageWithArea(page, {errorPolicy: 'ignore'} as any).then(() => {
             expect(lastCall.errorPolicy).to.equal('ignore');
         });
     });
