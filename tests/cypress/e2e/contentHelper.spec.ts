@@ -1,5 +1,5 @@
 import '../../../src/support/apollo/apollo';
-import {addPage} from '../../../src/utils/ContentHelper';
+import {addPage, pageContent} from '../../../src/utils/ContentHelper';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApolloCall = {mutationFile?: string, variables?: any, errorPolicy?: string};
@@ -116,6 +116,69 @@ describe('ContentHelper addPage', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }, {errorPolicy: 'ignore'} as any).then(() => {
             expect(lastCall.errorPolicy).to.equal('ignore');
+        });
+    });
+});
+
+describe('ContentHelper addPage children function and pageContent', () => {
+    const page = {parentPathOrId: '/sites/mySite/home', name: 'myPage', template: 'simple', title: 'My page', language: 'en'};
+
+    const areaMain = (textNode: object) => [{
+        name: 'area-main',
+        primaryNodeType: 'jnt:contentList',
+        children: [textNode]
+    }];
+
+    beforeEach(() => {
+        lastCall = null;
+    });
+
+    it('calls a children function with the page name and language', () => {
+        return addPage({
+            ...page,
+            children: ({name, language}) => [{name: `${name}-${language}`, primaryNodeType: 'jnt:contentList'}]
+        }).then(() => {
+            expect(lastCall.variables.children).to.deep.equal([{name: 'myPage-en', primaryNodeType: 'jnt:contentList'}]);
+        });
+    });
+
+    it('pageContent() adds area-main with one jnt:text holding the page name in the page language', () => {
+        return addPage({...page, children: pageContent()}).then(() => {
+            expect(lastCall.variables.children).to.deep.equal(areaMain({
+                name: 'text',
+                primaryNodeType: 'jnt:text',
+                properties: [{name: 'text', type: 'STRING', value: 'myPage', language: 'en'}]
+            }));
+        });
+    });
+
+    it('pageContent() sets an unlocalized text when the page has no language', () => {
+        return addPage({parentPathOrId: '/sites/mySite/home', name: 'myPage', template: 'simple', children: pageContent()}).then(() => {
+            expect(lastCall.variables.children).to.deep.equal(areaMain({
+                name: 'text',
+                primaryNodeType: 'jnt:text',
+                properties: [{name: 'text', type: 'STRING', value: 'myPage'}]
+            }));
+        });
+    });
+
+    it('pageContent takes its own value and node type', () => {
+        return addPage({...page, children: pageContent('<p>my text</p>', 'jnt:bigText')}).then(() => {
+            expect(lastCall.variables.children).to.deep.equal(areaMain({
+                name: 'text',
+                primaryNodeType: 'jnt:bigText',
+                properties: [{name: 'text', type: 'STRING', value: '<p>my text</p>', language: 'en'}]
+            }));
+        });
+    });
+
+    it('lets pageContent be combined with other children', () => {
+        return addPage({
+            ...page,
+            children: p => [...pageContent('my text')(p), {name: 'footer', primaryNodeType: 'jnt:contentList'}]
+        }).then(() => {
+            expect(lastCall.variables.children.map(child => child.name)).to.deep.equal(['area-main', 'footer']);
+            expect(lastCall.variables.children[0].children[0].properties[0].value).to.equal('my text');
         });
     });
 });
