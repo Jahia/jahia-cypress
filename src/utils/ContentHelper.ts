@@ -13,7 +13,7 @@ export type AddPageOptions = {
     template: string;
     /** Value of `jcr:title`. Set without `language`, it is stored unlocalized and read back in every language. */
     title?: string;
-    /** Language of `title`. */
+    /** Language of `title`, also passed to a `children` function. */
     language?: string;
     /** Extra properties, set alongside the ones this helper derives. */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,10 +30,11 @@ export type AddPageOptions = {
 
 /**
  * Add a `jnt:page`, deriving `j:templateName` from `template` and `jcr:title` from
- * `title`/`language`. Everything else — `properties`, `children`, `mixins` — reaches `addNode`
- * untouched: the helper imposes no page structure, so a caller that needs an area, a text node
- * or a second title language passes it in. A `children` function is called with the page name
- * and language first, so `children: pageContent()` adds the common structure in the page language.
+ * `title`/`language`. `properties`, `mixins` and an array of `children` reach `addNode` untouched:
+ * the helper imposes no page structure, so a caller that needs an area, a text node or a second
+ * title language passes it in. A `children` function is called with the page name and language,
+ * and `addNode` receives the array it returns, so `children: pageContent()` adds the common
+ * structure in the page language.
  *
  * @param options the page to add
  * @param apolloOptions options forwarded to `cy.apollo`
@@ -65,10 +66,11 @@ export const addPage = (options: AddPageOptions, apolloOptions: ApolloOptions = 
 
 /**
  * Children for `addPage`: an `area-main` list holding one node named `text`, whose `text`
- * property is in the page language, or unlocalized when the page has no language.
+ * property is in the page language, or unlocalized when the page has no language. It fits a
+ * template whose area is `area-main`; another area takes a `children` array or function.
  *
  * @param value the text; defaults to the page name
- * @param primaryNodeType the type of the node; defaults to `jnt:text`
+ * @param primaryNodeType a type whose content is its `text` property, such as `jnt:bigText`
  * @returns a `children` function for `addPage`
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
