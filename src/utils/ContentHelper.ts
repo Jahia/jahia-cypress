@@ -29,6 +29,13 @@ export type AddPageOptions = {
     mixins?: string [];
 };
 
+export type TextNodeOptions = {
+    /** Node name, kept as given; without it, `text` or `bigText`, suffixed past the siblings. */
+    name?: string;
+    /** Language of the `text` property; defaults to the page language, and to unlocalized without one. */
+    language?: string;
+};
+
 type NodeSpec = {
     name?: string;
     properties?: Record<string, string>;
@@ -73,6 +80,35 @@ const nameChildren = (nodes: any []): any [] => {
     });
 };
 
+// A node builder of any type. Each public builder passes `language` only for a type whose
+// properties are internationalized.
+const node = (primaryNodeType: string, spec: NodeSpec = {}): NodeBuilder => page => {
+    // Without a name, nameChildren() derives one from the type once it knows the sibling names.
+    const built: Record<string, unknown> = spec.name === undefined ? {primaryNodeType} : {name: spec.name, primaryNodeType};
+    const properties = Object.entries(spec.properties ?? {}).map(([name, value]) => (
+        spec.language === undefined ? {name, type: 'STRING', value} : {name, type: 'STRING', value, language: spec.language}
+    ));
+    if (properties.length > 0) {
+        built.properties = properties;
+    }
+
+    if (spec.children !== undefined) {
+        built.children = nameChildren(spec.children.map(child => resolve(child, page)));
+    }
+
+    return built;
+};
+
+/**
+ * Auxiliary wrapper-builder for simple and rich text nodes
+ * @param primaryNodeType
+ */
+const textNodeBuilder = (primaryNodeType: string) => (value?: string, options: TextNodeOptions = {}): NodeBuilder => page => node(primaryNodeType, {
+    name: options.name,
+    properties: {text: value ?? page.name},
+    language: options.language ?? page.language
+})(page);
+
 /**
  * Add a `jnt:page`, deriving `j:templateName` from `template` and `jcr:title` from
  * `title`/`language`. `properties` and `mixins` reach `addNode` untouched, and so does a node in
@@ -107,25 +143,6 @@ export const addPage = (options: AddPageOptions, apolloOptions: ApolloOptions = 
     }, apolloOptions);
 };
 
-// A node builder of any type. Each public builder passes `language` only for a type whose
-// properties are internationalized.
-const node = (primaryNodeType: string, spec: NodeSpec = {}): NodeBuilder => page => {
-    // Without a name, nameChildren() derives one from the type once it knows the sibling names.
-    const built: Record<string, unknown> = spec.name === undefined ? {primaryNodeType} : {name: spec.name, primaryNodeType};
-    const properties = Object.entries(spec.properties ?? {}).map(([name, value]) => (
-        spec.language === undefined ? {name, type: 'STRING', value} : {name, type: 'STRING', value, language: spec.language}
-    ));
-    if (properties.length > 0) {
-        built.properties = properties;
-    }
-
-    if (spec.children !== undefined) {
-        built.children = nameChildren(spec.children.map(child => resolve(child, page)));
-    }
-
-    return built;
-};
-
 /**
  * A `jnt:contentList` area. A child without a name is named after its type and suffixed past its
  * siblings, `text` then `text-1`; a given name is kept, and two children given one name throw.
@@ -136,19 +153,6 @@ const node = (primaryNodeType: string, spec: NodeSpec = {}): NodeBuilder => page
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const areaNode = (name: string, ...children: any []): NodeBuilder => node('jnt:contentList', {name, children});
-
-export type TextOptions = {
-    /** Node name, kept as given; without it, `text` or `bigText`, suffixed past the siblings. */
-    name?: string;
-    /** Language of the `text` property; defaults to the page language, and to unlocalized without one. */
-    language?: string;
-};
-
-const textNodeBuilder = (primaryNodeType: string) => (value?: string, options: TextOptions = {}): NodeBuilder => page => node(primaryNodeType, {
-    name: options.name,
-    properties: {text: value ?? page.name},
-    language: options.language ?? page.language
-})(page);
 
 /**
  * A `jnt:text` node.
